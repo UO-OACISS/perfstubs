@@ -4,6 +4,7 @@
    accompanying file Copyright.txt for details.
  */
 
+#include "Config.h"
 #include "Timer.h"
 
 /* If not enabled, macro out all of the code in this file. */
@@ -64,25 +65,30 @@ static void InitializeLibrary(void)
     UNUSED(tt);
 }
 
+#ifdef PERFSTUBS_USE_STATIC
+extern "C" void perftool_init(void) __attribute((weak));
+extern "C" void perftool_register_thread(void) __attribute((weak));
+extern "C" void perftool_exit(void) __attribute((weak));
+extern "C" void perftool_start(const char *) __attribute((weak));
+extern "C" void perftool_stop(const char *) __attribute((weak));
+extern "C" void perftool_sample_counter(const char *, double) __attribute((weak));
+extern "C" void perftool_metadata(const char *, const char *) __attribute((weak));
+#endif
+
 int AssignFunctionPointers(void)
 {
 #ifdef PERFSTUBS_USE_STATIC
-    if (&perftool_init == nullptr) {
-        MyPerfStubsInit = &perftool_init;
-    } else {
-        std::cout << "perftool_init not defined" << std::endl;
-    }
+    MyPerfStubsInit = &perftool_init;
     if (MyPerfStubsInit == nullptr) {
+        std::cout << "perftool_init not defined" << std::endl;
         return PERFSTUBS_FAILURE;
     }
-    MyPerfStubsRegisterThread =
-        (PerfStubsRegisterThreadType)dlsym(RTLD_DEFAULT, "perftool_register_thread");
-    MyPerfStubsStart = (PerfStubsStartType)dlsym(RTLD_DEFAULT, "perftool_start");
-    MyPerfStubsStop = (PerfStubsStopType)dlsym(RTLD_DEFAULT, "perftool_stop");
-    MyPerfStubsExit = (PerfStubsExitType)dlsym(RTLD_DEFAULT, "perftool_exit");
-    MyPerfStubsSampleCounter = (PerfStubsSampleCounterType)dlsym(
-        RTLD_DEFAULT, "perftool_sample_counter");
-    MyPerfStubsMetadata = (PerfStubsMetadataType)dlsym(RTLD_DEFAULT, "perftool_metadata");
+    MyPerfStubsRegisterThread = perftool_register_thread;
+    MyPerfStubsStart = &perftool_start;
+    MyPerfStubsStop = &perftool_stop;
+    MyPerfStubsExit = &perftool_exit;
+    MyPerfStubsSampleCounter = &perftool_sample_counter;
+    MyPerfStubsMetadata = &perftool_metadata;
 #else
     MyPerfStubsInit = (PerfStubsInitType)dlsym(RTLD_DEFAULT, "perftool_init");
     if (MyPerfStubsInit == nullptr) {

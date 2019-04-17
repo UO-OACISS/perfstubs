@@ -1,15 +1,23 @@
 cmake_minimum_required (VERSION 2.6)
 project (perfstubs)
 
-set (BUILD_SHARED_LIBS OFF)
-
 # should we use our own math functions?
 option (PERFSTUBS_USE_TIMERS
-        "Use provided perfstubs implementation" ON)
+    "Use provided perfstubs implementation" ON)
 
 # should we use our own math functions?
 option (PERFSTUBS_USE_DEFAULT_IMPLEMENTATION
-        "Use provided perfstubs implementation" ON)
+    "Use provided perfstubs implementation" ON)
+
+# should we use static or dynamic linking?
+option (PERFSTUBS_USE_STATIC
+    "Use static linking" OFF)
+
+if (PERFSTUBS_USE_STATIC)
+    set (BUILD_SHARED_LIBS OFF)
+else (PERFSTUBS_USE_STATIC)
+    set (BUILD_SHARED_LIBS ON)
+endif (PERFSTUBS_USE_STATIC)
 
 # The version number.
 set (PerfStubs_VERSION_MAJOR 0)
@@ -30,7 +38,7 @@ include_directories ("${PROJECT_BINARY_DIR}/examples")
 # so that we will find Config.h
 include_directories("${PROJECT_BINARY_DIR}")
 
-set (EXTRA_LIBS ${EXTRA_LIBS} pthread)
+set (EXTRA_LIBS ${EXTRA_LIBS} pthread m)
 
 # add the perfstubs library
 if (PERFSTUBS_USE_TIMERS)
@@ -54,6 +62,10 @@ if (PERFSTUBS_USE_DEFAULT_IMPLEMENTATION)
   endif (BUILD_SHARED_LIBS)
   set (EXTRA_LIBS ${EXTRA_LIBS} ${IMPL_LIB})
 endif (PERFSTUBS_USE_DEFAULT_IMPLEMENTATION)
+
+if (PERFSTUBS_USE_STATIC)
+    SET(CMAKE_EXE_LINKER_FLAGS "-static")
+endif (PERFSTUBS_USE_STATIC)
 
 # add the executable
 add_executable(perfstubs_test_cpp examples/main.cpp)
