@@ -66,6 +66,24 @@ static void InitializeLibrary(void)
 
 int AssignFunctionPointers(void)
 {
+#ifdef PERFSTUBS_USE_STATIC
+    if (&perftool_init == nullptr) {
+        MyPerfStubsInit = &perftool_init;
+    } else {
+        std::cout << "perftool_init not defined" << std::endl;
+    }
+    if (MyPerfStubsInit == nullptr) {
+        return PERFSTUBS_FAILURE;
+    }
+    MyPerfStubsRegisterThread =
+        (PerfStubsRegisterThreadType)dlsym(RTLD_DEFAULT, "perftool_register_thread");
+    MyPerfStubsStart = (PerfStubsStartType)dlsym(RTLD_DEFAULT, "perftool_start");
+    MyPerfStubsStop = (PerfStubsStopType)dlsym(RTLD_DEFAULT, "perftool_stop");
+    MyPerfStubsExit = (PerfStubsExitType)dlsym(RTLD_DEFAULT, "perftool_exit");
+    MyPerfStubsSampleCounter = (PerfStubsSampleCounterType)dlsym(
+        RTLD_DEFAULT, "perftool_sample_counter");
+    MyPerfStubsMetadata = (PerfStubsMetadataType)dlsym(RTLD_DEFAULT, "perftool_metadata");
+#else
     MyPerfStubsInit = (PerfStubsInitType)dlsym(RTLD_DEFAULT, "perftool_init");
     if (MyPerfStubsInit == nullptr) {
         return PERFSTUBS_FAILURE;
@@ -78,6 +96,7 @@ int AssignFunctionPointers(void)
     MyPerfStubsSampleCounter = (PerfStubsSampleCounterType)dlsym(
         RTLD_DEFAULT, "perftool_sample_counter");
     MyPerfStubsMetadata = (PerfStubsMetadataType)dlsym(RTLD_DEFAULT, "perftool_metadata");
+#endif
     return PERFSTUBS_SUCCESS;
 }
 
