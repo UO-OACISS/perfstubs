@@ -11,7 +11,7 @@ option (PERFSTUBS_USE_DEFAULT_IMPLEMENTATION
 
 # should we use static or dynamic linking?
 option (PERFSTUBS_USE_STATIC
-    "Use static linking" OFF)
+    "Use static linking" ON)
 
 if (PERFSTUBS_USE_STATIC)
     set (BUILD_SHARED_LIBS OFF)
@@ -38,7 +38,16 @@ include_directories ("${PROJECT_BINARY_DIR}/examples")
 # so that we will find Config.h
 include_directories("${PROJECT_BINARY_DIR}")
 
-set (EXTRA_LIBS ${EXTRA_LIBS} pthread m)
+# Pthread is garbage
+if (PERFSTUBS_USE_STATIC)
+    if (APPLE)
+        set (PTHREAD_LIB -Wl,-all_load pthread)
+    else (APPLE)
+        set (PTHREAD_LIB -Wl,--whole-archive pthread -Wl,--no-whole-archive)
+    endif (APPLE)
+else (PERFSTUBS_USE_STATIC)
+endif (PERFSTUBS_USE_STATIC)
+set (EXTRA_LIBS ${EXTRA_LIBS} ${PTHREAD_LIB} m)
 
 # add the perfstubs library
 if (PERFSTUBS_USE_TIMERS)

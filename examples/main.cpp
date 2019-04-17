@@ -9,7 +9,7 @@
 void threaded_function(void * param) {
     PERFSTUBS_REGISTER_THREAD();
     PERFSTUBS_SCOPED_TIMER_FUNC();
-    std::cout << "Hello from new thread!" << std::endl;
+    //std::cout << "Hello from new thread!" << std::endl;
 }
 
 int main (int argc, char *argv[]) {
@@ -24,7 +24,6 @@ int main (int argc, char *argv[]) {
                   << " number" << std::endl;
         return 1;
     }
-
     std::thread example_thread(threaded_function, nullptr);
 
     double inputValue = atof(argv[1]);
