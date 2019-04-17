@@ -15,8 +15,8 @@ option (PERFSTUBS_USE_DEFAULT_IMPLEMENTATION
 set (PerfStubs_VERSION_MAJOR 0)
 set (PerfStubs_VERSION_MINOR 1)
 set (CMAKE_CXX_STANDARD 11)
-set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Werror")
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror")
+set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Werror -pthread")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -pthread")
  
 # configure a header file to pass some of the CMake settings
 # to the source code
@@ -29,6 +29,8 @@ include_directories ("${PROJECT_BINARY_DIR}/examples")
 # add the binary tree to the search path for include files
 # so that we will find Config.h
 include_directories("${PROJECT_BINARY_DIR}")
+
+set (EXTRA_LIBS ${EXTRA_LIBS} pthread)
 
 # add the perfstubs library
 if (PERFSTUBS_USE_TIMERS)
@@ -63,4 +65,6 @@ include(CTest)
 
 # does the application run
 add_test (cpp_test perfstubs_test_cpp 25)
+set_tests_properties (cpp_test PROPERTIES PASS_REGULAR_EXPRESSION "Tool: perftoo_start main")
 add_test (c_test perfstubs_test_c 25)
+set_tests_properties (c_test PROPERTIES PASS_REGULAR_EXPRESSION "Tool: perftoo_start main")
