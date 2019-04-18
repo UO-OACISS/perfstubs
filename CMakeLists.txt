@@ -38,7 +38,14 @@ include_directories ("${PROJECT_BINARY_DIR}/examples")
 # so that we will find Config.h
 include_directories("${PROJECT_BINARY_DIR}")
 
-# Pthread is garbage
+# Deal with CMP0042 warnings from CMake
+if (APPLE)
+       set(CMAKE_MACOSX_RPATH ON)
+endif (APPLE)
+
+# Pthread is garbage when linking static - not all symbols are included,
+# in particular std::thread.detach() and std::thread.join().
+# It's a pthread problem, not a gcc or libc problem.
 if (PERFSTUBS_USE_STATIC AND NOT APPLE)
     set (PTHREAD_LIB -Wl,--whole-archive pthread -Wl,--no-whole-archive)
 else (PERFSTUBS_USE_STATIC AND NOT APPLE)
