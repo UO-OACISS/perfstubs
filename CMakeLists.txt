@@ -74,6 +74,8 @@ if (PERFSTUBS_USE_DEFAULT_IMPLEMENTATION)
     if (APPLE)
         set (IMPL_LIB -Wl,-all_load implementation)
     else (APPLE)
+        # This only seems to work for static linking on Linux.  Boooo...
+        # That's ok, we preload the library when testing, see below.
         set (IMPL_LIB -Wl,--whole-archive implementation -Wl,--no-whole-archive)
     endif (APPLE)
   endif (BUILD_SHARED_LIBS)
@@ -97,3 +99,11 @@ add_test (cpp_test perfstubs_test_cpp 25)
 set_tests_properties (cpp_test PROPERTIES PASS_REGULAR_EXPRESSION "Tool: perftool_start main")
 add_test (c_test perfstubs_test_c 25)
 set_tests_properties (c_test PROPERTIES PASS_REGULAR_EXPRESSION "Tool: perftool_start main")
+
+# For dynamic testing, preload the "tool"
+if (NOT PERFSTUBS_USE_STATIC AND NOT APPLE)
+set_tests_properties(cpp_test PROPERTIES
+    ENVIRONMENT LD_PRELOAD=${CMAKE_BINARY_DIR}/implementation/libimplementation.so)
+set_tests_properties(c_test PROPERTIES
+    ENVIRONMENT LD_PRELOAD=${CMAKE_BINARY_DIR}/implementation/libimplementation.so)
+endif (NOT PERFSTUBS_USE_STATIC AND NOT APPLE)
