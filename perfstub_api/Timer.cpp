@@ -1,8 +1,6 @@
-/*
-   Copyright (c) 2019 University of Oregon
-   Distributed under the OSI-approved Apache License, Version 2.0.  See
-   accompanying file Copyright.txt for details.
- */
+// Copyright (c) 2019 University of Oregon
+// Distributed under the BSD Software License
+// (See accompanying file LICENSE.txt)
 
 #include "Config.h"
 #include "Timer.h"

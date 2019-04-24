@@ -1,5 +1,9 @@
 # PerfStubs
 
+Copyright (c) 2019 University of Oregon
+Distributed under the BSD Software License
+(See accompanying file LICENSE.txt)
+
 Profiling API for adding external tool instrumentation support to any project.
 
 This was motivated by the need to quickly add instrumentation to the [ADIOS2](https://github.com/ornladios/ADIOS2) library without adding a build dependency, or tying to a specific measurement tool.

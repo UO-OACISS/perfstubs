@@ -1,4 +1,7 @@
 #!/bin/bash -e
+# Copyright (c) 2019 University of Oregon
+# Distributed under the BSD Software License
+# (See accompanying file LICENSE.txt)
 
 # where is this script?
 if [ -z ${scriptdir} ] ; then

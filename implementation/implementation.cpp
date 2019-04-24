@@ -1,3 +1,7 @@
+// Copyright (c) 2019 University of Oregon
+// Distributed under the BSD Software License
+// (See accompanying file LICENSE.txt)
+
 #include <iostream>
 using namespace std; 
 
@@ -16,11 +20,11 @@ extern "C" void perftool_exit(void) {
 }
 
 extern "C" void perftool_start(const char * timer_name) {
-    cout << "Tool: perftoo_start " << timer_name << endl;
+    cout << "Tool: perftool_start " << timer_name << endl;
 }
 
 extern "C" void perftool_stop(const char * timer_name) {
-    cout << "Tool: perftoo_stop " << timer_name << endl;
+    cout << "Tool: perftool_stop " << timer_name << endl;
 }
 
 extern "C" void perftool_sample_counter(const char * counter_name, double value) {

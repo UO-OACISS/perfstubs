@@ -1,3 +1,7 @@
+# Copyright (c) 2019 University of Oregon
+# Distributed under the BSD Software License
+# (See accompanying file LICENSE.txt)
+
 cmake_minimum_required (VERSION 2.6)
 project (perfstubs)
 
@@ -90,6 +94,6 @@ include(CTest)
 
 # does the application run
 add_test (cpp_test perfstubs_test_cpp 25)
-set_tests_properties (cpp_test PROPERTIES PASS_REGULAR_EXPRESSION "Tool: perftoo_start main")
+set_tests_properties (cpp_test PROPERTIES PASS_REGULAR_EXPRESSION "Tool: perftool_start main")
 add_test (c_test perfstubs_test_c 25)
-set_tests_properties (c_test PROPERTIES PASS_REGULAR_EXPRESSION "Tool: perftoo_start main")
+set_tests_properties (c_test PROPERTIES PASS_REGULAR_EXPRESSION "Tool: perftool_start main")
