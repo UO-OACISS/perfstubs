@@ -69,13 +69,17 @@ public:
 
 #define PERFSTUBS_INIT() external::profiler::Timer::Get();
 #define PERFSTUBS_REGISTER_THREAD() external::profiler::Timer::RegisterThread();
-#define PERFSTUBS_START(_timer_name) external::profiler::Timer::Start(_timer_name);
-#define PERFSTUBS_STOP(_timer_name) external::profiler::Timer::Stop(_timer_name);
-#define PERFSTUBS_SAMPLE_COUNTER(_name, _value)                                      \
+#define PERFSTUBS_START(_timer_name)                                           \
+    external::profiler::Timer::Start(_timer_name);
+#define PERFSTUBS_STOP(_timer_name)                                            \
+    external::profiler::Timer::Stop(_timer_name);
+#define PERFSTUBS_SAMPLE_COUNTER(_name, _value)                                \
     external::profiler::Timer::SampleCounter(_name, _value);
-#define PERFSTUBS_METADATA(_name, _value) external::profiler::Timer::MetaData(_name, _value);
-#define PERFSTUBS_SCOPED_TIMER(__name) external::profiler::ScopedTimer __var##finfo(__name);
-#define PERFSTUBS_SCOPED_TIMER_FUNC()                                                \
+#define PERFSTUBS_METADATA(_name, _value)                                      \
+    external::profiler::Timer::MetaData(_name, _value);
+#define PERFSTUBS_SCOPED_TIMER(__name)                                         \
+    external::profiler::ScopedTimer __var##finfo(__name);
+#define PERFSTUBS_SCOPED_TIMER_FUNC()                                          \
     std::stringstream __ss##finfo;                                             \
     __ss##finfo << __func__ << " [{" << __FILE__ << "} {" << __LINE__          \
                 << ",0}]";                                                     \
@@ -123,12 +127,14 @@ void TimerMetaData(const char *name, const char *value);
 #define PERFSTUBS_REGISTER_THREAD() TimerRegisterThread();
 #define PERFSTUBS_START(_timer_name) TimerStart(_timer_name);
 #define PERFSTUBS_STOP(_timer_name) TimerStop(_timer_name);
-#define PERFSTUBS_START_FUNC()                                                       \
-    char __perfstubsFuncName[1024];                                                  \
-    sprintf(__perfstubsFuncName, "%s [{%s} {%d,0}]", __func__, __FILE__, __LINE__);  \
+#define PERFSTUBS_START_FUNC()                                                 \
+    char __perfstubsFuncName[1024];                                            \
+    sprintf(__perfstubsFuncName, "%s [{%s} {%d,0}]", __func__, __FILE__,       \
+            __LINE__);                                                         \
     TimerStart(__perfstubsFuncName);
 #define PERFSTUBS_STOP_FUNC() TimerStop(__perfstubsFuncName);
-#define PERFSTUBS_SAMPLE_COUNTER(_name, _value) TimerSampleCounter(_name, _value);
+#define PERFSTUBS_SAMPLE_COUNTER(_name, _value)                                \
+    TimerSampleCounter(_name, _value);
 #define PERFSTUBS_METADATA(_name, _value) TimerMetaData(_name, _value);
 
 #else // defined(PERFSTUBS_USE_TIMERS)
@@ -145,4 +151,3 @@ void TimerMetaData(const char *name, const char *value);
 #endif // defined(PERFSTUBS_USE_TIMERS)
 
 #endif // ifdef __cplusplus
-

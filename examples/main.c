@@ -4,12 +4,13 @@
 
 // A simple program that computes the square root of a number
 #include "perfstubs_api/Timer.h"
-#include <stdlib.h>
 #include <math.h>
-#include <stdio.h>
 #include <pthread.h>
+#include <stdio.h>
+#include <stdlib.h>
 
-void * threaded_function(void * param) {
+void *threaded_function(void *param)
+{
     PERFSTUBS_REGISTER_THREAD();
     PERFSTUBS_START_FUNC();
     printf("Hello from new thread!\n");
@@ -17,13 +18,15 @@ void * threaded_function(void * param) {
     return NULL;
 }
 
-int main (int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
     PERFSTUBS_INIT();
     PERFSTUBS_START_FUNC();
-    
-    if (argc < 2) {
-        fprintf(stderr, "%s Version %d.%d\n",
-            argv[0], PerfStubs_VERSION_MAJOR, PerfStubs_VERSION_MINOR);
+
+    if (argc < 2)
+    {
+        fprintf(stderr, "%s Version %d.%d\n", argv[0], PerfStubs_VERSION_MAJOR,
+                PerfStubs_VERSION_MINOR);
         fprintf(stderr, "Usage: %s number\n", argv[0]);
         PERFSTUBS_STOP_FUNC();
         return 1;
