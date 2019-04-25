@@ -7,7 +7,7 @@ if (WIN32)
     message(FATAL_ERROR "\nPerfStubs won't compile on Windows. Exiting.")
 endif (WIN32)
 
-cmake_minimum_required (VERSION 2.6)
+cmake_minimum_required (VERSION 3.9)
 project (perfstubs)
 
 # should we use our own math functions?
@@ -63,15 +63,16 @@ else (PERFSTUBS_USE_STATIC AND NOT APPLE)
 endif (PERFSTUBS_USE_STATIC AND NOT APPLE)
 set (EXTRA_LIBS ${EXTRA_LIBS} ${PTHREAD_LIB} m)
 
+add_library(perfstubs perfstubs_api/Timer.cpp)
+
 # add the perfstubs library
 if (PERFSTUBS_USE_TIMERS)
-  add_subdirectory (perfstubs_api)
   set (EXTRA_LIBS ${EXTRA_LIBS} perfstubs dl)
 endif (PERFSTUBS_USE_TIMERS)
 
 # add the default implementation?
 if (PERFSTUBS_USE_DEFAULT_IMPLEMENTATION)
-  add_subdirectory (implementation)
+  add_library(implementation implementation/ToolImplementation.cpp)
   if (BUILD_SHARED_LIBS)
     set (IMPL_LIB implementation)
   else (BUILD_SHARED_LIBS)
@@ -107,11 +108,15 @@ set_tests_properties (c_test PROPERTIES PASS_REGULAR_EXPRESSION "Tool: perftool_
 # For dynamic testing, preload the "tool"
 if (NOT PERFSTUBS_USE_STATIC AND NOT APPLE)
 set_tests_properties(cpp_test PROPERTIES
-    ENVIRONMENT LD_PRELOAD=${CMAKE_BINARY_DIR}/implementation/libimplementation.so)
+    ENVIRONMENT LD_PRELOAD=${CMAKE_BINARY_DIR}/libimplementation.so)
 set_tests_properties(c_test PROPERTIES
-    ENVIRONMENT LD_PRELOAD=${CMAKE_BINARY_DIR}/implementation/libimplementation.so)
+    ENVIRONMENT LD_PRELOAD=${CMAKE_BINARY_DIR}/libimplementation.so)
 endif (NOT PERFSTUBS_USE_STATIC AND NOT APPLE)
 
-install (TARGETS perfstubs DESTINATION lib)
+install (TARGETS perfstubs 
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+    COMPONENT library
+)
 install (FILES perfstubs_api/Timer.h DESTINATION include/perfstubs_api)
 install (FILES perfstubs_api/Tool.h DESTINATION include/perfstubs_api)
