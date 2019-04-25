@@ -67,7 +67,11 @@ add_library(perfstubs perfstubs_api/Timer.cpp)
 
 # add the perfstubs library
 if (PERFSTUBS_USE_TIMERS)
-  set (EXTRA_LIBS ${EXTRA_LIBS} perfstubs dl)
+    if (PERFSTUBS_USE_STATIC)
+        set (TOOL_LIBS ${TOOL_LIBS} perfstubs)
+    else (PERFSTUBS_USE_STATIC)
+        set (TOOL_LIBS ${TOOL_LIBS} perfstubs dl)
+    endif (PERFSTUBS_USE_STATIC)
 endif (PERFSTUBS_USE_TIMERS)
 
 # add the default implementation?
@@ -94,8 +98,8 @@ endif (PERFSTUBS_USE_STATIC AND NOT APPLE)
 # add the executable
 add_executable(perfstubs_test_cpp examples/main.cpp)
 add_executable(perfstubs_test_c examples/main.c)
-target_link_libraries (perfstubs_test_cpp ${EXTRA_LIBS})
-target_link_libraries (perfstubs_test_c ${EXTRA_LIBS})
+target_link_libraries (perfstubs_test_cpp ${TOOL_LIBS} ${EXTRA_LIBS})
+target_link_libraries (perfstubs_test_c ${TOOL_LIBS} ${EXTRA_LIBS})
 
 include(CTest)
 
@@ -113,6 +117,13 @@ set_tests_properties(c_test PROPERTIES
     ENVIRONMENT LD_PRELOAD=${CMAKE_BINARY_DIR}/libimplementation.so)
 endif (NOT PERFSTUBS_USE_STATIC AND NOT APPLE)
 
+# build a pkg-config file
+set(DEST_DIR "${CMAKE_INSTALL_PREFIX}")
+foreach(LIB ${TOOL_LIBS})
+  set(PRIVATE_LIBS "${PRIVATE_LIBS} -l${LIB}")
+endforeach()
+CONFIGURE_FILE("etc/perfstubs.pc.in" "perfstubs.pc" @ONLY)
+
 install (TARGETS perfstubs 
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
@@ -120,3 +131,4 @@ install (TARGETS perfstubs
 )
 install (FILES perfstubs_api/Timer.h DESTINATION include/perfstubs_api)
 install (FILES perfstubs_api/Tool.h DESTINATION include/perfstubs_api)
+install (FILES ${CMAKE_BINARY_DIR}/perfstubs.pc DESTINATION lib/pkgconfig)
