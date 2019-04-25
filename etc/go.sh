@@ -20,7 +20,7 @@ cmake \
 -DCMAKE_INSTALL_PREFIX=. \
 -DPERFSTUBS_USE_STATIC=ON \
 ..
-make VERBOSE=1
+make
 make test
 make install
 
