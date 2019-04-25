@@ -38,9 +38,9 @@ set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -pthread")
 # configure a header file to pass some of the CMake settings
 # to the source code
 configure_file (
-  "${PROJECT_SOURCE_DIR}/perfstubs_api/Config.h.in"
-  "${PROJECT_BINARY_DIR}/perfstubs_api/Config.h"
-  )
+    "${PROJECT_SOURCE_DIR}/perfstubs_api/Config.h.in"
+    "${PROJECT_BINARY_DIR}/perfstubs_api/Config.h"
+    )
  
 # add the binary tree to the search path for include files
 # so that we will find Config.h
@@ -50,7 +50,7 @@ include_directories ("${PROJECT_SOURCE_DIR}")
 
 # Deal with CMP0042 warnings from CMake
 if (APPLE)
-       set(CMAKE_MACOSX_RPATH ON)
+    set(CMAKE_MACOSX_RPATH ON)
 endif (APPLE)
 
 # Pthread is garbage when linking static - not all symbols are included,
@@ -76,19 +76,19 @@ endif (PERFSTUBS_USE_TIMERS)
 
 # add the default implementation?
 if (PERFSTUBS_USE_DEFAULT_IMPLEMENTATION)
-  add_library(implementation implementation/ToolImplementation.cpp)
-  if (BUILD_SHARED_LIBS)
-    set (IMPL_LIB implementation)
-  else (BUILD_SHARED_LIBS)
-    if (APPLE)
-        set (IMPL_LIB -Wl,-all_load implementation)
-    else (APPLE)
-        # This only seems to work for static linking on Linux.  Boooo...
-        # That's ok, we preload the library when testing, see below.
-        set (IMPL_LIB -Wl,--whole-archive implementation -Wl,--no-whole-archive)
-    endif (APPLE)
-  endif (BUILD_SHARED_LIBS)
-  set (EXTRA_LIBS ${EXTRA_LIBS} ${IMPL_LIB})
+    add_library(implementation implementation/ToolImplementation.cpp)
+    if (BUILD_SHARED_LIBS)
+        set (IMPL_LIB implementation)
+    else (BUILD_SHARED_LIBS)
+        if (APPLE)
+            set (IMPL_LIB -Wl,-all_load implementation)
+        else (APPLE)
+            # This only seems to work for static linking on Linux.  Boooo...
+            # That's ok, we preload the library when testing, see below.
+            set (IMPL_LIB -Wl,--whole-archive implementation -Wl,--no-whole-archive)
+        endif (APPLE)
+    endif (BUILD_SHARED_LIBS)
+    set (EXTRA_LIBS ${EXTRA_LIBS} ${IMPL_LIB})
 endif (PERFSTUBS_USE_DEFAULT_IMPLEMENTATION)
 
 if (PERFSTUBS_USE_STATIC AND NOT APPLE)
@@ -120,7 +120,7 @@ endif (NOT PERFSTUBS_USE_STATIC AND NOT APPLE)
 # build a pkg-config file
 set(DEST_DIR "${CMAKE_INSTALL_PREFIX}")
 foreach(LIB ${TOOL_LIBS})
-  set(PRIVATE_LIBS "${PRIVATE_LIBS} -l${LIB}")
+    set(PRIVATE_LIBS "${PRIVATE_LIBS} -l${LIB}")
 endforeach()
 CONFIGURE_FILE("etc/perfstubs.pc.in" "perfstubs.pc" @ONLY)
 
@@ -132,3 +132,4 @@ install (TARGETS perfstubs
 install (FILES perfstubs_api/Timer.h DESTINATION include/perfstubs_api)
 install (FILES perfstubs_api/Tool.h DESTINATION include/perfstubs_api)
 install (FILES ${CMAKE_BINARY_DIR}/perfstubs.pc DESTINATION lib/pkgconfig)
+
