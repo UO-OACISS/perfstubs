@@ -2,8 +2,7 @@
 // Distributed under the BSD Software License
 // (See accompanying file LICENSE.txt)
 
-#include "Config.h"
-#include "Timer.h"
+#include "perfstubs_api/Timer.h"
 
 /* If not enabled, macro out all of the code in this file. */
 #if defined(PERFSTUBS_USE_TIMERS)

@@ -2,6 +2,11 @@
 # Distributed under the BSD Software License
 # (See accompanying file LICENSE.txt)
 
+# Doesn't compile on Windows.
+if (WIN32)
+    message(FATAL_ERROR "\nPerfStubs won't compile on Windows. Exiting.")
+endif (WIN32)
+
 cmake_minimum_required (VERSION 2.6)
 project (perfstubs)
 
@@ -33,14 +38,15 @@ set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -pthread")
 # configure a header file to pass some of the CMake settings
 # to the source code
 configure_file (
-  "${PROJECT_SOURCE_DIR}/examples/Config.h.in"
-  "${PROJECT_BINARY_DIR}/examples/Config.h"
+  "${PROJECT_SOURCE_DIR}/perfstubs_api/Config.h.in"
+  "${PROJECT_BINARY_DIR}/perfstubs_api/Config.h"
   )
-include_directories ("${PROJECT_BINARY_DIR}/examples")
  
 # add the binary tree to the search path for include files
 # so that we will find Config.h
 include_directories("${PROJECT_BINARY_DIR}")
+# Also add the source tree for all targets
+include_directories ("${PROJECT_SOURCE_DIR}")
 
 # Deal with CMP0042 warnings from CMake
 if (APPLE)
@@ -59,14 +65,12 @@ set (EXTRA_LIBS ${EXTRA_LIBS} ${PTHREAD_LIB} m)
 
 # add the perfstubs library
 if (PERFSTUBS_USE_TIMERS)
-  include_directories ("${PROJECT_SOURCE_DIR}/perfstub_api")
-  add_subdirectory (perfstub_api)
+  add_subdirectory (perfstubs_api)
   set (EXTRA_LIBS ${EXTRA_LIBS} perfstubs dl)
 endif (PERFSTUBS_USE_TIMERS)
 
 # add the default implementation?
 if (PERFSTUBS_USE_DEFAULT_IMPLEMENTATION)
-  include_directories ("${PROJECT_SOURCE_DIR}/implementation")
   add_subdirectory (implementation)
   if (BUILD_SHARED_LIBS)
     set (IMPL_LIB implementation)
@@ -107,3 +111,7 @@ set_tests_properties(cpp_test PROPERTIES
 set_tests_properties(c_test PROPERTIES
     ENVIRONMENT LD_PRELOAD=${CMAKE_BINARY_DIR}/implementation/libimplementation.so)
 endif (NOT PERFSTUBS_USE_STATIC AND NOT APPLE)
+
+install (TARGETS perfstubs DESTINATION lib)
+install (FILES perfstubs_api/Timer.h DESTINATION include/perfstubs_api)
+install (FILES perfstubs_api/Tool.h DESTINATION include/perfstubs_api)

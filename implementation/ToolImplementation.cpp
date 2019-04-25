@@ -2,6 +2,7 @@
 // Distributed under the BSD Software License
 // (See accompanying file LICENSE.txt)
 
+#include "perfstubs_api/Tool.h"
 #include <iostream>
 using namespace std; 
 

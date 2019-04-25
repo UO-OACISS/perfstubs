@@ -15,15 +15,25 @@ rm -rf ${workdir}/build_static
 mkdir ${workdir}/build_static
 cd ${workdir}/build_static
 
-cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DPERFSTUBS_USE_STATIC=ON ..
-make
+cmake \
+-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+-DCMAKE_INSTALL_PREFIX=. \
+-DPERFSTUBS_USE_STATIC=ON \
+..
+make VERBOSE=1
 make test
+make install
 
 rm -rf ${workdir}/build_dynamic
 mkdir ${workdir}/build_dynamic
 cd ${workdir}/build_dynamic
 
-cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DPERFSTUBS_USE_STATIC=OFF ..
+cmake \
+-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+-DCMAKE_INSTALL_PREFIX=. \
+-DPERFSTUBS_USE_STATIC=OFF \
+..
 make
 make test
+make install
 

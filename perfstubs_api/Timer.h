@@ -4,10 +4,7 @@
 
 #pragma once
 
-/* This code won't compile on windows.  Disable it */
-#if !defined(_WIN32) && !defined(_WIN64) // && !defined(__APPLE__)
-#define PERFSTUBS_USE_TIMERS
-#endif
+#include "perfstubs_api/Config.h"
 
 /* ------------------------------------------------------------------ */
 /* Define the C++ API and PerfStubs glue class first */

@@ -1,9 +1,9 @@
 // Copyright (c) 2019 University of Oregon
 // Distributed under the BSD Software License
 // (See accompanying file LICENSE.txt)
+
 // A simple program that computes the square root of a number
-#include "Config.h"
-#include "Timer.h"
+#include "perfstubs_api/Timer.h"
 #include <stdlib.h>
 #include <math.h>
 #include <stdio.h>
