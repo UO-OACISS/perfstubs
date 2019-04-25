@@ -37,6 +37,8 @@ For C code, you have the option of specifying the timer name or letting the API 
 Option 1, explicit timer name:
 
 ```C
+#include "perfstubs_api/Timer.h"
+
 void function_to_time(void) {
     PERFSTUBS_START("interesting loop");
     ...
@@ -47,6 +49,8 @@ void function_to_time(void) {
 Option 2, generated timer name:
 
 ```C
+#include "perfstubs_api/Timer.h"
+
 void function_to_time(void) {
     /* Will generate something like:
      * "function_to_time [{filename.c} {123,0}]"
@@ -78,6 +82,8 @@ PERFSTUBS_METADATA("ADIOS Method", "POSIX");
 The C++ API adds additional scoped timers for convenience:
 
 ```C++
+#include "perfstubs_api/Timer.h"
+
 void function_to_time(void) {
     /* Will generate something like:
      * "function_to_time [{filename.cpp} {123,0}]"
