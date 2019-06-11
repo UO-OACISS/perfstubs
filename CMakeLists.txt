@@ -122,7 +122,11 @@ set(DEST_DIR "${CMAKE_INSTALL_PREFIX}")
 foreach(LIB ${TOOL_LIBS})
     set(PRIVATE_LIBS "${PRIVATE_LIBS} -l${LIB}")
 endforeach()
-CONFIGURE_FILE("etc/perfstubs.pc.in" "perfstubs.pc" @ONLY)
+CONFIGURE_FILE("etc/perfstubs.pc.in" "${PROJECT_BINARY_DIR}/perfstubs.pc" @ONLY)
+foreach(LIB ${TOOL_LIBS})
+    set(PRIVATE_CMAKE_LIBS "${PRIVATE_CMAKE_LIBS} ${LIB}")
+endforeach()
+CONFIGURE_FILE("etc/perfstubs-config.cmake.in" "${PROJECT_BINARY_DIR}/perfstubs-config.cmake" @ONLY)
 
 install (TARGETS perfstubs 
     LIBRARY DESTINATION lib
@@ -132,4 +136,5 @@ install (TARGETS perfstubs
 install (FILES perfstubs_api/Timer.h DESTINATION include/perfstubs_api)
 install (FILES perfstubs_api/Tool.h DESTINATION include/perfstubs_api)
 install (FILES ${CMAKE_BINARY_DIR}/perfstubs.pc DESTINATION lib/pkgconfig)
+install (FILES ${CMAKE_BINARY_DIR}/perfstubs-config.cmake DESTINATION lib/cmake)
 

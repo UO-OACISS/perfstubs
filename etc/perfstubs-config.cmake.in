@@ -1,0 +1,16 @@
+# - Config file for the PerfStubs package
+# It defines the following variables
+#  PERFSTUBS_INCLUDE_DIRS - include directories for PerfStubs
+#  PERFSTUBS_LIBRARIES    - libraries to link against
+
+# Compute paths
+get_filename_component(PERFSTUBS_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+set(PERFSTUBS_INCLUDE_DIRS "@CONF_INCLUDE_DIRS@")
+
+# Our library dependencies (contains definitions for IMPORTED targets)
+if(NOT TARGET perfstubs AND NOT PerfStubs_BINARY_DIR)
+  include("${PERFSTUBS_CMAKE_DIR}/PerfStubsTargets.cmake")
+endif()
+
+# These are IMPORTED targets created by PerfStubsTargets.cmake
+set(PERFSTUBS_LIBRARIES @PRIVATE_CMAKE_LIBS@)
