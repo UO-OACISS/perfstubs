@@ -148,7 +148,7 @@ install (TARGETS perfstubs
 )
 install (FILES perfstubs_api/Timer.h DESTINATION include/perfstubs_api)
 install (FILES perfstubs_api/Tool.h DESTINATION include/perfstubs_api)
-install (FILES perfstubs_api/Config.h DESTINATION include/perfstubs_api)
+install (FILES ${CMAKE_BINARY_DIR}/perfstubs_api/Config.h DESTINATION include/perfstubs_api)
 install (FILES ${CMAKE_BINARY_DIR}/perfstubs.pc DESTINATION lib/pkgconfig)
 install (FILES ${CMAKE_BINARY_DIR}/perfstubs-config.cmake DESTINATION lib/cmake)
 
