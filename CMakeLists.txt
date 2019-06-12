@@ -31,6 +31,8 @@ endif (PERFSTUBS_USE_STATIC)
 # The version number.
 set (PerfStubs_VERSION_MAJOR 0)
 set (PerfStubs_VERSION_MINOR 1)
+set (PerfStubs_VERSION ${PerfStubs_VERSION_MAJOR}.${PerfStubs_VERSION_MINOR})
+
 set (CMAKE_CXX_STANDARD 11)
 set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Werror -pthread")
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -pthread")
@@ -123,12 +125,23 @@ foreach(LIB ${TOOL_LIBS})
     set(PRIVATE_LIBS "${PRIVATE_LIBS} -l${LIB}")
 endforeach()
 CONFIGURE_FILE("etc/perfstubs.pc.in" "${PROJECT_BINARY_DIR}/perfstubs.pc" @ONLY)
+
+# Add all targets to the build-tree export set
+export(TARGETS perfstubs
+  FILE "${PROJECT_BINARY_DIR}/PerfStubsTargets.cmake")
+
+# Export the package for use from the build-tree
+# (this registers the build-tree with a global CMake-registry)
+export(PACKAGE PerfStubs)
+
+
 foreach(LIB ${TOOL_LIBS})
     set(PRIVATE_CMAKE_LIBS "${PRIVATE_CMAKE_LIBS} ${LIB}")
 endforeach()
 CONFIGURE_FILE("etc/perfstubs-config.cmake.in" "${PROJECT_BINARY_DIR}/perfstubs-config.cmake" @ONLY)
 
 install (TARGETS perfstubs 
+    EXPORT PerfStubsTargets
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
     COMPONENT library
@@ -137,4 +150,9 @@ install (FILES perfstubs_api/Timer.h DESTINATION include/perfstubs_api)
 install (FILES perfstubs_api/Tool.h DESTINATION include/perfstubs_api)
 install (FILES ${CMAKE_BINARY_DIR}/perfstubs.pc DESTINATION lib/pkgconfig)
 install (FILES ${CMAKE_BINARY_DIR}/perfstubs-config.cmake DESTINATION lib/cmake)
+
+# Install the export set for use with the install-tree
+install(EXPORT PerfStubsTargets 
+  DESTINATION lib/cmake
+  COMPONENT library)
 
