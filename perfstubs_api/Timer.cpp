@@ -147,8 +147,10 @@ int PerfStubsStubInitializeSimple(void)
 {
     if (AssignFunctionPointers() == PERFSTUBS_FAILURE)
     {
-        //std::cerr << "ERROR: Unable to initialize the perftool API"
-                  //<< std::endl;
+#if defined(DEBUG) || defined(_DEBUG)
+        std::cerr << "ERROR: Unable to initialize the perftool API"
+                  << std::endl;
+#endif
         return PERFSTUBS_FAILURE;
     }
     MyPerfStubsInit();
