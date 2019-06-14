@@ -12,23 +12,23 @@
 void *threaded_function(void *param)
 {
     PERFSTUBS_REGISTER_THREAD();
-    PERFSTUBS_START_FUNC();
+    PERFSTUBS_TIMER_START_FUNC();
     printf("Hello from new thread!\n");
-    PERFSTUBS_STOP_FUNC();
+    PERFSTUBS_TIMER_STOP_FUNC();
     return NULL;
 }
 
 int main(int argc, char *argv[])
 {
     PERFSTUBS_INIT();
-    PERFSTUBS_START_FUNC();
+    PERFSTUBS_TIMER_START_FUNC();
 
     if (argc < 2)
     {
         fprintf(stderr, "%s Version %d.%d\n", argv[0], PerfStubs_VERSION_MAJOR,
                 PerfStubs_VERSION_MINOR);
         fprintf(stderr, "Usage: %s number\n", argv[0]);
-        PERFSTUBS_STOP_FUNC();
+        PERFSTUBS_TIMER_STOP_FUNC();
         return 1;
     }
 
@@ -43,6 +43,6 @@ int main(int argc, char *argv[])
     printf("The square root of %f is %f\n", inputValue, outputValue);
 
     pthread_join(example_thread, NULL);
-    PERFSTUBS_STOP_FUNC();
+    PERFSTUBS_TIMER_STOP_FUNC();
     return 0;
 }
