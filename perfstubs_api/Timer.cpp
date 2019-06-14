@@ -199,42 +199,48 @@ inline void Timer::_RegisterThread(void)
 // external API call
 void Timer::RegisterThread(void)
 {
-    if (!Timer::Get().m_Initialized)
+    static Timer& instance = Timer::Get();
+    if (!instance.m_Initialized)
         return;
     _RegisterThread();
 }
 
 void Timer::Start(const char *timer_name)
 {
-    if (!Timer::Get().m_Initialized)
+    static Timer& instance = Timer::Get();
+    if (!instance.m_Initialized)
         return;
     MyPerfStubsTimerStart(timer_name);
 }
 
 void Timer::Start(const std::string &timer_name)
 {
-    if (!Timer::Get().m_Initialized)
+    static Timer& instance = Timer::Get();
+    if (!instance.m_Initialized)
         return;
     MyPerfStubsTimerStart(timer_name.c_str());
 }
 
 void Timer::StaticPhaseStart(const char *phase_name)
 {
-    if (!Timer::Get().m_Initialized)
+    static Timer& instance = Timer::Get();
+    if (!instance.m_Initialized)
         return;
     MyPerfStubsStaticPhaseStart(phase_name);
 }
 
 void Timer::StaticPhaseStart(const std::string &phase_name)
 {
-    if (!Timer::Get().m_Initialized)
+    static Timer& instance = Timer::Get();
+    if (!instance.m_Initialized)
         return;
     MyPerfStubsStaticPhaseStart(phase_name.c_str());
 }
 
 void Timer::DynamicPhaseStart(const char *phase_prefix, int iteration_index)
 {
-    if (!Timer::Get().m_Initialized)
+    static Timer& instance = Timer::Get();
+    if (!instance.m_Initialized)
         return;
     MyPerfStubsDynamicPhaseStart(phase_prefix, iteration_index);
 }
@@ -242,42 +248,48 @@ void Timer::DynamicPhaseStart(const char *phase_prefix, int iteration_index)
 void Timer::DynamicPhaseStart(const std::string &phase_prefix,
     int iteration_index)
 {
-    if (!Timer::Get().m_Initialized)
+    static Timer& instance = Timer::Get();
+    if (!instance.m_Initialized)
         return;
     MyPerfStubsDynamicPhaseStart(phase_prefix.c_str(), iteration_index);
 }
 
 void Timer::Stop(const char *timer_name)
 {
-    if (!Timer::Get().m_Initialized)
+    static Timer& instance = Timer::Get();
+    if (!instance.m_Initialized)
         return;
     MyPerfStubsTimerStop(timer_name);
 }
 
 void Timer::Stop(const std::string &timer_name)
 {
-    if (!Timer::Get().m_Initialized)
+    static Timer& instance = Timer::Get();
+    if (!instance.m_Initialized)
         return;
     MyPerfStubsTimerStop(timer_name.c_str());
 }
 
 void Timer::StaticPhaseStop(const char *phase_name)
 {
-    if (!Timer::Get().m_Initialized)
+    static Timer& instance = Timer::Get();
+    if (!instance.m_Initialized)
         return;
     MyPerfStubsStaticPhaseStop(phase_name);
 }
 
 void Timer::StaticPhaseStop(const std::string &phase_name)
 {
-    if (!Timer::Get().m_Initialized)
+    static Timer& instance = Timer::Get();
+    if (!instance.m_Initialized)
         return;
     MyPerfStubsStaticPhaseStop(phase_name.c_str());
 }
 
 void Timer::DynamicPhaseStop(const char *phase_prefix, int iteration_index)
 {
-    if (!Timer::Get().m_Initialized)
+    static Timer& instance = Timer::Get();
+    if (!instance.m_Initialized)
         return;
     MyPerfStubsDynamicPhaseStop(phase_prefix, iteration_index);
 }
@@ -285,21 +297,24 @@ void Timer::DynamicPhaseStop(const char *phase_prefix, int iteration_index)
 void Timer::DynamicPhaseStop(const std::string &phase_prefix,
     int iteration_index)
 {
-    if (!Timer::Get().m_Initialized)
+    static Timer& instance = Timer::Get();
+    if (!instance.m_Initialized)
         return;
     MyPerfStubsDynamicPhaseStop(phase_prefix.c_str(), iteration_index);
 }
 
 void Timer::SampleCounter(const char *name, const double value)
 {
-    if (!Timer::Get().m_Initialized)
+    static Timer& instance = Timer::Get();
+    if (!instance.m_Initialized)
         return;
     MyPerfStubsSampleCounter(const_cast<char *>(name), value);
 }
 
 void Timer::MetaData(const char *name, const char *value)
 {
-    if (!Timer::Get().m_Initialized)
+    static Timer& instance = Timer::Get();
+    if (!instance.m_Initialized)
         return;
     MyPerfStubsMetadata(name, value);
 }

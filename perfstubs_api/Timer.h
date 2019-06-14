@@ -90,12 +90,12 @@ public:
     external::profiler::Timer::StaticPhaseStart(_phase_name);
 #define PERFSTUBS_STATIC_PHASE_STOP(_phase_name)                               \
     external::profiler::Timer::StaticPhaseStop(_phase_name);
-#define PERFSTUBS_DYNAMIC_PHASE_START(_timer_name)                             \
+#define PERFSTUBS_DYNAMIC_PHASE_START(_phase_prefix, _iteration_index)         \
     external::profiler::Timer::DynamicPhaseStart(_phase_prefix,                \
-    iteration_index);
-#define PERFSTUBS_DYNAMIC_PHASE_STOP(_timer_name)                              \
-    external::profiler::Timer::DynamicPhaseStop(phase_prefix,                  \
-    iteration_index);
+    _iteration_index);
+#define PERFSTUBS_DYNAMIC_PHASE_STOP(_phase_prefix, _iteration_index)          \
+    external::profiler::Timer::DynamicPhaseStop(_phase_prefix,                 \
+    _iteration_index);
 #define PERFSTUBS_TIMER_START_FUNC()                                           \
     std::stringstream __perfstubsFuncNameSS;                                   \
     __perfstubsFuncNameSS <<  __func__ << " [{" << __FILE__ << "} {"           \
@@ -166,13 +166,13 @@ void psMetaData(const char *name, const char *value);
 #define PERFSTUBS_REGISTER_THREAD() psRegisterThread();
 #define PERFSTUBS_TIMER_START(_timer_name) psTimerStart(_timer_name);
 #define PERFSTUBS_TIMER_STOP(_timer_name) psTimerStop(_timer_name);
-#define PERFSTUBS_STATIC_PHASE_START(_timer_name)                              \
+#define PERFSTUBS_STATIC_PHASE_START(_phase_name)                              \
     psStaticPhaseStart(_phase_name);
-#define PERFSTUBS_STATIC_PHASE_STOP(_timer_name)                               \
+#define PERFSTUBS_STATIC_PHASE_STOP(_phase_name)                               \
     psStaticPhaseStop(_phase_name);
-#define PERFSTUBS_DYNAMIC_PHASE_START(_timer_name, _iteration_index)           \
+#define PERFSTUBS_DYNAMIC_PHASE_START(_phase_prefix, _iteration_index)         \
     psDynamicPhaseStart(_phase_prefix, _iteration_index);
-#define PERFSTUBS_DYNAMIC_PHASE_STOP(_timer_name, _iteration_index)            \
+#define PERFSTUBS_DYNAMIC_PHASE_STOP(_phase_prefix, _iteration_index)          \
     psDynamicPhaseStop(_phase_prefix, _iteration_index);
 #define PERFSTUBS_TIMER_START_FUNC()                                           \
     char __perfstubsFuncName[1024];                                            \
