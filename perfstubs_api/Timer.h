@@ -28,6 +28,7 @@ class Timer
 {
 public:
     static void RegisterThread(void);
+    // data measurement api
     static void Start(const char *timer_name);
     static void Start(const std::string &timer_name);
     static void StaticPhaseStart(const char *phase_name);
@@ -46,6 +47,18 @@ public:
                                  int iteration_index);
     static void SampleCounter(const char *name, const double value);
     static void MetaData(const char *name, const char *value);
+
+    // data query api
+    // data query function declarations
+    static int GetTimerNames(char **timer_names[]);
+    static int GetTimerMetricNames(char **metric_names[]);
+    static int GetThreadCount(void);
+    static int GetTimerData(double *timer_values[]);
+    static int GetCounterNames(char **counter_names[]);
+    static int GetCounterMetricNames(char **metric_names[]);
+    static int GetCounterData(double *counter_values[]);
+    static int GetMetaData(char **names[], char **values[]);
+
     // The only way to get an instance of this class
     static Timer &Get(void);
     // destructor
@@ -155,6 +168,17 @@ void psDynamicPhaseStart(const char *phasePrefix, int iterationIndex);
 void psDynamicPhaseStop(const char *phasePrefix, int iterationIndex);
 void psSampleCounter(const char *name, const double value);
 void psMetaData(const char *name, const char *value);
+
+/* data query API */
+
+int psGetTimerNames(char **timer_names[]);
+int psGetTimerMetricNames(char **metric_names[]);
+int psGetThreadCount(void);
+int psGetTimerData(double *timer_values[]);
+int psGetCounterNames(char **counter_names[]);
+int psGetCounterMetricNames(char **metric_names[]);
+int psGetCounterData(double *counter_values[]);
+int psGetMetaData(char **names[], char **values[]);
 
 /*
     Macro API for option of entirely disabling at compile time

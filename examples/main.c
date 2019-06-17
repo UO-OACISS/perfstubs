@@ -58,5 +58,55 @@ int main(int argc, char *argv[])
     printf("The square root of %f is %f\n", inputValue, outputValue);
 
     PERFSTUBS_TIMER_STOP_FUNC();
+
+    /* output some dummy data */
+
+    char** timer_names;
+    int num_timers = psGetTimerNames(&timer_names);
+    char** metric_names;
+    int num_metrics = psGetTimerMetricNames(&metric_names);
+    int num_threads = psGetThreadCount();
+    double* timer_values;
+    int num_timer_values = psGetTimerData(&timer_values);
+    int index = 0;
+    for (int i = 0 ; i < num_timers ; i++) {
+        for (int j = 0 ; j < num_metrics ; j++) {
+            for (int k = 0 ; k < num_threads ; k++) {
+                printf("%s %s %d = %f\n", timer_names[i], metric_names[j], k, timer_values[index]);
+                index = index + 1;
+                if (index >= num_timer_values) break;
+            }
+            if (index >= num_timer_values) break;
+        }
+        if (index >= num_timer_values) break;
+    }
+
+    index = 0;
+    char** counter_names;
+    int num_counters = psGetCounterNames(&counter_names);
+    char** counter_metric_names;
+    num_metrics = psGetCounterMetricNames(&counter_metric_names);
+    double* counter_values;
+    int num_counter_values = psGetCounterData(&counter_values);
+    for (int i = 0 ; i < num_counters ; i++) {
+        for (int j = 0 ; j < num_metrics ; j++) {
+            for (int k = 0 ; k < num_threads ; k++) {
+                printf("%s %s %d = %f\n", counter_names[i], counter_metric_names[j], k, counter_values[index]);
+                index = index + 1;
+                if (index >= num_counter_values) break;
+            }
+            if (index >= num_counter_values) break;
+        }
+        if (index >= num_timer_values) break;
+    }
+
+    index = 0;
+    char** metadata_names;
+    char** metadata_values;
+    int num_meta_data = psGetMetaData(&metadata_names, &metadata_values);
+    for (int i = 0 ; i < num_meta_data ; i++) {
+        printf("%s = %s\n", metadata_names[i], metadata_values[index]);
+    }
+
     return 0;
 }
