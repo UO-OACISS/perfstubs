@@ -110,7 +110,7 @@ int perftool_get_counter_metric_names(char **metric_names[]) {
 }
 
 int perftool_get_counter_data(double *counter_values[]) {
-    (*counter_values) = (double*)(calloc(1, sizeof(double)));
+    (*counter_values) = (double*)(calloc(5, sizeof(double)));
     (*counter_values)[0] = 3.0;
     (*counter_values)[1] = 1.0;
     (*counter_values)[2] = 3.0;

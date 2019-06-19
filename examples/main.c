@@ -81,6 +81,9 @@ int main(int argc, char *argv[])
         }
         if (index >= num_timer_values) break;
     }
+    free(timer_names);
+    free(metric_names);
+    free(timer_values);
 
     index = 0;
     char** counter_names;
@@ -100,6 +103,9 @@ int main(int argc, char *argv[])
         }
         if (index >= num_timer_values) break;
     }
+    free(counter_names);
+    free(counter_metric_names);
+    free(counter_values);
 
     index = 0;
     char** metadata_names;
@@ -108,6 +114,8 @@ int main(int argc, char *argv[])
     for (int i = 0 ; i < num_meta_data ; i++) {
         printf("%s = %s\n", metadata_names[i], metadata_values[index]);
     }
+    free(metadata_names);
+    free(metadata_values);
 
     return 0;
 }

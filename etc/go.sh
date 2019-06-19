@@ -15,6 +15,10 @@ rm -rf ${workdir}/build_static
 mkdir ${workdir}/build_static
 cd ${workdir}/build_static
 
+export CFLAGS="-fsanitize=address"
+export CXXFLAGS="-fsanitize=address"
+export LDFLAGS="-fsanitize=address"
+
 cmake \
 -DCMAKE_BUILD_TYPE=RelWithDebInfo \
 -DCMAKE_INSTALL_PREFIX=. \
