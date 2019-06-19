@@ -28,6 +28,7 @@ class Timer
 {
 public:
     static void RegisterThread(void);
+    static void DumpData(void);
     // data measurement api
     static void Start(const char *timer_name);
     static void Start(const std::string &timer_name);
@@ -93,6 +94,7 @@ public:
 } // namespace profiler
 
 #define PERFSTUBS_INIT() external::profiler::Timer::Get();
+#define PERFSTUBS_DUMP_DATA() external::profiler::Timer::DumpData();
 #define PERFSTUBS_REGISTER_THREAD()                                            \
     external::profiler::Timer::RegisterThread();
 #define PERFSTUBS_TIMER_START(_timer_name)                                     \
@@ -132,6 +134,7 @@ public:
 #else // defined(PERFSTUBS_USE_TIMERS)
 
 #define PERFSTUBS_INIT()
+#define PERFSTUBS_DUMP_DATA()
 #define PERFSTUBS_REGISTER_THREAD()
 #define PERFSTUBS_TIMER_START(_timer_name)
 #define PERFSTUBS_TIMER_STOP(_timer_name)
@@ -160,6 +163,7 @@ public:
 
 void psInit(void);
 void psRegisterThread(void);
+void psDumpData(void);
 void psTimerStart(const char *timerName);
 void psTimerStop(const char *timerName);
 void psStaticPhaseStart(const char *phaseName);
@@ -187,6 +191,7 @@ int psGetMetaData(char **names[], char **values[]);
  */
 
 #define PERFSTUBS_INIT() psInit();
+#define PERFSTUBS_DUMP_DATA() psDumpData();
 #define PERFSTUBS_REGISTER_THREAD() psRegisterThread();
 #define PERFSTUBS_TIMER_START(_timer_name) psTimerStart(_timer_name);
 #define PERFSTUBS_TIMER_STOP(_timer_name) psTimerStop(_timer_name);
@@ -211,6 +216,7 @@ int psGetMetaData(char **names[], char **values[]);
 #else // defined(PERFSTUBS_USE_TIMERS)
 
 #define PERFSTUBS_INIT()
+#define PERFSTUBS_DUMP_DATA()
 #define PERFSTUBS_REGISTER_THREAD()
 #define PERFSTUBS_TIMER_START(_timer_name)
 #define PERFSTUBS_TIMER_STOP(_timer_name)

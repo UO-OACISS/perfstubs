@@ -12,6 +12,7 @@ extern "C" {
 void perftool_init(void);
 void perftool_register_thread(void);
 void perftool_exit(void);
+void perftool_dump(void);
 
 // measurement function declarations
 void perftool_timer_start(const char *timer_name);

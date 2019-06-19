@@ -52,5 +52,6 @@ int main(int argc, char *argv[])
     std::cout << "The square root of " << inputValue << " is " << outputValue
               << std::endl;
 
+    PERFSTUBS_DUMP_DATA();
     return 0;
 }

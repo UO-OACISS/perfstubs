@@ -59,6 +59,7 @@ int main(int argc, char *argv[])
 
     PERFSTUBS_TIMER_STOP_FUNC();
 
+    PERFSTUBS_DUMP_DATA();
     /* output some dummy data */
 
     char** timer_names;

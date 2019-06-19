@@ -19,6 +19,8 @@ void perftool_register_thread(void)
 
 void perftool_exit(void) { cout << "Tool: " << __func__ << endl; }
 
+void perftool_dump_data(void) { cout << "Tool: " << __func__ << endl; }
+
 void perftool_timer_start(const char *timer_name)
 {
     cout << "Tool: " << __func__ << " " << timer_name << endl;
