@@ -5,6 +5,7 @@
 #pragma once
 
 #include "perfstubs_api/Config.h"
+#include "perfstubs_api/Tool.h"
 
 /* ------------------------------------------------------------------ */
 /* Define the C++ API and PerfStubs glue class first */
@@ -17,6 +18,7 @@
 #include <memory>
 #include <sstream>
 #include <string>
+#include <stdint.h>
 
 namespace external
 {
@@ -51,14 +53,9 @@ public:
 
     // data query api
     // data query function declarations
-    static int GetTimerNames(char **timer_names[]);
-    static int GetTimerMetricNames(char **metric_names[]);
-    static int GetThreadCount(void);
-    static int GetTimerData(double *timer_values[]);
-    static int GetCounterNames(char **counter_names[]);
-    static int GetCounterMetricNames(char **metric_names[]);
-    static int GetCounterData(double *counter_values[]);
-    static int GetMetaData(char **names[], char **values[]);
+    static void GetTimerData(perftool_timer_data_t * timer_data);
+    static void GetCounterData(perftool_counter_data_t * counter_data);
+    static void GetMetaData(perftool_metadata_t * metadata);
 
     // The only way to get an instance of this class
     static Timer &Get(void);
@@ -175,14 +172,9 @@ void psMetaData(const char *name, const char *value);
 
 /* data query API */
 
-int psGetTimerNames(char **timer_names[]);
-int psGetTimerMetricNames(char **metric_names[]);
-int psGetThreadCount(void);
-int psGetTimerData(double *timer_values[]);
-int psGetCounterNames(char **counter_names[]);
-int psGetCounterMetricNames(char **metric_names[]);
-int psGetCounterData(double *counter_values[]);
-int psGetMetaData(char **names[], char **values[]);
+void psGetTimerData(perftool_timer_data_t * timer_data);
+void psGetCounterData(perftool_counter_data_t * counter_data);
+void psGetMetaData(perftool_metadata_t * metadata);
 
 /*
     Macro API for option of entirely disabling at compile time

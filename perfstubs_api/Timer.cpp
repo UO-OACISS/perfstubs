@@ -46,14 +46,9 @@ typedef void PerfStubsDynamicPhaseStopType(const char *, int);
 typedef void PerfStubsSampleCounterType(const char *, double);
 typedef void PerfStubsMetaDataType(const char *, const char *);
 /* Data Query Functions */
-typedef int PerfStubsGetTimerNamesType(char **[]);
-typedef int PerfStubsGetTimerMetricNamesType(char **[]);
-typedef int PerfStubsGetThreadCountType(void);
-typedef int PerfStubsGetTimerDataType(double *[]);
-typedef int PerfStubsGetCounterNamesType(char **[]);
-typedef int PerfStubsGetCounterMetricNamesType(char **[]);
-typedef int PerfStubsGetCounterDataType(double *[]);
-typedef int PerfStubsGetMetaDataType(char **[], char **[]);
+typedef void PerfStubsGetTimerDataType(perftool_timer_data_t *);
+typedef void PerfStubsGetCounterDataType(perftool_counter_data *);
+typedef void PerfStubsGetMetaDataType(perftool_metadata_t *);
 
 /* Function pointers */
 
@@ -69,12 +64,7 @@ PerfStubsDynamicPhaseStartType *MyPerfStubsDynamicPhaseStart = nullptr;
 PerfStubsDynamicPhaseStopType *MyPerfStubsDynamicPhaseStop = nullptr;
 PerfStubsSampleCounterType *MyPerfStubsSampleCounter = nullptr;
 PerfStubsMetaDataType *MyPerfStubsMetaData = nullptr;
-PerfStubsGetTimerNamesType *MyPerfStubsGetTimerNames = nullptr;
-PerfStubsGetTimerMetricNamesType *MyPerfStubsGetTimerMetricNames = nullptr;
-PerfStubsGetThreadCountType *MyPerfStubsGetThreadCount = nullptr;
 PerfStubsGetTimerDataType *MyPerfStubsGetTimerData = nullptr;
-PerfStubsGetCounterNamesType *MyPerfStubsGetCounterNames = nullptr;
-PerfStubsGetCounterMetricNamesType *MyPerfStubsGetCounterMetricNames = nullptr;
 PerfStubsGetCounterDataType *MyPerfStubsGetCounterData = nullptr;
 PerfStubsGetMetaDataType *MyPerfStubsGetMetaData = nullptr;
 
@@ -107,14 +97,9 @@ void perftool_sample_counter(const char *, double)
     __attribute((weak));
 void perftool_metadata(const char *, const char *)
     __attribute((weak));
-int perftool_get_timer_names(char **[]);
-int perftool_get_timer_metric_names(char **[]);
-int perftool_get_thread_count(void);
-int perftool_get_timer_data(double *[]);
-int perftool_get_counter_names(char **[]);
-int perftool_get_counter_metric_names(char **[]);
-int perftool_get_counter_data(double *[]);
-int perftool_get_metadata(char **[], char **[]);
+void perftool_get_timer_data(perftool_timer_data_t *) __attribute((weak));
+void perftool_get_counter_data(perftool_counter_data_t *) __attribute((weak));
+void perftool_get_metadata(perftool_metadata_t *) __attribute((weak));
 }
 #endif
 
@@ -138,12 +123,7 @@ int AssignFunctionPointers(void)
     MyPerfStubsDynamicPhaseStop = &perftool_dynamic_phase_stop;
     MyPerfStubsSampleCounter = &perftool_sample_counter;
     MyPerfStubsMetaData = &perftool_metadata;
-    MyPerfStubsGetTimerNames = &perftool_get_timer_names;
-    MyPerfStubsGetTimerMetricNames = &perftool_get_timer_metric_names;
-    MyPerfStubsGetThreadCount = &perftool_get_thread_count;
     MyPerfStubsGetTimerData = &perftool_get_timer_data;
-    MyPerfStubsGetCounterNames = &perftool_get_counter_names;
-    MyPerfStubsGetCounterMetricNames = &perftool_get_counter_metric_names;
     MyPerfStubsGetCounterData = &perftool_get_counter_data;
     MyPerfStubsGetMetaData = &perftool_get_metadata;
 #else
@@ -176,24 +156,9 @@ int AssignFunctionPointers(void)
         RTLD_DEFAULT, "perftool_sample_counter");
     MyPerfStubsMetaData =
         (PerfStubsMetaDataType*)dlsym(RTLD_DEFAULT, "perftool_metadata");
-    MyPerfStubsGetTimerNames =
-        (PerfStubsGetTimerNamesType*)dlsym(RTLD_DEFAULT,
-        "perftool_get_timer_names");
-    MyPerfStubsGetTimerMetricNames =
-        (PerfStubsGetTimerMetricNamesType*)dlsym(RTLD_DEFAULT,
-        "perftool_get_timer_metric_names");
-    MyPerfStubsGetThreadCount =
-        (PerfStubsGetThreadCountType*)dlsym(RTLD_DEFAULT,
-        "perftool_get_thread_count");
     MyPerfStubsGetTimerData =
         (PerfStubsGetTimerDataType*)dlsym(RTLD_DEFAULT,
         "perftool_get_timer_data");
-    MyPerfStubsGetCounterNames =
-        (PerfStubsGetCounterNamesType*)dlsym(RTLD_DEFAULT,
-        "perftool_get_counter_names");
-    MyPerfStubsGetCounterMetricNames =
-        (PerfStubsGetCounterMetricNamesType*)dlsym(RTLD_DEFAULT,
-        "perftool_get_counter_metric_names");
     MyPerfStubsGetCounterData =
         (PerfStubsGetCounterDataType*)dlsym(RTLD_DEFAULT,
         "perftool_get_counter_data");
@@ -394,60 +359,25 @@ Timer::~Timer(void)
     MyPerfStubsExit();
 }
 
-int Timer::GetTimerNames(char **timer_names[]) {
+void Timer::GetTimerData(perftool_timer_data_t * timer_data) {
     static Timer& instance = Timer::Get();
     if (!instance.m_Initialized)
-        return 0;
-    return MyPerfStubsGetTimerNames(timer_names);
+        return;
+    return MyPerfStubsGetTimerData(timer_data);
 }
 
-int Timer::GetTimerMetricNames(char **metric_names[]) {
+void Timer::GetCounterData(perftool_counter_data_t * counter_data) {
     static Timer& instance = Timer::Get();
     if (!instance.m_Initialized)
-        return 0;
-    return MyPerfStubsGetTimerMetricNames(metric_names);
+        return;
+    return MyPerfStubsGetCounterData(counter_data);
 }
 
-int Timer::GetThreadCount(void) {
+void Timer::GetMetaData(perftool_metadata_t * metadata) {
     static Timer& instance = Timer::Get();
     if (!instance.m_Initialized)
-        return 0;
-    return MyPerfStubsGetThreadCount();
-}
-
-int Timer::GetTimerData(double *timer_values[]) {
-    static Timer& instance = Timer::Get();
-    if (!instance.m_Initialized)
-        return 0;
-    return MyPerfStubsGetTimerData(timer_values);
-}
-
-int Timer::GetCounterNames(char **counter_names[]) {
-    static Timer& instance = Timer::Get();
-    if (!instance.m_Initialized)
-        return 0;
-    return MyPerfStubsGetCounterNames(counter_names);
-}
-
-int Timer::GetCounterMetricNames(char **metric_names[]) {
-    static Timer& instance = Timer::Get();
-    if (!instance.m_Initialized)
-        return 0;
-    return MyPerfStubsGetCounterMetricNames(metric_names);
-}
-
-int Timer::GetCounterData(double *counter_values[]) {
-    static Timer& instance = Timer::Get();
-    if (!instance.m_Initialized)
-        return 0;
-    return MyPerfStubsGetCounterData(counter_values);
-}
-
-int Timer::GetMetaData(char **names[], char **values[]) {
-    static Timer& instance = Timer::Get();
-    if (!instance.m_Initialized)
-        return 0;
-    return MyPerfStubsGetMetaData(names, values);
+        return;
+    return MyPerfStubsGetMetaData(metadata);
 }
 
 } // namespace profiler
@@ -505,44 +435,19 @@ void psMetaData(const char *name, const char *value)
     external::profiler::Timer::MetaData(name, value);
 }
 
-int psGetTimerNames(char **timer_names[])
+void psGetTimerData(perftool_timer_data_t * timer_data)
 {
-    return external::profiler::Timer::GetTimerNames(timer_names);
+    return external::profiler::Timer::GetTimerData(timer_data);
 }
 
-int psGetTimerMetricNames(char **metric_names[])
+void psGetCounterData(perftool_counter_data_t * counter_data)
 {
-    return external::profiler::Timer::GetTimerMetricNames(metric_names);
+    return external::profiler::Timer::GetCounterData(counter_data);
 }
 
-int psGetThreadCount(void)
+void psGetMetaData(perftool_metadata_t * metadata)
 {
-    return external::profiler::Timer::GetThreadCount();
-}
-
-int psGetTimerData(double *timer_values[])
-{
-    return external::profiler::Timer::GetTimerData(timer_values);
-}
-
-int psGetCounterNames(char **counter_names[])
-{
-    return external::profiler::Timer::GetCounterNames(counter_names);
-}
-
-int psGetCounterMetricNames(char **metric_names[])
-{
-    return external::profiler::Timer::GetCounterMetricNames(metric_names);
-}
-
-int psGetCounterData(double *counter_values[])
-{
-    return external::profiler::Timer::GetCounterData(counter_values);
-}
-
-int psGetMetaData(char **names[], char **values[])
-{
-    return external::profiler::Timer::GetMetaData(names, values);
+    return external::profiler::Timer::GetMetaData(metadata);
 }
 
 /* End of C function definitions */

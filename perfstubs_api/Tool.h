@@ -8,6 +8,32 @@
 extern "C" {
 #endif
 
+typedef struct perftool_timer_data {
+    unsigned int num_timers;
+    unsigned int num_threads;
+    unsigned int num_metrics;
+    char** timer_names;
+    char** metric_names;
+    double* values;
+} perftool_timer_data_t;
+
+typedef struct perftool_counter_data {
+    unsigned int num_counters;
+    unsigned int num_threads;
+    char** counter_names;
+    double* num_samples;
+    double* value_total;
+    double* value_min;
+    double* value_max;
+    double* value_stddev;
+} perftool_counter_data_t;
+
+typedef struct perftool_metadata {
+    unsigned int num_values;
+    char** names;
+    char** values;
+} perftool_metadata_t;
+
 // library function declarations
 void perftool_init(void);
 void perftool_register_thread(void);
@@ -25,14 +51,9 @@ void perftool_sample_counter(const char *counter_name, double value);
 void perftool_metadata(const char *name, const char *value);
 
 // data query function declarations
-int perftool_get_timer_names(char **timer_names[]);
-int perftool_get_timer_metric_names(char **metric_names[]);
-int perftool_get_thread_count(void);
-int perftool_get_timer_data(double *timer_values[]);
-int perftool_get_counter_names(char **counter_names[]);
-int perftool_get_counter_metric_names(char **metric_names[]);
-int perftool_get_counter_data(double *counter_values[]);
-int perftool_get_metadata(char **names[], char **values[]);
+void perftool_get_timer_data(perftool_timer_data_t * timer_data);
+void perftool_get_counter_data(perftool_counter_data_t * timer_data);
+void perftool_get_metadata(perftool_metadata_t * metadata);
 
 #ifdef __cplusplus
 }

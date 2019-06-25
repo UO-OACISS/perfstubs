@@ -63,68 +63,54 @@ void perftool_sample_counter(const char *counter_name, double value)
 
 void perftool_metadata(const char *name, const char *value)
 {
-    cout << "Tool: " << __func__ << " " << name << " = " << 
-        value << endl;
+    cout << "Tool: " << __func__ << " " << name << " = " << value << endl;
 }
 
-int perftool_get_timer_names(char **timer_names[]) {
-    (*timer_names) = (char**)(calloc(1, sizeof(char*)));
-    (*timer_names)[0] = strdup("Main Timer");
-    return 1;
+void perftool_get_timer_data(perftool_timer_data_t * timer_data) {
+    cout << "Tool: " << __func__ << endl;
+    timer_data->num_timers = 1;
+    timer_data->num_threads = 1;
+    timer_data->num_metrics = 3;
+    timer_data->timer_names = (char**)(calloc(1, sizeof(char*)));
+    timer_data->metric_names = (char**)(calloc(3, sizeof(char*)));
+    timer_data->values = (double*)(calloc(3, sizeof(double)));
+    timer_data->timer_names[0] = strdup("Main Timer");
+    timer_data->metric_names[0] = strdup("Calls");
+    timer_data->metric_names[1] = strdup("Inclusive Time");
+    timer_data->metric_names[2] = strdup("Exclusive Time");
+    timer_data->values[0] = 1.0;
+    timer_data->values[1] = 20.0;
+    timer_data->values[2] = 10.0;
+    return;
 }
 
-int perftool_get_timer_metric_names(char **metric_names[]) {
-    (*metric_names) = (char**)(calloc(3, sizeof(char*)));
-    (*metric_names)[0] = strdup("Calls");
-    (*metric_names)[1] = strdup("Inclusive Time");
-    (*metric_names)[2] = strdup("Exclusive Time");
-    return 3;
+void perftool_get_counter_data(perftool_counter_data_t *counter_data) {
+    cout << "Tool: " << __func__ << endl;
+    counter_data->num_counters = 1;
+    counter_data->num_threads = 1;
+    counter_data->counter_names = (char**)(calloc(1, sizeof(char*)));
+    counter_data->num_samples = (double*)(calloc(1, sizeof(double)));
+    counter_data->value_total = (double*)(calloc(1, sizeof(double)));
+    counter_data->value_min = (double*)(calloc(1, sizeof(double)));
+    counter_data->value_max = (double*)(calloc(1, sizeof(double)));
+    counter_data->value_stddev = (double*)(calloc(1, sizeof(double)));
+    counter_data->counter_names[0] = strdup("A Counter");
+    counter_data->num_samples[0] = 3.0;
+    counter_data->value_total[0] = 6.0;
+    counter_data->value_min[0] = 1.0;
+    counter_data->value_max[0] = 3.0;
+    counter_data->value_stddev[0] = 1.414213562373095;
+    return;
 }
 
-int perftool_get_thread_count(void) {
-    return 1;
-}
-
-int perftool_get_timer_data(double *timer_values[]) {
-    (*timer_values) = (double*)(calloc(3, sizeof(double)));
-    (*timer_values)[0] = 1.0;
-    (*timer_values)[1] = 20.0;
-    (*timer_values)[2] = 10.0;
-    return 3;
-}
-
-int perftool_get_counter_names(char **counter_names[]) {
-    (*counter_names) = (char**)(calloc(1, sizeof(char*)));
-    (*counter_names)[0] = strdup("A Counter");
-    return 1;
-}
-
-int perftool_get_counter_metric_names(char **metric_names[]) {
-    (*metric_names) = (char**)(calloc(5, sizeof(char*)));
-    (*metric_names)[0] = strdup("Samples");
-    (*metric_names)[1] = strdup("Minimum");
-    (*metric_names)[2] = strdup("Maximum");
-    (*metric_names)[3] = strdup("Total");
-    (*metric_names)[4] = strdup("Stddev");
-    return 5;
-}
-
-int perftool_get_counter_data(double *counter_values[]) {
-    (*counter_values) = (double*)(calloc(5, sizeof(double)));
-    (*counter_values)[0] = 3.0;
-    (*counter_values)[1] = 1.0;
-    (*counter_values)[2] = 3.0;
-    (*counter_values)[3] = 6.0;
-    (*counter_values)[4] = 1.414213562373095;
-    return 5;
-}
-
-int perftool_get_metadata(char **names[], char **values[]) {
-    (*names) = (char**)(calloc(1, sizeof(char*)));
-    (*names)[0] = strdup("Name string");
-    (*values) = (char**)(calloc(1, sizeof(char*)));
-    (*values)[0] = strdup("Value string");
-    return 1;
+void perftool_get_metadata(perftool_metadata_t * metadata) {
+    cout << "Tool: " << __func__ << endl;
+    metadata->num_values = 1;
+    metadata->names = (char**)(calloc(1, sizeof(char*)));
+    metadata->values = (char**)(calloc(1, sizeof(char*)));
+    metadata->names[0] = strdup("Name string");
+    metadata->values[0] = strdup("Value string");
+    return;
 }
 
 

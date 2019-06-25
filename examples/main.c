@@ -62,60 +62,47 @@ int main(int argc, char *argv[])
     PERFSTUBS_DUMP_DATA();
     /* output some dummy data */
 
-    char** timer_names;
-    int num_timers = psGetTimerNames(&timer_names);
-    char** metric_names;
-    int num_metrics = psGetTimerMetricNames(&metric_names);
-    int num_threads = psGetThreadCount();
-    double* timer_values;
-    int num_timer_values = psGetTimerData(&timer_values);
+    perftool_timer_data_t timer_data;
+    psGetTimerData(&timer_data);
     int index = 0;
-    for (int i = 0 ; i < num_timers ; i++) {
-        for (int j = 0 ; j < num_metrics ; j++) {
-            for (int k = 0 ; k < num_threads ; k++) {
-                printf("%s %s %d = %f\n", timer_names[i], metric_names[j], k, timer_values[index]);
+    for (int i = 0 ; i < timer_data.num_timers ; i++) {
+        for (int j = 0 ; j < timer_data.num_metrics ; j++) {
+            for (int k = 0 ; k < timer_data.num_threads ; k++) {
+                printf("%s %s %d = %f\n", timer_data.timer_names[i],
+                    timer_data.metric_names[j], k, timer_data.values[index]);
                 index = index + 1;
-                if (index >= num_timer_values) break;
             }
-            if (index >= num_timer_values) break;
         }
-        if (index >= num_timer_values) break;
     }
-    free(timer_names);
-    free(metric_names);
-    free(timer_values);
+    //free(timer_data);
 
     index = 0;
-    char** counter_names;
-    int num_counters = psGetCounterNames(&counter_names);
-    char** counter_metric_names;
-    num_metrics = psGetCounterMetricNames(&counter_metric_names);
-    double* counter_values;
-    int num_counter_values = psGetCounterData(&counter_values);
-    for (int i = 0 ; i < num_counters ; i++) {
-        for (int j = 0 ; j < num_metrics ; j++) {
-            for (int k = 0 ; k < num_threads ; k++) {
-                printf("%s %s %d = %f\n", counter_names[i], counter_metric_names[j], k, counter_values[index]);
-                index = index + 1;
-                if (index >= num_counter_values) break;
-            }
-            if (index >= num_counter_values) break;
+    perftool_counter_data_t counter_data;
+    psGetCounterData(&counter_data);
+    for (int i = 0 ; i < counter_data.num_counters ; i++) {
+        for (int k = 0 ; k < counter_data.num_threads ; k++) {
+            printf("%s num_samples %d = %f\n", counter_data.counter_names[i],
+                k, counter_data.num_samples[index]);
+            printf("%s value_total %d = %f\n", counter_data.counter_names[i],
+                k, counter_data.value_total[index]);
+            printf("%s value_min %d = %f\n", counter_data.counter_names[i],
+                k, counter_data.value_min[index]);
+            printf("%s value_max %d = %f\n", counter_data.counter_names[i],
+                k, counter_data.value_max[index]);
+            printf("%s value_stddev %d = %f\n", counter_data.counter_names[i],
+                k, counter_data.value_stddev[index]);
+            index = index + 1;
         }
-        if (index >= num_timer_values) break;
     }
-    free(counter_names);
-    free(counter_metric_names);
-    free(counter_values);
+    //free(counter_values);
 
     index = 0;
-    char** metadata_names;
-    char** metadata_values;
-    int num_meta_data = psGetMetaData(&metadata_names, &metadata_values);
-    for (int i = 0 ; i < num_meta_data ; i++) {
-        printf("%s = %s\n", metadata_names[i], metadata_values[index]);
+    perftool_metadata_t metadata;
+    psGetMetaData(&metadata);
+    for (int i = 0 ; i < metadata.num_values ; i++) {
+        printf("'%s' = '%s'\n", metadata.names[i], metadata.values[index]);
     }
-    free(metadata_names);
-    free(metadata_values);
+    //free(metadata_values);
 
     return 0;
 }
