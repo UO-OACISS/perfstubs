@@ -55,6 +55,9 @@ public:
     static void GetTimerData(perftool_timer_data_t *timer_data);
     static void GetCounterData(perftool_counter_data_t *counter_data);
     static void GetMetaData(perftool_metadata_t *metadata);
+    static void FreeTimerData(perftool_timer_data_t *timer_data);
+    static void FreeCounterData(perftool_counter_data_t *counter_data);
+    static void FreeMetaData(perftool_metadata_t *metadata);
 
     // The only way to get an instance of this class
     static Timer &Get(void);
@@ -173,6 +176,9 @@ void psMetaData(const char *name, const char *value);
 void psGetTimerData(perftool_timer_data_t *timer_data);
 void psGetCounterData(perftool_counter_data_t *counter_data);
 void psGetMetaData(perftool_metadata_t *metadata);
+void psFreeTimerData(perftool_timer_data_t *timer_data);
+void psFreeCounterData(perftool_counter_data_t *counter_data);
+void psFreeMetaData(perftool_metadata_t *metadata);
 
 /*
     Macro API for option of entirely disabling at compile time

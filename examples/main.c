@@ -79,7 +79,7 @@ int main(int argc, char *argv[])
             }
         }
     }
-    // free(timer_data);
+    psFreeTimerData(&timer_data);
 
     index = 0;
     perftool_counter_data_t counter_data;
@@ -101,7 +101,7 @@ int main(int argc, char *argv[])
             index = index + 1;
         }
     }
-    // free(counter_values);
+    psFreeCounterData(&counter_data);
 
     index = 0;
     perftool_metadata_t metadata;
@@ -110,7 +110,7 @@ int main(int argc, char *argv[])
     {
         printf("'%s' = '%s'\n", metadata.names[i], metadata.values[index]);
     }
-    // free(metadata_values);
+    psFreeMetaData(&metadata);
 
     return 0;
 }

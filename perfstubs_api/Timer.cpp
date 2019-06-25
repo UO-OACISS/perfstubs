@@ -49,6 +49,9 @@ typedef void PerfStubsMetaDataType(const char *, const char *);
 typedef void PerfStubsGetTimerDataType(perftool_timer_data_t *);
 typedef void PerfStubsGetCounterDataType(perftool_counter_data *);
 typedef void PerfStubsGetMetaDataType(perftool_metadata_t *);
+typedef void PerfStubsFreeTimerDataType(perftool_timer_data_t *);
+typedef void PerfStubsFreeCounterDataType(perftool_counter_data *);
+typedef void PerfStubsFreeMetaDataType(perftool_metadata_t *);
 
 /* Function pointers */
 
@@ -67,6 +70,9 @@ PerfStubsMetaDataType *MyPerfStubsMetaData = nullptr;
 PerfStubsGetTimerDataType *MyPerfStubsGetTimerData = nullptr;
 PerfStubsGetCounterDataType *MyPerfStubsGetCounterData = nullptr;
 PerfStubsGetMetaDataType *MyPerfStubsGetMetaData = nullptr;
+PerfStubsFreeTimerDataType *MyPerfStubsFreeTimerData = nullptr;
+PerfStubsFreeCounterDataType *MyPerfStubsFreeCounterData = nullptr;
+PerfStubsFreeMetaDataType *MyPerfStubsFreeMetaData = nullptr;
 
 #define UNUSED(expr)                                                           \
     do                                                                         \
@@ -126,6 +132,9 @@ int AssignFunctionPointers(void)
     MyPerfStubsGetTimerData = &perftool_get_timer_data;
     MyPerfStubsGetCounterData = &perftool_get_counter_data;
     MyPerfStubsGetMetaData = &perftool_get_metadata;
+    MyPerfStubsFreeTimerData = &perftool_free_timer_data;
+    MyPerfStubsFreeCounterData = &perftool_free_counter_data;
+    MyPerfStubsFreeMetaData = &perftool_free_metadata;
 #else
     MyPerfStubsInit = (PerfStubsInitType *)dlsym(RTLD_DEFAULT, "perftool_init");
     if (MyPerfStubsInit == nullptr)
@@ -158,6 +167,12 @@ int AssignFunctionPointers(void)
         RTLD_DEFAULT, "perftool_get_counter_data");
     MyPerfStubsGetMetaData = (PerfStubsGetMetaDataType *)dlsym(
         RTLD_DEFAULT, "perftool_get_metadata");
+    MyPerfStubsFreeTimerData = (PerfStubsFreeTimerDataType *)dlsym(
+        RTLD_DEFAULT, "perftool_free_timer_data");
+    MyPerfStubsFreeCounterData = (PerfStubsFreeCounterDataType *)dlsym(
+        RTLD_DEFAULT, "perftool_free_counter_data");
+    MyPerfStubsFreeMetaData = (PerfStubsFreeMetaDataType *)dlsym(
+        RTLD_DEFAULT, "perftool_free_metadata");
 #endif
     return PERFSTUBS_SUCCESS;
 }
@@ -376,6 +391,30 @@ void Timer::GetMetaData(perftool_metadata_t *metadata)
     return MyPerfStubsGetMetaData(metadata);
 }
 
+void Timer::FreeTimerData(perftool_timer_data_t *timer_data)
+{
+    static Timer &instance = Timer::Get();
+    if (!instance.m_Initialized)
+        return;
+    return MyPerfStubsFreeTimerData(timer_data);
+}
+
+void Timer::FreeCounterData(perftool_counter_data_t *counter_data)
+{
+    static Timer &instance = Timer::Get();
+    if (!instance.m_Initialized)
+        return;
+    return MyPerfStubsFreeCounterData(counter_data);
+}
+
+void Timer::FreeMetaData(perftool_metadata_t *metadata)
+{
+    static Timer &instance = Timer::Get();
+    if (!instance.m_Initialized)
+        return;
+    return MyPerfStubsFreeMetaData(metadata);
+}
+
 } // namespace profiler
 
 } // namespace external
@@ -446,6 +485,21 @@ extern "C"
     void psGetMetaData(perftool_metadata_t *metadata)
     {
         return external::profiler::Timer::GetMetaData(metadata);
+    }
+
+    void psFreeTimerData(perftool_timer_data_t *timer_data)
+    {
+        return external::profiler::Timer::FreeTimerData(timer_data);
+    }
+
+    void psFreeCounterData(perftool_counter_data_t *counter_data)
+    {
+        return external::profiler::Timer::FreeCounterData(counter_data);
+    }
+
+    void psFreeMetaData(perftool_metadata_t *metadata)
+    {
+        return external::profiler::Timer::FreeMetaData(metadata);
     }
 
     /* End of C function definitions */

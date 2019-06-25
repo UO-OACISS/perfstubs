@@ -58,8 +58,11 @@ extern "C"
 
     // data query function declarations
     void perftool_get_timer_data(perftool_timer_data_t *timer_data);
-    void perftool_get_counter_data(perftool_counter_data_t *timer_data);
+    void perftool_free_counter_data(perftool_counter_data_t *timer_data);
+    void perftool_get_timer_data(perftool_timer_data_t *timer_data);
+    void perftool_free_timer_data(perftool_timer_data_t *timer_data);
     void perftool_get_metadata(perftool_metadata_t *metadata);
+    void perftool_free_metadata(perftool_metadata_t *metadata);
 
 #ifdef __cplusplus
 }

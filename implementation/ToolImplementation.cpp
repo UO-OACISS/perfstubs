@@ -70,6 +70,7 @@ extern "C"
     void perftool_get_timer_data(perftool_timer_data_t *timer_data)
     {
         cout << "Tool: " << __func__ << endl;
+        memset(timer_data, 0, sizeof(perftool_timer_data_t));
         timer_data->num_timers = 1;
         timer_data->num_threads = 1;
         timer_data->num_metrics = 3;
@@ -86,9 +87,33 @@ extern "C"
         return;
     }
 
+    void perftool_free_timer_data(perftool_timer_data_t *timer_data)
+    {
+        if (timer_data == nullptr)
+        {
+            return;
+        }
+        if (timer_data->timer_names != nullptr)
+        {
+            free(timer_data->timer_names);
+            timer_data->timer_names = nullptr;
+        }
+        if (timer_data->metric_names != nullptr)
+        {
+            free(timer_data->metric_names);
+            timer_data->metric_names = nullptr;
+        }
+        if (timer_data->values != nullptr)
+        {
+            free(timer_data->values);
+            timer_data->values = nullptr;
+        }
+    }
+
     void perftool_get_counter_data(perftool_counter_data_t *counter_data)
     {
         cout << "Tool: " << __func__ << endl;
+        memset(counter_data, 0, sizeof(perftool_counter_data_t));
         counter_data->num_counters = 1;
         counter_data->num_threads = 1;
         counter_data->counter_names = (char **)(calloc(1, sizeof(char *)));
@@ -106,14 +131,71 @@ extern "C"
         return;
     }
 
+    void perftool_free_counter_data(perftool_counter_data_t *counter_data)
+    {
+        if (counter_data == nullptr)
+        {
+            return;
+        }
+        if (counter_data->counter_names != nullptr)
+        {
+            free(counter_data->counter_names);
+            counter_data->counter_names = nullptr;
+        }
+        if (counter_data->num_samples != nullptr)
+        {
+            free(counter_data->num_samples);
+            counter_data->num_samples = nullptr;
+        }
+        if (counter_data->value_total != nullptr)
+        {
+            free(counter_data->value_total);
+            counter_data->value_total = nullptr;
+        }
+        if (counter_data->value_min != nullptr)
+        {
+            free(counter_data->value_min);
+            counter_data->value_min = nullptr;
+        }
+        if (counter_data->value_max != nullptr)
+        {
+            free(counter_data->value_max);
+            counter_data->value_max = nullptr;
+        }
+        if (counter_data->value_stddev != nullptr)
+        {
+            free(counter_data->value_stddev);
+            counter_data->value_stddev = nullptr;
+        }
+    }
+
     void perftool_get_metadata(perftool_metadata_t *metadata)
     {
         cout << "Tool: " << __func__ << endl;
+        memset(metadata, 0, sizeof(perftool_metadata_t));
         metadata->num_values = 1;
         metadata->names = (char **)(calloc(1, sizeof(char *)));
         metadata->values = (char **)(calloc(1, sizeof(char *)));
         metadata->names[0] = strdup("Name string");
         metadata->values[0] = strdup("Value string");
         return;
+    }
+
+    void perftool_free_metadata(perftool_metadata_t *metadata)
+    {
+        if (metadata == nullptr)
+        {
+            return;
+        }
+        if (metadata->names != nullptr)
+        {
+            free(metadata->names);
+            metadata->names = nullptr;
+        }
+        if (metadata->values != nullptr)
+        {
+            free(metadata->values);
+            metadata->values = nullptr;
+        }
     }
 }
