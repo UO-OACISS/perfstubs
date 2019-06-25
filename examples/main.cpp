@@ -17,7 +17,8 @@ void threaded_function(void *param)
     return;
 }
 
-double compute(double value) {
+double compute(double value)
+{
     PERFSTUBS_SCOPED_TIMER_FUNC();
     return sqrt(value);
 }
@@ -42,7 +43,8 @@ int main(int argc, char *argv[])
     PERFSTUBS_SAMPLE_COUNTER("input", inputValue);
 
     double outputValue;
-    for (int i = 0 ; i < 5 ; i++ ) {
+    for (int i = 0; i < 5; i++)
+    {
         PERFSTUBS_DYNAMIC_PHASE_START("Loop", i);
         outputValue = compute(inputValue);
         PERFSTUBS_DYNAMIC_PHASE_STOP("Loop", i);

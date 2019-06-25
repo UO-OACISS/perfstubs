@@ -17,8 +17,8 @@
 
 #include <memory>
 #include <sstream>
-#include <string>
 #include <stdint.h>
+#include <string>
 
 namespace external
 {
@@ -44,8 +44,7 @@ public:
     static void Stop(const std::string &timer_name);
     static void StaticPhaseStop(const char *phase_name);
     static void StaticPhaseStop(const std::string &phase_name);
-    static void DynamicPhaseStop(const char *phase_prefix,
-                                 int iteration_index);
+    static void DynamicPhaseStop(const char *phase_prefix, int iteration_index);
     static void DynamicPhaseStop(const std::string &phase_prefix,
                                  int iteration_index);
     static void SampleCounter(const char *name, const double value);
@@ -53,9 +52,9 @@ public:
 
     // data query api
     // data query function declarations
-    static void GetTimerData(perftool_timer_data_t * timer_data);
-    static void GetCounterData(perftool_counter_data_t * counter_data);
-    static void GetMetaData(perftool_metadata_t * metadata);
+    static void GetTimerData(perftool_timer_data_t *timer_data);
+    static void GetCounterData(perftool_counter_data_t *counter_data);
+    static void GetMetaData(perftool_metadata_t *metadata);
 
     // The only way to get an instance of this class
     static Timer &Get(void);
@@ -86,14 +85,13 @@ public:
     ~ScopedTimer() { Timer::Stop(m_Name); }
 };
 
-} // namespace external
-
 } // namespace profiler
+
+} // namespace external
 
 #define PERFSTUBS_INIT() external::profiler::Timer::Get();
 #define PERFSTUBS_DUMP_DATA() external::profiler::Timer::DumpData();
-#define PERFSTUBS_REGISTER_THREAD()                                            \
-    external::profiler::Timer::RegisterThread();
+#define PERFSTUBS_REGISTER_THREAD() external::profiler::Timer::RegisterThread();
 #define PERFSTUBS_TIMER_START(_timer_name)                                     \
     external::profiler::Timer::Start(_timer_name);
 #define PERFSTUBS_TIMER_STOP(_timer_name)                                      \
@@ -104,14 +102,14 @@ public:
     external::profiler::Timer::StaticPhaseStop(_phase_name);
 #define PERFSTUBS_DYNAMIC_PHASE_START(_phase_prefix, _iteration_index)         \
     external::profiler::Timer::DynamicPhaseStart(_phase_prefix,                \
-    _iteration_index);
+                                                 _iteration_index);
 #define PERFSTUBS_DYNAMIC_PHASE_STOP(_phase_prefix, _iteration_index)          \
     external::profiler::Timer::DynamicPhaseStop(_phase_prefix,                 \
-    _iteration_index);
+                                                _iteration_index);
 #define PERFSTUBS_TIMER_START_FUNC()                                           \
     std::stringstream __perfstubsFuncNameSS;                                   \
-    __perfstubsFuncNameSS <<  __func__ << " [{" << __FILE__ << "} {"           \
-            << __LINE__ << ",0}]";                                             \
+    __perfstubsFuncNameSS << __func__ << " [{" << __FILE__ << "} {"            \
+                          << __LINE__ << ",0}]";                               \
     std::string __perfStubsFuncName(__perfStubsFuncNameSS);                    \
     external::profiler::Timer::Start(__perfstubsFuncName);
 #define PERFSTUBS_TIMER_STOP_FUNC()                                            \
@@ -172,9 +170,9 @@ void psMetaData(const char *name, const char *value);
 
 /* data query API */
 
-void psGetTimerData(perftool_timer_data_t * timer_data);
-void psGetCounterData(perftool_counter_data_t * counter_data);
-void psGetMetaData(perftool_metadata_t * metadata);
+void psGetTimerData(perftool_timer_data_t *timer_data);
+void psGetCounterData(perftool_counter_data_t *counter_data);
+void psGetMetaData(perftool_metadata_t *metadata);
 
 /*
     Macro API for option of entirely disabling at compile time
@@ -189,8 +187,7 @@ void psGetMetaData(perftool_metadata_t * metadata);
 #define PERFSTUBS_TIMER_STOP(_timer_name) psTimerStop(_timer_name);
 #define PERFSTUBS_STATIC_PHASE_START(_phase_name)                              \
     psStaticPhaseStart(_phase_name);
-#define PERFSTUBS_STATIC_PHASE_STOP(_phase_name)                               \
-    psStaticPhaseStop(_phase_name);
+#define PERFSTUBS_STATIC_PHASE_STOP(_phase_name) psStaticPhaseStop(_phase_name);
 #define PERFSTUBS_DYNAMIC_PHASE_START(_phase_prefix, _iteration_index)         \
     psDynamicPhaseStart(_phase_prefix, _iteration_index);
 #define PERFSTUBS_DYNAMIC_PHASE_STOP(_phase_prefix, _iteration_index)          \
@@ -201,8 +198,7 @@ void psGetMetaData(perftool_metadata_t * metadata);
             __LINE__);                                                         \
     psTimerStart(__perfstubsFuncName);
 #define PERFSTUBS_TIMER_STOP_FUNC() psTimerStop(__perfstubsFuncName);
-#define PERFSTUBS_SAMPLE_COUNTER(_name, _value)                                \
-    psSampleCounter(_name, _value);
+#define PERFSTUBS_SAMPLE_COUNTER(_name, _value) psSampleCounter(_name, _value);
 #define PERFSTUBS_METADATA(_name, _value) psMetaData(_name, _value);
 
 #else // defined(PERFSTUBS_USE_TIMERS)
