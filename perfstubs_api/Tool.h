@@ -28,7 +28,7 @@ extern "C"
         double *value_total;
         double *value_min;
         double *value_max;
-        double *value_stddev;
+        double *value_sumsqr;
     } perftool_counter_data_t;
 
     typedef struct perftool_metadata

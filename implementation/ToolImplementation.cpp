@@ -121,13 +121,13 @@ extern "C"
         counter_data->value_total = (double *)(calloc(1, sizeof(double)));
         counter_data->value_min = (double *)(calloc(1, sizeof(double)));
         counter_data->value_max = (double *)(calloc(1, sizeof(double)));
-        counter_data->value_stddev = (double *)(calloc(1, sizeof(double)));
+        counter_data->value_sumsqr = (double *)(calloc(1, sizeof(double)));
         counter_data->counter_names[0] = strdup("A Counter");
         counter_data->num_samples[0] = 3.0;
         counter_data->value_total[0] = 6.0;
         counter_data->value_min[0] = 1.0;
         counter_data->value_max[0] = 3.0;
-        counter_data->value_stddev[0] = 1.414213562373095;
+        counter_data->value_sumsqr[0] = 1.414213562373095;
         return;
     }
 
@@ -162,10 +162,10 @@ extern "C"
             free(counter_data->value_max);
             counter_data->value_max = nullptr;
         }
-        if (counter_data->value_stddev != nullptr)
+        if (counter_data->value_sumsqr != nullptr)
         {
-            free(counter_data->value_stddev);
-            counter_data->value_stddev = nullptr;
+            free(counter_data->value_sumsqr);
+            counter_data->value_sumsqr = nullptr;
         }
     }
 

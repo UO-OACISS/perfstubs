@@ -94,16 +94,24 @@ int main(int argc, char *argv[])
     {
         for (int k = 0; k < counter_data.num_threads; k++)
         {
-            printf("%s num_samples %d = %f\n", counter_data.counter_names[i], k,
-                   counter_data.num_samples[index]);
-            printf("%s value_total %d = %f\n", counter_data.counter_names[i], k,
-                   counter_data.value_total[index]);
-            printf("%s value_min %d = %f\n", counter_data.counter_names[i], k,
-                   counter_data.value_min[index]);
-            printf("%s value_max %d = %f\n", counter_data.counter_names[i], k,
-                   counter_data.value_max[index]);
-            printf("%s value_stddev %d = %f\n", counter_data.counter_names[i],
-                   k, counter_data.value_stddev[index]);
+            /* The first metric is num_calls, if 0 then don't print this one */
+            if (counter_data.num_samples[index] > 0.0) {
+                printf("%s num_samples %d = %f\n",
+                    counter_data.counter_names[i], k,
+                    counter_data.num_samples[index]);
+                printf("%s value_total %d = %f\n",
+                    counter_data.counter_names[i], k,
+                    counter_data.value_total[index]);
+                printf("%s value_min %d = %f\n",
+                    counter_data.counter_names[i], k,
+                    counter_data.value_min[index]);
+                printf("%s value_max %d = %f\n",
+                    counter_data.counter_names[i], k,
+                    counter_data.value_max[index]);
+                printf("%s value_sumsqr %d = %f\n",
+                    counter_data.counter_names[i], k,
+                    counter_data.value_sumsqr[index]);
+            }
             index = index + 1;
         }
     }
