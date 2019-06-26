@@ -7,7 +7,7 @@ if (WIN32)
     message(FATAL_ERROR "\nPerfStubs won't compile on Windows. Exiting.")
 endif (WIN32)
 
-cmake_minimum_required (VERSION 3.9)
+cmake_minimum_required (VERSION 3.8)
 project (perfstubs)
 
 # should we use our own math functions?

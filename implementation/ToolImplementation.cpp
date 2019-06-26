@@ -4,6 +4,8 @@
 
 #include "perfstubs_api/Tool.h"
 #include <iostream>
+#include <cstring>
+#include <string>
 using namespace std;
 
 /* Function pointers */

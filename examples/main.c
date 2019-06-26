@@ -117,12 +117,11 @@ int main(int argc, char *argv[])
     }
     psFreeCounterData(&counter_data);
 
-    index = 0;
     perftool_metadata_t metadata;
     psGetMetaData(&metadata);
     for (int i = 0; i < metadata.num_values; i++)
     {
-        printf("'%s' = '%s'\n", metadata.names[i], metadata.values[index]);
+        printf("'%s' = '%s'\n", metadata.names[i], metadata.values[i]);
     }
     psFreeMetaData(&metadata);
 

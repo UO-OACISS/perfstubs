@@ -15,11 +15,13 @@ rm -rf ${workdir}/build_static
 mkdir ${workdir}/build_static
 cd ${workdir}/build_static
 
-export CFLAGS="-fsanitize=address"
-export CXXFLAGS="-fsanitize=address"
-export LDFLAGS="-fsanitize=address"
+#export CFLAGS="-fsanitize=address"
+#export CXXFLAGS="-fsanitize=address"
+#export LDFLAGS="-fsanitize=address"
 
 cmake \
+-DCMAKE_C_COMPILER=`which gcc` \
+-DCMAKE_CXX_COMPILER=`which g++` \
 -DCMAKE_BUILD_TYPE=Debug \
 -DCMAKE_INSTALL_PREFIX=. \
 -DPERFSTUBS_USE_STATIC=ON \
@@ -33,7 +35,9 @@ mkdir ${workdir}/build_dynamic
 cd ${workdir}/build_dynamic
 
 cmake \
--DCMAKE_BUILD_TYPE=RelWithDebInfo \
+-DCMAKE_C_COMPILER=`which gcc` \
+-DCMAKE_CXX_COMPILER=`which g++` \
+-DCMAKE_BUILD_TYPE=Debug \
 -DCMAKE_INSTALL_PREFIX=. \
 -DPERFSTUBS_USE_STATIC=OFF \
 ..
