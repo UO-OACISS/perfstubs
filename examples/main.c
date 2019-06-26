@@ -69,13 +69,19 @@ int main(int argc, char *argv[])
     int index = 0;
     for (int i = 0; i < timer_data.num_timers; i++)
     {
-        for (int j = 0; j < timer_data.num_metrics; j++)
+        for (int k = 0; k < timer_data.num_threads; k++)
         {
-            for (int k = 0; k < timer_data.num_threads; k++)
-            {
-                printf("%s %s %d = %f\n", timer_data.timer_names[i],
-                       timer_data.metric_names[j], k, timer_data.values[index]);
-                index = index + 1;
+            /* The first metric is num_calls, if 0 then don't print this one */
+            if (timer_data.values[index] == 0.0) {
+                index = index + timer_data.num_metrics;
+            } else {
+                for (int j = 0; j < timer_data.num_metrics; j++)
+                {
+                    printf("'%s' '%s' %d = %f\n", timer_data.timer_names[i],
+                        timer_data.metric_names[j], k,
+                        timer_data.values[index]);
+                    index = index + 1;
+                }
             }
         }
     }

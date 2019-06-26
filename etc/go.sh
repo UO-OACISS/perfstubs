@@ -20,7 +20,7 @@ export CXXFLAGS="-fsanitize=address"
 export LDFLAGS="-fsanitize=address"
 
 cmake \
--DCMAKE_BUILD_TYPE=RelWithDebInfo \
+-DCMAKE_BUILD_TYPE=Debug \
 -DCMAKE_INSTALL_PREFIX=. \
 -DPERFSTUBS_USE_STATIC=ON \
 ..

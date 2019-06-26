@@ -34,6 +34,7 @@ int main(int argc, char *argv[])
         std::cerr << argv[0] << " Version " << PerfStubs_VERSION_MAJOR << "."
                   << PerfStubs_VERSION_MINOR << std::endl;
         std::cerr << "Usage: " << argv[0] << " number" << std::endl;
+        PERFSTUBS_STATIC_PHASE_STOP("Argument Validation");
         return 1;
     }
     PERFSTUBS_STATIC_PHASE_STOP("Argument Validation");
