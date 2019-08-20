@@ -504,6 +504,52 @@ extern "C"
 
     /* End of C function definitions */
 
+    // Fortran Bindings
+    void psinit_() { InitializeLibrary(); }
+
+    void psregisterthread_() { external::profiler::Timer::RegisterThread(); }
+
+    void pstimerstart_(const char *timerName)
+    {
+        external::profiler::Timer::Start(timerName);
+    }
+    void pstimerstop_(const char *timerName)
+    {
+        external::profiler::Timer::Stop(timerName);
+    }
+
+    void psstaticphasestart_(const char *phaseName)
+    {
+        external::profiler::Timer::StaticPhaseStart(phaseName);
+    }
+
+    void psstaticphasestop_(const char *phaseName)
+    {
+        external::profiler::Timer::StaticPhaseStop(phaseName);
+    }
+
+    void psdynamicphasestart_(const char *phase_prefix, int iteration_index)
+    {
+        external::profiler::Timer::DynamicPhaseStart(phase_prefix,
+                                                     iteration_index);
+    }
+
+    void psdynamicphasestop_(const char *phase_prefix, int iteration_index)
+    {
+        external::profiler::Timer::DynamicPhaseStop(phase_prefix,
+                                                    iteration_index);
+    }
+
+    void pssamplecounter_(const char *name, const double value)
+    {
+        external::profiler::Timer::SampleCounter(name, value);
+    }
+
+    void psmetadata_(const char *name, const char *value)
+    {
+        external::profiler::Timer::MetaData(name, value);
+    }
+
 } // extern "C"
 
 #endif // defined(PERFSTUBS_USE_TIMERS)

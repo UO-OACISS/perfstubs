@@ -7,6 +7,8 @@ if (WIN32)
     message(FATAL_ERROR "\nPerfStubs won't compile on Windows. Exiting.")
 endif (WIN32)
 
+ENABLE_LANGUAGE(Fortran)
+
 cmake_minimum_required (VERSION 3.8)
 project (perfstubs)
 
@@ -36,6 +38,17 @@ set (PerfStubs_VERSION ${PerfStubs_VERSION_MAJOR}.${PerfStubs_VERSION_MINOR})
 set (CMAKE_CXX_STANDARD 11)
 set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Werror -pthread")
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -pthread")
+
+set(CMAKE_Fortran_FLAGS         "${CMAKE_Fortran_FLAGS} -cpp")
+if(CMAKE_Fortran_COMPILER MATCHES "gfortran*")
+    set(CMAKE_SKIP_BUILD_RPATH            FALSE)
+    set(CMAKE_BUILD_WITH_INSTALL_RPATH    TRUE)
+    set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+
+    set(CMAKE_Fortran_FLAGS         "${CMAKE_Fortran_FLAGS} -std=f2003 -fimplicit-none")
+    set(CMAKE_Fortran_FLAGS_DEBUG   "-Wall -O0 -g3 -fbounds-check")
+    set(CMAKE_Fortran_FLAGS_RELEASE "-O2")
+endif()
 
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
     add_definitions(-DDEBUG)
@@ -104,8 +117,10 @@ endif (PERFSTUBS_USE_STATIC AND NOT APPLE)
 # add the executable
 add_executable(perfstubs_test_cpp examples/main.cpp)
 add_executable(perfstubs_test_c examples/main.c)
+add_executable(perfstubs_test_fort examples/main.f90)
 target_link_libraries (perfstubs_test_cpp ${TOOL_LIBS} ${EXTRA_LIBS})
 target_link_libraries (perfstubs_test_c ${TOOL_LIBS} ${EXTRA_LIBS})
+target_link_libraries (perfstubs_test_fort ${TOOL_LIBS} ${EXTRA_LIBS})
 
 include(CTest)
 
@@ -114,12 +129,16 @@ add_test (cpp_test perfstubs_test_cpp 25)
 set_tests_properties (cpp_test PROPERTIES PASS_REGULAR_EXPRESSION "Tool: perftool_timer_start main")
 add_test (c_test perfstubs_test_c 25)
 set_tests_properties (c_test PROPERTIES PASS_REGULAR_EXPRESSION "Tool: perftool_timer_start main")
+add_test (fort_test perfstubs_test_fort 25)
+set_tests_properties (fort_test PROPERTIES PASS_REGULAR_EXPRESSION "Tool: perftool_timer_start main")
 
 # For dynamic testing, preload the "tool"
 if (NOT PERFSTUBS_USE_STATIC AND NOT APPLE)
 set_tests_properties(cpp_test PROPERTIES
     ENVIRONMENT LD_PRELOAD=${CMAKE_BINARY_DIR}/libimplementation.so)
 set_tests_properties(c_test PROPERTIES
+    ENVIRONMENT LD_PRELOAD=${CMAKE_BINARY_DIR}/libimplementation.so)
+set_tests_properties(fort_test PROPERTIES
     ENVIRONMENT LD_PRELOAD=${CMAKE_BINARY_DIR}/libimplementation.so)
 endif (NOT PERFSTUBS_USE_STATIC AND NOT APPLE)
 
