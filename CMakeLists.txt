@@ -169,6 +169,7 @@ install (TARGETS perfstubs
     COMPONENT library
 )
 install (FILES perfstubs_api/Timer.h DESTINATION include/perfstubs_api)
+install (FILES perfstubs_api/Timer_f.h DESTINATION include/perfstubs_api)
 install (FILES perfstubs_api/Tool.h DESTINATION include/perfstubs_api)
 install (FILES ${CMAKE_BINARY_DIR}/perfstubs_api/Config.h DESTINATION include/perfstubs_api)
 install (FILES ${CMAKE_BINARY_DIR}/perfstubs.pc DESTINATION lib/pkgconfig)
