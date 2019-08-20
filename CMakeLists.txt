@@ -117,7 +117,7 @@ endif (PERFSTUBS_USE_STATIC AND NOT APPLE)
 # add the executable
 add_executable(perfstubs_test_cpp examples/main.cpp)
 add_executable(perfstubs_test_c examples/main.c)
-add_executable(perfstubs_test_fort examples/main.f90)
+add_executable(perfstubs_test_fort examples/main.F90)
 target_link_libraries (perfstubs_test_cpp ${TOOL_LIBS} ${EXTRA_LIBS})
 target_link_libraries (perfstubs_test_c ${TOOL_LIBS} ${EXTRA_LIBS})
 target_link_libraries (perfstubs_test_fort ${TOOL_LIBS} ${EXTRA_LIBS})

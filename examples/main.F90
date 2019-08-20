@@ -4,25 +4,28 @@
 ! It works with the Cray T3E F90 compiler with TAU.
 !-----------------------------------------------------------------------------
 
+#define PERFSTUBS_USE_TIMERS 1
+#include "perfstubs_api/Timer_f.h"
+
       subroutine HELLOWORLD(iVal)
         integer iVal
 
-        call PSTIMERSTART('HELLOWORLD')
+        PERFSTUBS_TIMER_START('HELLOWORLD')
         print *, "Iteration = ", iVal
-        call PSTIMERSTOP('HELLOWORLD')
+        PERFSTUBS_TIMER_STOP('HELLOWORLD')
       end
 
       program main
         integer i
 
-        call PSINIT()
-        call PSTIMERSTART('main')
+        PERFSTUBS_INIT()
+        PERFSTUBS_TIMER_START('main')
 
         print *, "test program"
 
         do 10, i = 1, 10
         call HELLOWORLD(i)
 10      continue
-        call PSTIMERSTOP('main')
+        PERFSTUBS_TIMER_START('main')
       end
 
