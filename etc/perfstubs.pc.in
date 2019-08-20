@@ -7,5 +7,5 @@ Name: libmylib
 Description: Mylib description.
 Version: 1.0
 
-Libs: -L${libdir} @PRIVATE_LIBS@
+Libs: -L${libdir} @PRIVATE_LIBS@ -Wl,-rpath,${libdir}
 Cflags: -I${includedir}
