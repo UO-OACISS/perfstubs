@@ -27,5 +27,6 @@
         call HELLOWORLD(i)
 10      continue
         PERFSTUBS_TIMER_START('main')
+        PERFSTUBS_DUMP_DATA()
       end
 

@@ -509,6 +509,8 @@ extern "C"
 
     void psregisterthread_() { external::profiler::Timer::RegisterThread(); }
 
+    void psdumpdata_() { external::profiler::Timer::DumpData(); }
+
     void pstimerstart_(const char *timerName)
     {
         external::profiler::Timer::Start(timerName);
