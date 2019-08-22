@@ -92,6 +92,12 @@ public:
 
 } // namespace external
 
+#ifdef __GNUC__
+#define __PERFSTUBS_FUNCTION__ __PRETTY_FUNCTION__
+#else
+#define __PERFSTUBS_FUNCTION__ __func__
+#endif
+
 #define PERFSTUBS_INIT() external::profiler::Timer::Get();
 #define PERFSTUBS_DUMP_DATA() external::profiler::Timer::DumpData();
 #define PERFSTUBS_REGISTER_THREAD() external::profiler::Timer::RegisterThread();
@@ -111,7 +117,8 @@ public:
                                                 _iteration_index);
 #define PERFSTUBS_TIMER_START_FUNC()                                           \
     std::stringstream __perfstubsFuncNameSS;                                   \
-    __perfstubsFuncNameSS << __func__ << " [{" << __FILE__ << "} {"            \
+    __perfstubsFuncNameSS << __PERFSTUBS_FUNCTION__                            \
+                          << " [{" << __FILE__ << "} {"                        \
                           << __LINE__ << ",0}]";                               \
     std::string __perfStubsFuncName(__perfStubsFuncNameSS);                    \
     external::profiler::Timer::Start(__perfstubsFuncName);
@@ -125,8 +132,8 @@ public:
     external::profiler::ScopedTimer __var##finfo(__name);
 #define PERFSTUBS_SCOPED_TIMER_FUNC()                                          \
     std::stringstream __ss##finfo;                                             \
-    __ss##finfo << __func__ << " [{" << __FILE__ << "} {" << __LINE__          \
-                << ",0}]";                                                     \
+    __ss##finfo << __PERFSTUBS_FUNCTION__ << " [{" << __FILE__                 \
+                << "} {" << __LINE__ << ",0}]";                                \
     external::profiler::ScopedTimer __var##finfo(__ss##finfo.str());
 
 #else // defined(PERFSTUBS_USE_TIMERS)
