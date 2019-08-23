@@ -37,8 +37,8 @@ typedef void PerfStubsRegisterThreadType(void);
 typedef void PerfStubsExitType(void);
 typedef void PerfStubsDumpDataType(void);
 /* Data entry functions */
-typedef void PerfStubsTimerStartType(const char *);
-typedef void PerfStubsTimerStopType(const char *);
+typedef void PerfStubsTimerStartStringType(const char *);
+typedef void PerfStubsTimerStopStringType(const char *);
 typedef void PerfStubsDynamicPhaseStartType(const char *, int);
 typedef void PerfStubsDynamicPhaseStopType(const char *, int);
 typedef void PerfStubsSampleCounterType(const char *, double);
@@ -57,8 +57,8 @@ PerfStubsInitType *MyPerfStubsInit = nullptr;
 PerfStubsRegisterThreadType *MyPerfStubsRegisterThread = nullptr;
 PerfStubsExitType *MyPerfStubsExit = nullptr;
 PerfStubsDumpDataType *MyPerfStubsDumpData = nullptr;
-PerfStubsTimerStartType *MyPerfStubsTimerStart = nullptr;
-PerfStubsTimerStopType *MyPerfStubsTimerStop = nullptr;
+PerfStubsTimerStartStringType *MyPerfStubsTimerStartString = nullptr;
+PerfStubsTimerStopStringType *MyPerfStubsTimerStopString = nullptr;
 PerfStubsDynamicPhaseStartType *MyPerfStubsDynamicPhaseStart = nullptr;
 PerfStubsDynamicPhaseStopType *MyPerfStubsDynamicPhaseStop = nullptr;
 PerfStubsSampleCounterType *MyPerfStubsSampleCounter = nullptr;
@@ -112,8 +112,8 @@ int AssignFunctionPointers(void)
     MyPerfStubsRegisterThread = &perftool_register_thread;
     MyPerfStubsExit = &perftool_exit;
     MyPerfStubsDumpData = &perftool_dump_data;
-    MyPerfStubsTimerStart = &perftool_timer_start;
-    MyPerfStubsTimerStop = &perftool_timer_stop;
+    MyPerfStubsTimerStartString = &perftool_timer_start_string;
+    MyPerfStubsTimerStopString = &perftool_timer_stop_string;
     MyPerfStubsDynamicPhaseStart = &perftool_dynamic_phase_start;
     MyPerfStubsDynamicPhaseStop = &perftool_dynamic_phase_stop;
     MyPerfStubsSampleCounter = &perftool_sample_counter;
@@ -134,10 +134,12 @@ int AssignFunctionPointers(void)
         RTLD_DEFAULT, "perftool_register_thread");
     MyPerfStubsDumpData =
         (PerfStubsDumpDataType *)dlsym(RTLD_DEFAULT, "perftool_dump_data");
-    MyPerfStubsTimerStart =
-        (PerfStubsTimerStartType *)dlsym(RTLD_DEFAULT, "perftool_timer_start");
-    MyPerfStubsTimerStop =
-        (PerfStubsTimerStopType *)dlsym(RTLD_DEFAULT, "perftool_timer_stop");
+    MyPerfStubsTimerStartString =
+        (PerfStubsTimerStartStringType *)dlsym(RTLD_DEFAULT,
+        "perftool_timer_start_string");
+    MyPerfStubsTimerStopString =
+        (PerfStubsTimerStopStringType *)dlsym(RTLD_DEFAULT,
+        "perftool_timer_stop_string");
     MyPerfStubsDynamicPhaseStart = (PerfStubsDynamicPhaseStartType *)dlsym(
         RTLD_DEFAULT, "perftool_dynamic_phase_start");
     MyPerfStubsDynamicPhaseStop = (PerfStubsDynamicPhaseStopType *)dlsym(
@@ -226,8 +228,8 @@ void Timer::RegisterThread(void)
 void Timer::Start(const char *timer_name)
 {
     static Timer &instance = Timer::Get();
-    if (instance.m_Initialized && MyPerfStubsTimerStart != nullptr)
-        MyPerfStubsTimerStart(timer_name);
+    if (instance.m_Initialized && MyPerfStubsTimerStartString != nullptr)
+        MyPerfStubsTimerStartString(timer_name);
 }
 
 void Timer::Start(const std::string &timer_name)
@@ -251,8 +253,8 @@ void Timer::DynamicPhaseStart(const std::string &phase_prefix,
 void Timer::Stop(const char *timer_name)
 {
     static Timer &instance = Timer::Get();
-    if (instance.m_Initialized && MyPerfStubsTimerStop != nullptr)
-        MyPerfStubsTimerStop(timer_name);
+    if (instance.m_Initialized && MyPerfStubsTimerStopString != nullptr)
+        MyPerfStubsTimerStopString(timer_name);
 }
 
 void Timer::Stop(const std::string &timer_name)
@@ -358,12 +360,12 @@ extern "C"
 
     void psDumpData() { PSNS::Timer::DumpData(); }
 
-    void psTimerStart(const char *timerName)
+    void psTimerStartString(const char *timerName)
     {
         PSNS::Timer::Start(timerName);
     }
 
-    void psTimerStop(const char *timerName)
+    void psTimerStopString(const char *timerName)
     {
         PSNS::Timer::Stop(timerName);
     }

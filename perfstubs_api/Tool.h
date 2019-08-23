@@ -45,8 +45,8 @@ extern "C"
     void perftool_dump(void);
 
     // measurement function declarations
-    void perftool_timer_start(const char *timer_name);
-    void perftool_timer_stop(const char *timer_name);
+    void perftool_timer_start_string(const char *timer_name);
+    void perftool_timer_stop_string(const char *timer_name);
     void perftool_dynamic_phase_start(const char *iteration_prefix,
                                       int iteration_number);
     void perftool_dynamic_phase_stop(const char *iteration_prefix,

@@ -24,12 +24,12 @@ extern "C"
 
     void perftool_dump_data(void) { cout << "Tool: " << __func__ << endl; }
 
-    void perftool_timer_start(const char *timer_name)
+    void perftool_timer_start_string(const char *timer_name)
     {
         cout << "Tool: " << __func__ << " " << timer_name << endl;
     }
 
-    void perftool_timer_stop(const char *timer_name)
+    void perftool_timer_stop_string(const char *timer_name)
     {
         cout << "Tool: " << __func__ << " " << timer_name << endl;
     }

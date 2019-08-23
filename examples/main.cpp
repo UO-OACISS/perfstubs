@@ -28,16 +28,16 @@ int main(int argc, char *argv[])
     PERFSTUBS_INIT();
     PERFSTUBS_SCOPED_TIMER_FUNC();
 
-    PERFSTUBS_TIMER_START("Argument Validation");
-    if (argc < 2)
     {
-        std::cerr << argv[0] << " Version " << PerfStubs_VERSION_MAJOR << "."
-                  << PerfStubs_VERSION_MINOR << std::endl;
-        std::cerr << "Usage: " << argv[0] << " number" << std::endl;
-        PERFSTUBS_TIMER_STOP("Argument Validation");
-        return 1;
+        PERFSTUBS_SCOPED_TIMER("Argument Validation");
+        if (argc < 2) {
+            std::cerr << argv[0] << " Version "
+                    << PerfStubs_VERSION_MAJOR << "."
+                    << PerfStubs_VERSION_MINOR << std::endl;
+            std::cerr << "Usage: " << argv[0] << " number" << std::endl;
+            return 1;
+        }
     }
-    PERFSTUBS_TIMER_STOP("Argument Validation");
     std::thread example_thread(threaded_function, nullptr);
 
     double inputValue = atof(argv[1]);
