@@ -134,14 +134,14 @@ include(CTest)
 # does the application run
 add_test (cpp_test perfstubs_test_cpp 25)
 set_tests_properties (cpp_test PROPERTIES PASS_REGULAR_EXPRESSION
-    "Tool: perftool_timer_start_string int main")
+    "Tool: perftool_timer_start int main")
 add_test (c_test perfstubs_test_c 25)
 set_tests_properties (c_test PROPERTIES PASS_REGULAR_EXPRESSION
-    "Tool: perftool_timer_start_string main")
+    "Tool: perftool_timer_start main")
 if (NOT APPLE)
     add_test (fort_test perfstubs_test_fort 25)
     set_tests_properties (fort_test PROPERTIES PASS_REGULAR_EXPRESSION
-        "Tool: perftool_timer_start_string main")
+        "Tool: perftool_timer_start main")
 endif ()
 
 # For dynamic testing, preload the "tool"

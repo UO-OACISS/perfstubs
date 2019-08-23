@@ -12,36 +12,36 @@
 void *threaded_function(void *param)
 {
     PERFSTUBS_REGISTER_THREAD();
-    PERFSTUBS_TIMER_START_FUNC();
+    PERFSTUBS_TIMER_START_FUNC(_timer);
     printf("Hello from new thread!\n");
-    PERFSTUBS_TIMER_STOP_FUNC();
+    PERFSTUBS_TIMER_STOP_FUNC(_timer);
     return NULL;
 }
 
 double compute(double value)
 {
-    PERFSTUBS_TIMER_START_FUNC();
+    PERFSTUBS_TIMER_START_FUNC(_timer);
     double tmp = sqrt(value);
-    PERFSTUBS_TIMER_STOP_FUNC();
+    PERFSTUBS_TIMER_STOP_FUNC(_timer);
     return tmp;
 }
 
 int main(int argc, char *argv[])
 {
     PERFSTUBS_INIT();
-    PERFSTUBS_TIMER_START_FUNC();
+    PERFSTUBS_TIMER_START_FUNC(_timer);
 
-    PERFSTUBS_TIMER_START_STRING("Argument Validation");
+    PERFSTUBS_TIMER_START(_arg_timer, "Argument Validation");
     if (argc < 2)
     {
         fprintf(stderr, "%s Version %d.%d\n", argv[0], PerfStubs_VERSION_MAJOR,
                 PerfStubs_VERSION_MINOR);
         fprintf(stderr, "Usage: %s number\n", argv[0]);
-        PERFSTUBS_TIMER_STOP_STRING("Argument Validation");
-        PERFSTUBS_TIMER_STOP_FUNC();
+        PERFSTUBS_TIMER_STOP(_arg_timer);
+        PERFSTUBS_TIMER_STOP_FUNC(_timer);
         return 1;
     }
-    PERFSTUBS_TIMER_STOP_STRING("Argument Validation");
+    PERFSTUBS_TIMER_STOP(_arg_timer);
 
     pthread_t example_thread;
     pthread_create(&example_thread, NULL, threaded_function, NULL);
@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
     pthread_join(example_thread, NULL);
     printf("The square root of %f is %f\n", inputValue, outputValue);
 
-    PERFSTUBS_TIMER_STOP_FUNC();
+    PERFSTUBS_TIMER_STOP_FUNC(_timer);
 
     PERFSTUBS_DUMP_DATA();
     /* output some dummy data */

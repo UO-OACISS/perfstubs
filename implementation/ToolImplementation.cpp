@@ -6,9 +6,27 @@
 #include <iostream>
 #include <cstring>
 #include <string>
+#include <unordered_map>
+#include <utility>
 using namespace std;
 
 /* Function pointers */
+
+namespace external {
+    namespace ps_implementation {
+        class profiler {
+            public:
+                profiler(const std::string& name) : _name(name), _calls(0) {}
+                void start() { _calls++; }
+                void stop() { _calls++; }
+                std::string _name;
+                int _calls;
+        };
+    }
+}
+
+namespace MINE = external::ps_implementation;
+std::unordered_map<std::string, MINE::profiler*> profilers;
 
 extern "C"
 {
@@ -24,14 +42,30 @@ extern "C"
 
     void perftool_dump_data(void) { cout << "Tool: " << __func__ << endl; }
 
-    void perftool_timer_start_string(const char *timer_name)
+    void * perftool_timer_create(const char * timer_name)
     {
-        cout << "Tool: " << __func__ << " " << timer_name << endl;
+        std::string name(timer_name);
+        auto iter = profilers.find(name);
+        if (iter == profilers.end()) {
+            MINE::profiler * p = new MINE::profiler(name);
+            profilers.insert(std::pair<std::string,MINE::profiler*>(name,p));
+            return (void*)p;
+        }
+        return (void*)iter->second;
     }
 
-    void perftool_timer_stop_string(const char *timer_name)
+    void perftool_timer_start(const void *profiler)
     {
-        cout << "Tool: " << __func__ << " " << timer_name << endl;
+        MINE::profiler* p = (MINE::profiler*) profiler;
+        cout << "Tool: " << __func__ << " " << p->_name << endl;
+        p->start();
+    }
+
+    void perftool_timer_stop(const void *profiler)
+    {
+        MINE::profiler* p = (MINE::profiler*) profiler;
+        cout << "Tool: " << __func__ << " " << p->_name << endl;
+        p->stop();
     }
 
     void perftool_dynamic_phase_start(const char *phase_prefix,

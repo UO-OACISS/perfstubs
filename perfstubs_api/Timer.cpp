@@ -20,6 +20,8 @@
 #include <sys/syscall.h>
 #include <sys/types.h>
 #include <thread>
+#include <utility>
+#include <unordered_map>
 
 #define PERFSTUBS_SUCCESS 0
 #define PERFSTUBS_FAILURE 1
@@ -37,8 +39,9 @@ typedef void PerfStubsRegisterThreadType(void);
 typedef void PerfStubsExitType(void);
 typedef void PerfStubsDumpDataType(void);
 /* Data entry functions */
-typedef void PerfStubsTimerStartStringType(const char *);
-typedef void PerfStubsTimerStopStringType(const char *);
+typedef void* PerfStubsTimerCreateType(const char *);
+typedef void PerfStubsTimerStartType(const void *);
+typedef void PerfStubsTimerStopType(const void *);
 typedef void PerfStubsDynamicPhaseStartType(const char *, int);
 typedef void PerfStubsDynamicPhaseStopType(const char *, int);
 typedef void PerfStubsSampleCounterType(const char *, double);
@@ -57,8 +60,9 @@ PerfStubsInitType *MyPerfStubsInit = nullptr;
 PerfStubsRegisterThreadType *MyPerfStubsRegisterThread = nullptr;
 PerfStubsExitType *MyPerfStubsExit = nullptr;
 PerfStubsDumpDataType *MyPerfStubsDumpData = nullptr;
-PerfStubsTimerStartStringType *MyPerfStubsTimerStartString = nullptr;
-PerfStubsTimerStopStringType *MyPerfStubsTimerStopString = nullptr;
+PerfStubsTimerCreateType *MyPerfStubsTimerCreate = nullptr;
+PerfStubsTimerStartType *MyPerfStubsTimerStart = nullptr;
+PerfStubsTimerStopType *MyPerfStubsTimerStop = nullptr;
 PerfStubsDynamicPhaseStartType *MyPerfStubsDynamicPhaseStart = nullptr;
 PerfStubsDynamicPhaseStopType *MyPerfStubsDynamicPhaseStop = nullptr;
 PerfStubsSampleCounterType *MyPerfStubsSampleCounter = nullptr;
@@ -87,8 +91,9 @@ extern "C"
     void perftool_register_thread(void) __attribute((weak));
     void perftool_exit(void) __attribute((weak));
     void perftool_dump_data(void) __attribute((weak));
-    void perftool_timer_start(const char *) __attribute((weak));
-    void perftool_timer_stop(const char *) __attribute((weak));
+    void* perftool_timer_create(const char *) __attribute((weak));
+    void perftool_timer_start(const void *) __attribute((weak));
+    void perftool_timer_stop(const void *) __attribute((weak));
     void perftool_dynamic_phase_start(const char *, int) __attribute((weak));
     void perftool_dynamic_phase_stop(const char *, int) __attribute((weak));
     void perftool_sample_counter(const char *, double) __attribute((weak));
@@ -112,8 +117,9 @@ int AssignFunctionPointers(void)
     MyPerfStubsRegisterThread = &perftool_register_thread;
     MyPerfStubsExit = &perftool_exit;
     MyPerfStubsDumpData = &perftool_dump_data;
-    MyPerfStubsTimerStartString = &perftool_timer_start_string;
-    MyPerfStubsTimerStopString = &perftool_timer_stop_string;
+    MyPerfStubsTimerCreate = &perftool_timer_create;
+    MyPerfStubsTimerStart = &perftool_timer_start;
+    MyPerfStubsTimerStop = &perftool_timer_stop;
     MyPerfStubsDynamicPhaseStart = &perftool_dynamic_phase_start;
     MyPerfStubsDynamicPhaseStop = &perftool_dynamic_phase_stop;
     MyPerfStubsSampleCounter = &perftool_sample_counter;
@@ -134,12 +140,13 @@ int AssignFunctionPointers(void)
         RTLD_DEFAULT, "perftool_register_thread");
     MyPerfStubsDumpData =
         (PerfStubsDumpDataType *)dlsym(RTLD_DEFAULT, "perftool_dump_data");
-    MyPerfStubsTimerStartString =
-        (PerfStubsTimerStartStringType *)dlsym(RTLD_DEFAULT,
-        "perftool_timer_start_string");
-    MyPerfStubsTimerStopString =
-        (PerfStubsTimerStopStringType *)dlsym(RTLD_DEFAULT,
-        "perftool_timer_stop_string");
+    MyPerfStubsTimerCreate =
+        (PerfStubsTimerCreateType *)dlsym(RTLD_DEFAULT,
+        "perftool_timer_create");
+    MyPerfStubsTimerStart =
+        (PerfStubsTimerStartType *)dlsym(RTLD_DEFAULT, "perftool_timer_start");
+    MyPerfStubsTimerStop =
+        (PerfStubsTimerStopType *)dlsym(RTLD_DEFAULT, "perftool_timer_stop");
     MyPerfStubsDynamicPhaseStart = (PerfStubsDynamicPhaseStartType *)dlsym(
         RTLD_DEFAULT, "perftool_dynamic_phase_start");
     MyPerfStubsDynamicPhaseStop = (PerfStubsDynamicPhaseStopType *)dlsym(
@@ -225,16 +232,31 @@ void Timer::RegisterThread(void)
     _RegisterThread();
 }
 
-void Timer::Start(const char *timer_name)
+void* Timer::Create(const char *timer_name)
 {
     static Timer &instance = Timer::Get();
-    if (instance.m_Initialized && MyPerfStubsTimerStartString != nullptr)
-        MyPerfStubsTimerStartString(timer_name);
+    if (instance.m_Initialized && MyPerfStubsTimerCreate != nullptr)
+        return MyPerfStubsTimerCreate(timer_name);
+    return nullptr;
 }
 
-void Timer::Start(const std::string &timer_name)
+void* Timer::Create(const std::string &timer_name)
 {
-    Start(timer_name.c_str());
+    return Create(timer_name.c_str());
+}
+
+void Timer::Start(const void *timer)
+{
+    static Timer &instance = Timer::Get();
+    if (instance.m_Initialized && MyPerfStubsTimerStart != nullptr)
+        MyPerfStubsTimerStart(timer);
+}
+
+void Timer::Stop(const void *timer)
+{
+    static Timer &instance = Timer::Get();
+    if (instance.m_Initialized && MyPerfStubsTimerStop != nullptr)
+        MyPerfStubsTimerStop(timer);
 }
 
 void Timer::DynamicPhaseStart(const char *phase_prefix, int iteration_index)
@@ -248,18 +270,6 @@ void Timer::DynamicPhaseStart(const std::string &phase_prefix,
                               int iteration_index)
 {
     DynamicPhaseStart(phase_prefix.c_str(), iteration_index);
-}
-
-void Timer::Stop(const char *timer_name)
-{
-    static Timer &instance = Timer::Get();
-    if (instance.m_Initialized && MyPerfStubsTimerStopString != nullptr)
-        MyPerfStubsTimerStopString(timer_name);
-}
-
-void Timer::Stop(const std::string &timer_name)
-{
-    Stop(timer_name.c_str());
 }
 
 void Timer::DynamicPhaseStop(const char *phase_prefix, int iteration_index)
@@ -351,6 +361,9 @@ void Timer::FreeMetaData(perftool_metadata_t *metadata)
 /* Expose the API to C */
 
 namespace PSNS = external::PERFSTUBS_INTERNAL_NAMESPACE;
+
+std::unordered_map<std::string, void*> fortran_timer_map;
+
 extern "C"
 { // C Bindings
 
@@ -360,14 +373,19 @@ extern "C"
 
     void psDumpData() { PSNS::Timer::DumpData(); }
 
-    void psTimerStartString(const char *timerName)
+    void* psTimerCreate(const char *timerName)
     {
-        PSNS::Timer::Start(timerName);
+        return PSNS::Timer::Create(timerName);
     }
 
-    void psTimerStopString(const char *timerName)
+    void psTimerStart(const void *timer)
     {
-        PSNS::Timer::Stop(timerName);
+        PSNS::Timer::Start(timer);
+    }
+
+    void psTimerStop(const void *timer)
+    {
+        PSNS::Timer::Stop(timer);
     }
 
     void psDynamicPhaseStart(const char *phase_prefix, int iteration_index)
@@ -429,13 +447,25 @@ extern "C"
 
     void psdumpdata_() { PSNS::Timer::DumpData(); }
 
+    void * psfindtimer_(const char * timer_name)
+    {
+        std::string name(timer_name);
+        auto iter = fortran_timer_map.find(name);
+        if (iter == fortran_timer_map.end()) {
+            void* p = PSNS::Timer::Create(timer_name);
+            fortran_timer_map.insert(std::pair<std::string,void*>(name,p));
+            return p;
+        }
+        return (void*)iter->second;
+    }
+
     void pstimerstart_(const char *timerName)
     {
-        PSNS::Timer::Start(timerName);
+        PSNS::Timer::Start(psfindtimer_(timerName));
     }
     void pstimerstop_(const char *timerName)
     {
-        PSNS::Timer::Stop(timerName);
+        PSNS::Timer::Stop(psfindtimer_(timerName));
     }
 
     void psdynamicphasestart_(const char *phase_prefix, int iteration_index)
