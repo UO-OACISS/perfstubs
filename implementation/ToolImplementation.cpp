@@ -34,16 +34,6 @@ extern "C"
         cout << "Tool: " << __func__ << " " << timer_name << endl;
     }
 
-    void perftool_static_phase_start(const char *phase_name)
-    {
-        cout << "Tool: " << __func__ << " " << phase_name << endl;
-    }
-
-    void perftool_static_phase_stop(const char *phase_name)
-    {
-        cout << "Tool: " << __func__ << " " << phase_name << endl;
-    }
-
     void perftool_dynamic_phase_start(const char *phase_prefix,
                                       int iteration_index)
     {

@@ -31,16 +31,17 @@ int main(int argc, char *argv[])
     PERFSTUBS_INIT();
     PERFSTUBS_TIMER_START_FUNC();
 
-    PERFSTUBS_STATIC_PHASE_START("Argument Validation");
+    PERFSTUBS_TIMER_START("Argument Validation");
     if (argc < 2)
     {
         fprintf(stderr, "%s Version %d.%d\n", argv[0], PerfStubs_VERSION_MAJOR,
                 PerfStubs_VERSION_MINOR);
         fprintf(stderr, "Usage: %s number\n", argv[0]);
+        PERFSTUBS_TIMER_STOP("Argument Validation");
         PERFSTUBS_TIMER_STOP_FUNC();
         return 1;
     }
-    PERFSTUBS_STATIC_PHASE_STOP("Argument Validation");
+    PERFSTUBS_TIMER_STOP("Argument Validation");
 
     pthread_t example_thread;
     pthread_create(&example_thread, NULL, threaded_function, NULL);
