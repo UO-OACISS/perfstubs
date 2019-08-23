@@ -8,9 +8,11 @@
 #include <string>
 #include <unordered_map>
 #include <utility>
+#include <mutex>
+
 using namespace std;
 
-/* Function pointers */
+std::mutex my_mutex;;
 
 namespace external {
     namespace ps_implementation {
@@ -22,11 +24,19 @@ namespace external {
                 std::string _name;
                 int _calls;
         };
+        class counter {
+            public:
+                counter(const std::string& name) : _name(name) {}
+                std::string _name;
+        };
     }
 }
 
 namespace MINE = external::ps_implementation;
 std::unordered_map<std::string, MINE::profiler*> profilers;
+std::unordered_map<std::string, MINE::counter*> counters;
+
+/* Function pointers */
 
 extern "C"
 {
@@ -42,9 +52,9 @@ extern "C"
 
     void perftool_dump_data(void) { cout << "Tool: " << __func__ << endl; }
 
-    void * perftool_timer_create(const char * timer_name)
-    {
+    void * find_timer(const char * timer_name) {
         std::string name(timer_name);
+        std::lock_guard<std::mutex> guard(my_mutex);
         auto iter = profilers.find(name);
         if (iter == profilers.end()) {
             MINE::profiler * p = new MINE::profiler(name);
@@ -52,6 +62,12 @@ extern "C"
             return (void*)p;
         }
         return (void*)iter->second;
+    }
+
+    void * perftool_timer_create(const char * timer_name)
+    {
+        cout << "Tool: " << __func__ << " " << timer_name << endl;
+        return find_timer(timer_name);
     }
 
     void perftool_timer_start(const void *profiler)
@@ -82,9 +98,24 @@ extern "C"
              << iteration_index << endl;
     }
 
-    void perftool_sample_counter(const char *counter_name, double value)
+    void* perftool_create_counter(const char *counter_name)
     {
-        cout << "Tool: " << __func__ << " " << counter_name << " = " << value
+        cout << "Tool: " << __func__ << " " << counter_name << endl;
+        std::string name(counter_name);
+        std::lock_guard<std::mutex> guard(my_mutex);
+        auto iter = counters.find(name);
+        if (iter == counters.end()) {
+            MINE::counter * c = new MINE::counter(name);
+            counters.insert(std::pair<std::string,MINE::counter*>(name,c));
+            return (void*)c;
+        }
+        return (void*)iter->second;
+    }
+
+    void perftool_sample_counter(const void *counter, double value)
+    {
+        MINE::counter* c = (MINE::counter*) counter;
+        cout << "Tool: " << __func__ << " " << c->_name << " = " << value
              << endl;
     }
 

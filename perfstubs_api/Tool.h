@@ -52,7 +52,8 @@ extern "C"
                                       int iteration_number);
     void perftool_dynamic_phase_stop(const char *iteration_prefix,
                                      int iteration_number);
-    void perftool_sample_counter(const char *counter_name, double value);
+    void* perftool_create_counter(const char *counter_name);
+    void perftool_sample_counter(const void *counter, double value);
     void perftool_metadata(const char *name, const char *value);
 
     // data query function declarations

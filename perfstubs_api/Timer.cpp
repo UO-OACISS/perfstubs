@@ -44,7 +44,8 @@ typedef void PerfStubsTimerStartType(const void *);
 typedef void PerfStubsTimerStopType(const void *);
 typedef void PerfStubsDynamicPhaseStartType(const char *, int);
 typedef void PerfStubsDynamicPhaseStopType(const char *, int);
-typedef void PerfStubsSampleCounterType(const char *, double);
+typedef void* PerfStubsCreateCounterType(const char *);
+typedef void PerfStubsSampleCounterType(const void *, double);
 typedef void PerfStubsMetaDataType(const char *, const char *);
 /* Data Query Functions */
 typedef void PerfStubsGetTimerDataType(perftool_timer_data_t *);
@@ -65,6 +66,7 @@ PerfStubsTimerStartType *MyPerfStubsTimerStart = nullptr;
 PerfStubsTimerStopType *MyPerfStubsTimerStop = nullptr;
 PerfStubsDynamicPhaseStartType *MyPerfStubsDynamicPhaseStart = nullptr;
 PerfStubsDynamicPhaseStopType *MyPerfStubsDynamicPhaseStop = nullptr;
+PerfStubsCreateCounterType *MyPerfStubsCreateCounter = nullptr;
 PerfStubsSampleCounterType *MyPerfStubsSampleCounter = nullptr;
 PerfStubsMetaDataType *MyPerfStubsMetaData = nullptr;
 PerfStubsGetTimerDataType *MyPerfStubsGetTimerData = nullptr;
@@ -96,7 +98,8 @@ extern "C"
     void perftool_timer_stop(const void *) __attribute((weak));
     void perftool_dynamic_phase_start(const char *, int) __attribute((weak));
     void perftool_dynamic_phase_stop(const char *, int) __attribute((weak));
-    void perftool_sample_counter(const char *, double) __attribute((weak));
+    void* perftool_create_counter(const char *) __attribute((weak));
+    void perftool_sample_counter(const void *, double) __attribute((weak));
     void perftool_metadata(const char *, const char *) __attribute((weak));
     void perftool_get_timer_data(perftool_timer_data_t *) __attribute((weak));
     void perftool_get_counter_data(perftool_counter_data_t *)
@@ -122,6 +125,7 @@ int AssignFunctionPointers(void)
     MyPerfStubsTimerStop = &perftool_timer_stop;
     MyPerfStubsDynamicPhaseStart = &perftool_dynamic_phase_start;
     MyPerfStubsDynamicPhaseStop = &perftool_dynamic_phase_stop;
+    MyPerfStubsCreateCounter = &perftool_create_counter;
     MyPerfStubsSampleCounter = &perftool_sample_counter;
     MyPerfStubsMetaData = &perftool_metadata;
     MyPerfStubsGetTimerData = &perftool_get_timer_data;
@@ -151,6 +155,8 @@ int AssignFunctionPointers(void)
         RTLD_DEFAULT, "perftool_dynamic_phase_start");
     MyPerfStubsDynamicPhaseStop = (PerfStubsDynamicPhaseStopType *)dlsym(
         RTLD_DEFAULT, "perftool_dynamic_phase_stop");
+    MyPerfStubsCreateCounter = (PerfStubsCreateCounterType *)dlsym(
+        RTLD_DEFAULT, "perftool_create_counter");
     MyPerfStubsSampleCounter = (PerfStubsSampleCounterType *)dlsym(
         RTLD_DEFAULT, "perftool_sample_counter");
     MyPerfStubsMetaData =
@@ -190,6 +196,14 @@ namespace external
 
 namespace PERFSTUBS_INTERNAL_NAMESPACE
 {
+
+std::string Timer::MakeTimerName(const char * file,
+    const char * func, int line) {
+    std::stringstream ss;
+    ss << func << " [{" << file << "} {" << line << ",0}]";
+    std::string tmp(ss.str());
+    return tmp;
+}
 
 thread_local bool Timer::m_ThreadSeen(false);
 
@@ -285,11 +299,19 @@ void Timer::DynamicPhaseStop(const std::string &phase_prefix,
     DynamicPhaseStop(phase_prefix.c_str(), iteration_index);
 }
 
-void Timer::SampleCounter(const char *name, const double value)
+void* Timer::CreateCounter(const char *name)
+{
+    static Timer &instance = Timer::Get();
+    if (instance.m_Initialized && MyPerfStubsCreateCounter != nullptr)
+        return MyPerfStubsCreateCounter(const_cast<char *>(name));
+    return nullptr;
+}
+
+void Timer::SampleCounter(const void *counter, const double value)
 {
     static Timer &instance = Timer::Get();
     if (instance.m_Initialized && MyPerfStubsSampleCounter != nullptr)
-        MyPerfStubsSampleCounter(const_cast<char *>(name), value);
+        MyPerfStubsSampleCounter(counter, value);
 }
 
 void Timer::MetaData(const char *name, const char *value)
@@ -363,6 +385,7 @@ void Timer::FreeMetaData(perftool_metadata_t *metadata)
 namespace PSNS = external::PERFSTUBS_INTERNAL_NAMESPACE;
 
 std::unordered_map<std::string, void*> fortran_timer_map;
+std::unordered_map<std::string, void*> fortran_counter_map;
 
 extern "C"
 { // C Bindings
@@ -398,9 +421,14 @@ extern "C"
         PSNS::Timer::DynamicPhaseStop(phase_prefix, iteration_index);
     }
 
-    void psSampleCounter(const char *name, const double value)
+    void psCreateCounter(const char *name)
     {
-        PSNS::Timer::SampleCounter(name, value);
+        PSNS::Timer::CreateCounter(name);
+    }
+
+    void psSampleCounter(const char *counter, const double value)
+    {
+        PSNS::Timer::SampleCounter(counter, value);
     }
 
     void psMetaData(const char *name, const char *value)
@@ -478,9 +506,21 @@ extern "C"
         PSNS::Timer::DynamicPhaseStop(phase_prefix, iteration_index);
     }
 
+    void * psfindcounter_(const char * counter_name)
+    {
+        std::string name(counter_name);
+        auto iter = fortran_counter_map.find(name);
+        if (iter == fortran_counter_map.end()) {
+            void* p = PSNS::Timer::CreateCounter(counter_name);
+            fortran_counter_map.insert(std::pair<std::string,void*>(name,p));
+            return p;
+        }
+        return (void*)iter->second;
+    }
+
     void pssamplecounter_(const char *name, const double value)
     {
-        PSNS::Timer::SampleCounter(name, value);
+        PSNS::Timer::SampleCounter(psfindcounter_(name), value);
     }
 
     void psmetadata_(const char *name, const char *value)

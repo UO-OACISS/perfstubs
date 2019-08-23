@@ -7,6 +7,10 @@
 #include "perfstubs_api/Config.h"
 #include "perfstubs_api/Tool.h"
 
+/* These macros help generate unique variable names */
+#define CONCAT_(x,y) x##y
+#define CONCAT(x,y) CONCAT_(x,y)
+
 /* ------------------------------------------------------------------ */
 /* Define the C++ API and PerfStubs glue class first */
 /* ------------------------------------------------------------------ */
@@ -57,7 +61,8 @@ public:
     static void DynamicPhaseStop(const char *phase_prefix, int iteration_index);
     static void DynamicPhaseStop(const std::string &phase_prefix,
                                  int iteration_index);
-    static void SampleCounter(const char *name, const double value);
+    static void* CreateCounter(const char *name);
+    static void SampleCounter(const void *counter, const double value);
     static void MetaData(const char *name, const char *value);
 
     // data query api
@@ -75,6 +80,8 @@ public:
     ~Timer(void);
     bool m_Initialized;
     static thread_local bool m_ThreadSeen;
+    static std::string MakeTimerName(const char * file,
+        const char * func, int line);
 
 private:
     static void _RegisterThread(void);
@@ -111,37 +118,39 @@ public:
 namespace PSNS = external::PERFSTUBS_INTERNAL_NAMESPACE;
 
 #define PERFSTUBS_INIT() PSNS::Timer::Get();
+
 #define PERFSTUBS_DUMP_DATA() PSNS::Timer::DumpData();
+
 #define PERFSTUBS_REGISTER_THREAD() PSNS::Timer::RegisterThread();
+
 #define PERFSTUBS_TIMER_START(_timer, _timer_name) \
-    static void * _timer = PSNS::Timer::Create(_timer, _timer_name); \
+    static void * _timer = PSNS::Timer::Create(_timer_name); \
     PSNS::Timer::Start(_timer);
+
 #define PERFSTUBS_TIMER_STOP(_timer) PSNS::Timer::Stop(_timer);
+
 #define PERFSTUBS_DYNAMIC_PHASE_START(_phase_prefix, _iteration_index) \
     PSNS::Timer::DynamicPhaseStart( _phase_prefix, _iteration_index);
+
 #define PERFSTUBS_DYNAMIC_PHASE_STOP(_phase_prefix, _iteration_index) \
     PSNS::Timer::DynamicPhaseStop( _phase_prefix, _iteration_index);
-#define PERFSTUBS_TIMER_START_FUNC(_timer) \
-    std::stringstream __ss##finfo; \
-    __ss##finfo << __PERFSTUBS_FUNCTION__ \
-        << " [{" << __FILE__ << "} {" << __LINE__ << ",0}]"; \
-    std::string __name##finfo(__ss##finfo); \
-    static void * _timer = PSNS::Timer::Create(__name##finfo); \
-    PSNS::Timer::Start(_timer);
-#define PERFSTUBS_TIMER_STOP_FUNC(_timer) PSNS::Timer::Stop(_timer);
+
 #define PERFSTUBS_SAMPLE_COUNTER(_name, _value) \
-    PSNS::Timer::SampleCounter(_name, _value);
+    static void * CONCAT(__counter,__LINE__) = \
+        PSNS::Timer::CreateCounter(_name); \
+    PSNS::Timer::SampleCounter(CONCAT(__counter,__LINE__), _value);
+
 #define PERFSTUBS_METADATA(_name, _value) PSNS::Timer::MetaData(_name, _value);
+
 #define PERFSTUBS_SCOPED_TIMER(__name) \
-    static void * __var##finfo = PSNS::Timer::Create(__name); \
-    PSNS::ScopedTimer __var2##finfo(__var##finfo);
+    static void * CONCAT(__var,__LINE__) = PSNS::Timer::Create(__name); \
+    PSNS::ScopedTimer CONCAT(__var2,__LINE__)(CONCAT(__var,__LINE__));
 
 #define PERFSTUBS_SCOPED_TIMER_FUNC() \
-    std::stringstream __ss##finfo; \
-    __ss##finfo << __PERFSTUBS_FUNCTION__ << " [{" << __FILE__ \
-        << "} {" << __LINE__ << ",0}]"; \
-    static void * __var##finfo = PSNS::Timer::Create(__ss##finfo.str()); \
-    PSNS::ScopedTimer __var2##finfo(__var##finfo);
+    static void * CONCAT(__var,__LINE__) = \
+        PSNS::Timer::Create(PSNS::Timer::MakeTimerName(__FILE__, \
+        __PERFSTUBS_FUNCTION__, __LINE__)); \
+    PSNS::ScopedTimer CONCAT(__var2,__LINE__)(CONCAT(__var,__LINE__));
 
 #else // defined(PERFSTUBS_USE_TIMERS)
 
@@ -163,6 +172,9 @@ namespace PSNS = external::PERFSTUBS_INTERNAL_NAMESPACE;
 
 #else // ifdef __cplusplus
 
+#include <string.h>
+#include <stdio.h>
+
 /* ------------------------------------------------------------------ */
 /* Now define the C API */
 /* ------------------------------------------------------------------ */
@@ -179,7 +191,8 @@ void psTimerStart(const void *timer);
 void psTimerStop(const void *timer);
 void psDynamicPhaseStart(const char *phasePrefix, int iterationIndex);
 void psDynamicPhaseStop(const char *phasePrefix, int iterationIndex);
-void psSampleCounter(const char *name, const double value);
+void* psCreateCounter(const char *name);
+void psSampleCounter(const void *counter, const double value);
 void psMetaData(const char *name, const char *value);
 
 /* data query API */
@@ -191,31 +204,55 @@ void psFreeTimerData(perftool_timer_data_t *timer_data);
 void psFreeCounterData(perftool_counter_data_t *counter_data);
 void psFreeMetaData(perftool_metadata_t *metadata);
 
+static const char * psMakeTimerName(const char * file,
+    const char * func, int line) {
+    char ss[1024];
+    sprintf(ss, "%s [{%s} {%d,0}]", func, file, line);
+    return strdup(ss);
+}
+
 /* Macro API for option of entirely disabling at compile time
  * To use this API, set the Macro PERFSTUBS_USE_TIMERS on the command
  * line or in a config.h file, however your project does it
  */
 
 #define PERFSTUBS_INIT() psInit();
+
 #define PERFSTUBS_DUMP_DATA() psDumpData();
+
 #define PERFSTUBS_REGISTER_THREAD() psRegisterThread();
+
 #define PERFSTUBS_TIMER_START(_timer, _timer_name) \
-    void * _timer = psTimerCreate(_timer_name); \
+    static void * _timer = NULL; \
+    if (_timer == NULL) { \
+        _timer = psTimerCreate(_timer_name); \
+    } \
     psTimerStart(_timer);
-#define PERFSTUBS_TIMER_STOP(_timer) \
-    psTimerStop(_timer);
+
+#define PERFSTUBS_TIMER_STOP(_timer) psTimerStop(_timer);
+
 #define PERFSTUBS_DYNAMIC_PHASE_START(_phase_prefix, _iteration_index) \
     psDynamicPhaseStart(_phase_prefix, _iteration_index);
+
 #define PERFSTUBS_DYNAMIC_PHASE_STOP(_phase_prefix, _iteration_index) \
     psDynamicPhaseStop(_phase_prefix, _iteration_index);
+
 #define PERFSTUBS_TIMER_START_FUNC(_timer) \
-    char __ss##finfo[1024]; \
-    sprintf(__ss##finfo, "%s [{%s} {%d,0}]", __func__, __FILE__, \
-            __LINE__); \
-    void * _timer = psTimerCreate(__ss##finfo); \
+    static void * _timer = NULL; \
+    if (_timer == NULL) { \
+        _timer = psTimerCreate(psMakeTimerName(__FILE__, __func__, __LINE__)); \
+    } \
     psTimerStart(_timer);
+
 #define PERFSTUBS_TIMER_STOP_FUNC(_timer) psTimerStop(_timer);
-#define PERFSTUBS_SAMPLE_COUNTER(_name, _value) psSampleCounter(_name, _value);
+
+#define PERFSTUBS_SAMPLE_COUNTER(_name, _value) \
+    static void * CONCAT(__var,__LINE__) =  NULL; \
+    if (CONCAT(__var,__LINE__) == NULL) { \
+        CONCAT(__var,__LINE__) = psTimerCreate(_name); \
+    } \
+    psSampleCounter(CONCAT(__var,__LINE__), _value);
+
 #define PERFSTUBS_METADATA(_name, _value) psMetaData(_name, _value);
 
 #else // defined(PERFSTUBS_USE_TIMERS)
@@ -223,10 +260,10 @@ void psFreeMetaData(perftool_metadata_t *metadata);
 #define PERFSTUBS_INIT()
 #define PERFSTUBS_DUMP_DATA()
 #define PERFSTUBS_REGISTER_THREAD()
-#define PERFSTUBS_TIMER_START_STRING(_timer_name)
-#define PERFSTUBS_TIMER_STOP_STRING(_timer_name)
-#define PERFSTUBS_DYNAMIC_PHASE_START_STRING(_phase_prefix, _iteration_index)
-#define PERFSTUBS_DYNAMIC_PHASE_STOP_STRING(_phase_prefix, _iteration_index)
+#define PERFSTUBS_TIMER_START(_timer_name)
+#define PERFSTUBS_TIMER_STOP(_timer_name)
+#define PERFSTUBS_DYNAMIC_PHASE_START(_phase_prefix, _iteration_index)
+#define PERFSTUBS_DYNAMIC_PHASE_STOP(_phase_prefix, _iteration_index)
 #define PERFSTUBS_TIMER_START_FUNC(_timer)
 #define PERFSTUBS_TIMER_STOP_FUNC(_timer)
 #define PERFSTUBS_SAMPLE_COUNTER(_name, _value)
