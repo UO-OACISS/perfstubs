@@ -74,16 +74,13 @@ PerfStubsFreeTimerDataType *MyPerfStubsFreeTimerData = nullptr;
 PerfStubsFreeCounterDataType *MyPerfStubsFreeCounterData = nullptr;
 PerfStubsFreeMetaDataType *MyPerfStubsFreeMetaData = nullptr;
 
-#define UNUSED(expr)                                                           \
-    do                                                                         \
-    {                                                                          \
-        (void)(expr);                                                          \
-    } while (0)
+#define UNUSED(expr) do { (void)(expr); } while (0);
 
 static void InitializeLibrary(void)
 {
     // initialize the library by creating the singleton
-    static external::profiler::Timer &tt = external::profiler::Timer::Get();
+    static external::PERFSTUBS_INTERNAL_NAMESPACE::Timer &tt =
+        external::PERFSTUBS_INTERNAL_NAMESPACE::Timer::Get();
     UNUSED(tt);
 }
 
@@ -118,7 +115,7 @@ int AssignFunctionPointers(void)
         std::cout << "perftool_init not defined" << std::endl;
         return PERFSTUBS_FAILURE;
     }
-    MyPerfStubsRegisterThread = perftool_register_thread;
+    MyPerfStubsRegisterThread = &perftool_register_thread;
     MyPerfStubsExit = &perftool_exit;
     MyPerfStubsDumpData = &perftool_dump_data;
     MyPerfStubsTimerStart = &perftool_timer_start;
@@ -194,7 +191,7 @@ int PerfStubsStubInitializeSimple(void)
 namespace external
 {
 
-namespace profiler
+namespace PERFSTUBS_INTERNAL_NAMESPACE
 {
 
 thread_local bool Timer::m_ThreadSeen(false);
@@ -223,7 +220,7 @@ Timer &Timer::Get(void)
 // used internally to the class
 inline void Timer::_RegisterThread(void)
 {
-    if (!m_ThreadSeen)
+    if (!m_ThreadSeen && MyPerfStubsRegisterThread != nullptr)
     {
         MyPerfStubsRegisterThread();
         m_ThreadSeen = true;
@@ -234,272 +231,237 @@ inline void Timer::_RegisterThread(void)
 void Timer::RegisterThread(void)
 {
     static Timer &instance = Timer::Get();
-    if (!instance.m_Initialized)
-        return;
+    if (!instance.m_Initialized) { return; }
     _RegisterThread();
 }
 
 void Timer::Start(const char *timer_name)
 {
     static Timer &instance = Timer::Get();
-    if (!instance.m_Initialized)
-        return;
-    MyPerfStubsTimerStart(timer_name);
+    if (instance.m_Initialized && MyPerfStubsTimerStart != nullptr)
+        MyPerfStubsTimerStart(timer_name);
 }
 
 void Timer::Start(const std::string &timer_name)
 {
-    static Timer &instance = Timer::Get();
-    if (!instance.m_Initialized)
-        return;
-    MyPerfStubsTimerStart(timer_name.c_str());
+    Start(timer_name.c_str());
 }
 
 void Timer::StaticPhaseStart(const char *phase_name)
 {
     static Timer &instance = Timer::Get();
-    if (!instance.m_Initialized)
-        return;
-    MyPerfStubsStaticPhaseStart(phase_name);
+    if (instance.m_Initialized && MyPerfStubsStaticPhaseStart != nullptr)
+        MyPerfStubsStaticPhaseStart(phase_name);
 }
 
 void Timer::StaticPhaseStart(const std::string &phase_name)
 {
-    static Timer &instance = Timer::Get();
-    if (!instance.m_Initialized)
-        return;
-    MyPerfStubsStaticPhaseStart(phase_name.c_str());
+    StaticPhaseStart(phase_name.c_str());
 }
 
 void Timer::DynamicPhaseStart(const char *phase_prefix, int iteration_index)
 {
     static Timer &instance = Timer::Get();
-    if (!instance.m_Initialized)
-        return;
-    MyPerfStubsDynamicPhaseStart(phase_prefix, iteration_index);
+    if (instance.m_Initialized && MyPerfStubsDynamicPhaseStart != nullptr)
+        MyPerfStubsDynamicPhaseStart(phase_prefix, iteration_index);
 }
 
 void Timer::DynamicPhaseStart(const std::string &phase_prefix,
                               int iteration_index)
 {
-    static Timer &instance = Timer::Get();
-    if (!instance.m_Initialized)
-        return;
-    MyPerfStubsDynamicPhaseStart(phase_prefix.c_str(), iteration_index);
+    DynamicPhaseStart(phase_prefix.c_str(), iteration_index);
 }
 
 void Timer::Stop(const char *timer_name)
 {
     static Timer &instance = Timer::Get();
-    if (!instance.m_Initialized)
-        return;
-    MyPerfStubsTimerStop(timer_name);
+    if (instance.m_Initialized && MyPerfStubsTimerStop != nullptr)
+        MyPerfStubsTimerStop(timer_name);
 }
 
 void Timer::Stop(const std::string &timer_name)
 {
-    static Timer &instance = Timer::Get();
-    if (!instance.m_Initialized)
-        return;
-    MyPerfStubsTimerStop(timer_name.c_str());
+    Stop(timer_name.c_str());
 }
 
 void Timer::StaticPhaseStop(const char *phase_name)
 {
     static Timer &instance = Timer::Get();
-    if (!instance.m_Initialized)
-        return;
-    MyPerfStubsStaticPhaseStop(phase_name);
+    if (instance.m_Initialized && MyPerfStubsStaticPhaseStop != nullptr)
+        MyPerfStubsStaticPhaseStop(phase_name);
 }
 
 void Timer::StaticPhaseStop(const std::string &phase_name)
 {
-    static Timer &instance = Timer::Get();
-    if (!instance.m_Initialized)
-        return;
-    MyPerfStubsStaticPhaseStop(phase_name.c_str());
+    StaticPhaseStop(phase_name.c_str());
 }
 
 void Timer::DynamicPhaseStop(const char *phase_prefix, int iteration_index)
 {
     static Timer &instance = Timer::Get();
-    if (!instance.m_Initialized)
-        return;
-    MyPerfStubsDynamicPhaseStop(phase_prefix, iteration_index);
+    if (instance.m_Initialized && MyPerfStubsDynamicPhaseStop != nullptr)
+        MyPerfStubsDynamicPhaseStop(phase_prefix, iteration_index);
 }
 
 void Timer::DynamicPhaseStop(const std::string &phase_prefix,
                              int iteration_index)
 {
-    static Timer &instance = Timer::Get();
-    if (!instance.m_Initialized)
-        return;
-    MyPerfStubsDynamicPhaseStop(phase_prefix.c_str(), iteration_index);
+    DynamicPhaseStop(phase_prefix.c_str(), iteration_index);
 }
 
 void Timer::SampleCounter(const char *name, const double value)
 {
     static Timer &instance = Timer::Get();
-    if (!instance.m_Initialized)
-        return;
-    MyPerfStubsSampleCounter(const_cast<char *>(name), value);
+    if (instance.m_Initialized && MyPerfStubsSampleCounter != nullptr)
+        MyPerfStubsSampleCounter(const_cast<char *>(name), value);
 }
 
 void Timer::MetaData(const char *name, const char *value)
 {
     static Timer &instance = Timer::Get();
-    if (!instance.m_Initialized)
-        return;
-    MyPerfStubsMetaData(name, value);
+    if (instance.m_Initialized && MyPerfStubsMetaData != nullptr)
+        MyPerfStubsMetaData(name, value);
 }
 
 void Timer::DumpData(void)
 {
-    if (MyPerfStubsDumpData == nullptr)
-        return;
-    MyPerfStubsDumpData();
+    static Timer &instance = Timer::Get();
+    if (instance.m_Initialized && MyPerfStubsDumpData != nullptr)
+        MyPerfStubsDumpData();
 }
 
 Timer::~Timer(void)
 {
-    if (MyPerfStubsExit == nullptr)
-        return;
-    MyPerfStubsExit();
+    if (m_Initialized && MyPerfStubsExit != nullptr)
+        MyPerfStubsExit();
 }
 
 void Timer::GetTimerData(perftool_timer_data_t *timer_data)
 {
     static Timer &instance = Timer::Get();
-    if (!instance.m_Initialized)
-        return;
-    return MyPerfStubsGetTimerData(timer_data);
+    if (instance.m_Initialized && MyPerfStubsGetTimerData != nullptr)
+        MyPerfStubsGetTimerData(timer_data);
 }
 
 void Timer::GetCounterData(perftool_counter_data_t *counter_data)
 {
     static Timer &instance = Timer::Get();
-    if (!instance.m_Initialized)
-        return;
-    return MyPerfStubsGetCounterData(counter_data);
+    if (instance.m_Initialized && MyPerfStubsGetCounterData != nullptr)
+        MyPerfStubsGetCounterData(counter_data);
 }
 
 void Timer::GetMetaData(perftool_metadata_t *metadata)
 {
     static Timer &instance = Timer::Get();
-    if (!instance.m_Initialized)
-        return;
-    return MyPerfStubsGetMetaData(metadata);
+    if (instance.m_Initialized && MyPerfStubsGetMetaData != nullptr)
+        MyPerfStubsGetMetaData(metadata);
 }
 
 void Timer::FreeTimerData(perftool_timer_data_t *timer_data)
 {
     static Timer &instance = Timer::Get();
-    if (!instance.m_Initialized)
-        return;
-    return MyPerfStubsFreeTimerData(timer_data);
+    if (instance.m_Initialized && MyPerfStubsFreeTimerData != nullptr)
+        MyPerfStubsFreeTimerData(timer_data);
 }
 
 void Timer::FreeCounterData(perftool_counter_data_t *counter_data)
 {
     static Timer &instance = Timer::Get();
-    if (!instance.m_Initialized)
-        return;
-    return MyPerfStubsFreeCounterData(counter_data);
+    if (instance.m_Initialized && MyPerfStubsFreeCounterData != nullptr)
+        MyPerfStubsFreeCounterData(counter_data);
 }
 
 void Timer::FreeMetaData(perftool_metadata_t *metadata)
 {
     static Timer &instance = Timer::Get();
-    if (!instance.m_Initialized)
-        return;
-    return MyPerfStubsFreeMetaData(metadata);
+    if (instance.m_Initialized && MyPerfStubsFreeMetaData != nullptr)
+        MyPerfStubsFreeMetaData(metadata);
 }
 
-} // namespace profiler
+} // namespace PERFSTUBS_INTERNAL_NAMESPACE
 
 } // namespace external
 
 /* Expose the API to C */
 
+namespace PSNS = external::PERFSTUBS_INTERNAL_NAMESPACE;
 extern "C"
 { // C Bindings
 
     void psInit() { InitializeLibrary(); }
 
-    void psRegisterThread() { external::profiler::Timer::RegisterThread(); }
+    void psRegisterThread() { PSNS::Timer::RegisterThread(); }
 
-    void psDumpData() { external::profiler::Timer::DumpData(); }
+    void psDumpData() { PSNS::Timer::DumpData(); }
 
     void psTimerStart(const char *timerName)
     {
-        external::profiler::Timer::Start(timerName);
+        PSNS::Timer::Start(timerName);
     }
 
     void psTimerStop(const char *timerName)
     {
-        external::profiler::Timer::Stop(timerName);
+        PSNS::Timer::Stop(timerName);
     }
 
     void psStaticPhaseStart(const char *phaseName)
     {
-        external::profiler::Timer::StaticPhaseStart(phaseName);
+        PSNS::Timer::StaticPhaseStart(phaseName);
     }
 
     void psStaticPhaseStop(const char *phaseName)
     {
-        external::profiler::Timer::StaticPhaseStop(phaseName);
+        PSNS::Timer::StaticPhaseStop(phaseName);
     }
 
     void psDynamicPhaseStart(const char *phase_prefix, int iteration_index)
     {
-        external::profiler::Timer::DynamicPhaseStart(phase_prefix,
-                                                     iteration_index);
+        PSNS::Timer::DynamicPhaseStart(phase_prefix, iteration_index);
     }
 
     void psDynamicPhaseStop(const char *phase_prefix, int iteration_index)
     {
-        external::profiler::Timer::DynamicPhaseStop(phase_prefix,
-                                                    iteration_index);
+        PSNS::Timer::DynamicPhaseStop(phase_prefix, iteration_index);
     }
 
     void psSampleCounter(const char *name, const double value)
     {
-        external::profiler::Timer::SampleCounter(name, value);
+        PSNS::Timer::SampleCounter(name, value);
     }
 
     void psMetaData(const char *name, const char *value)
     {
-        external::profiler::Timer::MetaData(name, value);
+        PSNS::Timer::MetaData(name, value);
     }
 
     void psGetTimerData(perftool_timer_data_t *timer_data)
     {
-        return external::profiler::Timer::GetTimerData(timer_data);
+        PSNS::Timer::GetTimerData(timer_data);
     }
 
     void psGetCounterData(perftool_counter_data_t *counter_data)
     {
-        return external::profiler::Timer::GetCounterData(counter_data);
+        PSNS::Timer::GetCounterData(counter_data);
     }
 
     void psGetMetaData(perftool_metadata_t *metadata)
     {
-        return external::profiler::Timer::GetMetaData(metadata);
+        PSNS::Timer::GetMetaData(metadata);
     }
 
     void psFreeTimerData(perftool_timer_data_t *timer_data)
     {
-        return external::profiler::Timer::FreeTimerData(timer_data);
+        PSNS::Timer::FreeTimerData(timer_data);
     }
 
     void psFreeCounterData(perftool_counter_data_t *counter_data)
     {
-        return external::profiler::Timer::FreeCounterData(counter_data);
+        PSNS::Timer::FreeCounterData(counter_data);
     }
 
     void psFreeMetaData(perftool_metadata_t *metadata)
     {
-        return external::profiler::Timer::FreeMetaData(metadata);
+        PSNS::Timer::FreeMetaData(metadata);
     }
 
     /* End of C function definitions */
@@ -507,49 +469,47 @@ extern "C"
     // Fortran Bindings
     void psinit_() { InitializeLibrary(); }
 
-    void psregisterthread_() { external::profiler::Timer::RegisterThread(); }
+    void psregisterthread_() { PSNS::Timer::RegisterThread(); }
 
-    void psdumpdata_() { external::profiler::Timer::DumpData(); }
+    void psdumpdata_() { PSNS::Timer::DumpData(); }
 
     void pstimerstart_(const char *timerName)
     {
-        external::profiler::Timer::Start(timerName);
+        PSNS::Timer::Start(timerName);
     }
     void pstimerstop_(const char *timerName)
     {
-        external::profiler::Timer::Stop(timerName);
+        PSNS::Timer::Stop(timerName);
     }
 
     void psstaticphasestart_(const char *phaseName)
     {
-        external::profiler::Timer::StaticPhaseStart(phaseName);
+        PSNS::Timer::StaticPhaseStart(phaseName);
     }
 
     void psstaticphasestop_(const char *phaseName)
     {
-        external::profiler::Timer::StaticPhaseStop(phaseName);
+        PSNS::Timer::StaticPhaseStop(phaseName);
     }
 
     void psdynamicphasestart_(const char *phase_prefix, int iteration_index)
     {
-        external::profiler::Timer::DynamicPhaseStart(phase_prefix,
-                                                     iteration_index);
+        PSNS::Timer::DynamicPhaseStart(phase_prefix, iteration_index);
     }
 
     void psdynamicphasestop_(const char *phase_prefix, int iteration_index)
     {
-        external::profiler::Timer::DynamicPhaseStop(phase_prefix,
-                                                    iteration_index);
+        PSNS::Timer::DynamicPhaseStop(phase_prefix, iteration_index);
     }
 
     void pssamplecounter_(const char *name, const double value)
     {
-        external::profiler::Timer::SampleCounter(name, value);
+        PSNS::Timer::SampleCounter(name, value);
     }
 
     void psmetadata_(const char *name, const char *value)
     {
-        external::profiler::Timer::MetaData(name, value);
+        PSNS::Timer::MetaData(name, value);
     }
 
 } // extern "C"

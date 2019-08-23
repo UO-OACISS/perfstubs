@@ -15,6 +15,20 @@
 
 #if defined(PERFSTUBS_USE_TIMERS)
 
+/*
+ * We allow the namespace to be changed, so that different libraries
+ * can include their own implementation and not have a namespace collision.
+ * For example, library A and executable B could both include the 
+ * perfstubs_api code in their source tree, and change the namespace
+ * respectively, instead of linking in the perfstubs library.
+ */
+
+#if defined(PERFSTUBS_NAMESPACE)
+#define PERFSTUBS_INTERNAL_NAMESPACE PERFSTUBS_NAMESPACE
+#else
+#define PERFSTUBS_INTERNAL_NAMESPACE perfstubs_profiler
+#endif
+
 #include <memory>
 #include <sstream>
 #include <stdint.h>
@@ -23,7 +37,7 @@
 namespace external
 {
 
-namespace profiler
+namespace PERFSTUBS_INTERNAL_NAMESPACE
 {
 
 class Timer
@@ -88,7 +102,7 @@ public:
     ~ScopedTimer() { Timer::Stop(m_Name); }
 };
 
-} // namespace profiler
+} // namespace PERFSTUBS_INTERNAL_NAMESPACE
 
 } // namespace external
 
@@ -98,43 +112,39 @@ public:
 #define __PERFSTUBS_FUNCTION__ __func__
 #endif
 
-#define PERFSTUBS_INIT() external::profiler::Timer::Get();
-#define PERFSTUBS_DUMP_DATA() external::profiler::Timer::DumpData();
-#define PERFSTUBS_REGISTER_THREAD() external::profiler::Timer::RegisterThread();
-#define PERFSTUBS_TIMER_START(_timer_name)                                     \
-    external::profiler::Timer::Start(_timer_name);
-#define PERFSTUBS_TIMER_STOP(_timer_name)                                      \
-    external::profiler::Timer::Stop(_timer_name);
-#define PERFSTUBS_STATIC_PHASE_START(_phase_name)                              \
-    external::profiler::Timer::StaticPhaseStart(_phase_name);
-#define PERFSTUBS_STATIC_PHASE_STOP(_phase_name)                               \
-    external::profiler::Timer::StaticPhaseStop(_phase_name);
-#define PERFSTUBS_DYNAMIC_PHASE_START(_phase_prefix, _iteration_index)         \
-    external::profiler::Timer::DynamicPhaseStart(_phase_prefix,                \
-                                                 _iteration_index);
-#define PERFSTUBS_DYNAMIC_PHASE_STOP(_phase_prefix, _iteration_index)          \
-    external::profiler::Timer::DynamicPhaseStop(_phase_prefix,                 \
-                                                _iteration_index);
-#define PERFSTUBS_TIMER_START_FUNC()                                           \
-    std::stringstream __perfstubsFuncNameSS;                                   \
-    __perfstubsFuncNameSS << __PERFSTUBS_FUNCTION__                            \
-                          << " [{" << __FILE__ << "} {"                        \
-                          << __LINE__ << ",0}]";                               \
-    std::string __perfStubsFuncName(__perfStubsFuncNameSS);                    \
-    external::profiler::Timer::Start(__perfstubsFuncName);
-#define PERFSTUBS_TIMER_STOP_FUNC()                                            \
-    external::profiler::Timer::Stop(__perfstubsFuncName);
-#define PERFSTUBS_SAMPLE_COUNTER(_name, _value)                                \
-    external::profiler::Timer::SampleCounter(_name, _value);
-#define PERFSTUBS_METADATA(_name, _value)                                      \
-    external::profiler::Timer::MetaData(_name, _value);
-#define PERFSTUBS_SCOPED_TIMER(__name)                                         \
-    external::profiler::ScopedTimer __var##finfo(__name);
-#define PERFSTUBS_SCOPED_TIMER_FUNC()                                          \
-    std::stringstream __ss##finfo;                                             \
-    __ss##finfo << __PERFSTUBS_FUNCTION__ << " [{" << __FILE__                 \
-                << "} {" << __LINE__ << ",0}]";                                \
-    external::profiler::ScopedTimer __var##finfo(__ss##finfo.str());
+namespace PSNS = external::PERFSTUBS_INTERNAL_NAMESPACE;
+
+#define PERFSTUBS_INIT() PSNS::Timer::Get();
+#define PERFSTUBS_DUMP_DATA() PSNS::Timer::DumpData();
+#define PERFSTUBS_REGISTER_THREAD() PSNS::Timer::RegisterThread();
+#define PERFSTUBS_TIMER_START(_timer_name) PSNS::Timer::Start(_timer_name);
+#define PERFSTUBS_TIMER_STOP(_timer_name) PSNS::Timer::Stop(_timer_name);
+#define PERFSTUBS_STATIC_PHASE_START(_phase_name) \
+    PSNS::Timer::StaticPhaseStart(_phase_name);
+#define PERFSTUBS_STATIC_PHASE_STOP(_phase_name) \
+    PSNS::Timer::StaticPhaseStop(_phase_name);
+#define PERFSTUBS_DYNAMIC_PHASE_START(_phase_prefix, _iteration_index) \
+    PSNS::Timer::DynamicPhaseStart( _phase_prefix, _iteration_index);
+#define PERFSTUBS_DYNAMIC_PHASE_STOP(_phase_prefix, _iteration_index) \
+    PSNS::Timer::DynamicPhaseStop( _phase_prefix, _iteration_index);
+#define PERFSTUBS_TIMER_START_FUNC() \
+    std::stringstream __perfstubsFuncNameSS; \
+    __perfstubsFuncNameSS << __PERFSTUBS_FUNCTION__ \
+        << " [{" << __FILE__ << "} {" << __LINE__ << ",0}]"; \
+    std::string __perfStubsFuncName(__perfStubsFuncNameSS); \
+    PSNS::Timer::Start(__perfstubsFuncName);
+#define PERFSTUBS_TIMER_STOP_FUNC() PSNS::Timer::Stop(__perfstubsFuncName);
+#define PERFSTUBS_SAMPLE_COUNTER(_name, _value) \
+    PSNS::Timer::SampleCounter(_name, _value);
+#define PERFSTUBS_METADATA(_name, _value) PSNS::Timer::MetaData(_name, _value);
+#define PERFSTUBS_SCOPED_TIMER(__name) PSNS::ScopedTimer __var##finfo(__name);
+
+#define PERFSTUBS_SCOPED_TIMER_FUNC() \
+    std::stringstream __ss##finfo; \
+    __ss##finfo << __PERFSTUBS_FUNCTION__ << " [{" << __FILE__ \
+        << "} {" << __LINE__ << ",0}]"; \
+    PSNS::ScopedTimer \
+        __var##finfo(__ss##finfo.str());
 
 #else // defined(PERFSTUBS_USE_TIMERS)
 
@@ -187,10 +197,9 @@ void psFreeTimerData(perftool_timer_data_t *timer_data);
 void psFreeCounterData(perftool_counter_data_t *counter_data);
 void psFreeMetaData(perftool_metadata_t *metadata);
 
-/*
-    Macro API for option of entirely disabling at compile time
-    To use this API, set the Macro PERFSTUBS_USE_TIMERS on the command
-    line or in a config.h file, however your project does it
+/* Macro API for option of entirely disabling at compile time
+ * To use this API, set the Macro PERFSTUBS_USE_TIMERS on the command
+ * line or in a config.h file, however your project does it
  */
 
 #define PERFSTUBS_INIT() psInit();
@@ -198,17 +207,17 @@ void psFreeMetaData(perftool_metadata_t *metadata);
 #define PERFSTUBS_REGISTER_THREAD() psRegisterThread();
 #define PERFSTUBS_TIMER_START(_timer_name) psTimerStart(_timer_name);
 #define PERFSTUBS_TIMER_STOP(_timer_name) psTimerStop(_timer_name);
-#define PERFSTUBS_STATIC_PHASE_START(_phase_name)                              \
+#define PERFSTUBS_STATIC_PHASE_START(_phase_name) \
     psStaticPhaseStart(_phase_name);
 #define PERFSTUBS_STATIC_PHASE_STOP(_phase_name) psStaticPhaseStop(_phase_name);
-#define PERFSTUBS_DYNAMIC_PHASE_START(_phase_prefix, _iteration_index)         \
+#define PERFSTUBS_DYNAMIC_PHASE_START(_phase_prefix, _iteration_index) \
     psDynamicPhaseStart(_phase_prefix, _iteration_index);
-#define PERFSTUBS_DYNAMIC_PHASE_STOP(_phase_prefix, _iteration_index)          \
+#define PERFSTUBS_DYNAMIC_PHASE_STOP(_phase_prefix, _iteration_index) \
     psDynamicPhaseStop(_phase_prefix, _iteration_index);
-#define PERFSTUBS_TIMER_START_FUNC()                                           \
-    char __perfstubsFuncName[1024];                                            \
-    sprintf(__perfstubsFuncName, "%s [{%s} {%d,0}]", __func__, __FILE__,       \
-            __LINE__);                                                         \
+#define PERFSTUBS_TIMER_START_FUNC() \
+    char __perfstubsFuncName[1024]; \
+    sprintf(__perfstubsFuncName, "%s [{%s} {%d,0}]", __func__, __FILE__, \
+            __LINE__); \
     psTimerStart(__perfstubsFuncName);
 #define PERFSTUBS_TIMER_STOP_FUNC() psTimerStop(__perfstubsFuncName);
 #define PERFSTUBS_SAMPLE_COUNTER(_name, _value) psSampleCounter(_name, _value);

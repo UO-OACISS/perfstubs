@@ -7,7 +7,9 @@ if (WIN32)
     message(FATAL_ERROR "\nPerfStubs won't compile on Windows. Exiting.")
 endif (WIN32)
 
-ENABLE_LANGUAGE(Fortran)
+if (NOT APPLE)
+    ENABLE_LANGUAGE(Fortran)
+endif ()
 
 cmake_minimum_required (VERSION 3.8)
 project (perfstubs)
@@ -39,15 +41,18 @@ set (CMAKE_CXX_STANDARD 11)
 set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Werror -pthread")
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -pthread")
 
-set(CMAKE_Fortran_FLAGS         "${CMAKE_Fortran_FLAGS} -cpp")
-if(CMAKE_Fortran_COMPILER MATCHES "gfortran*")
-    set(CMAKE_SKIP_BUILD_RPATH            FALSE)
-    set(CMAKE_BUILD_WITH_INSTALL_RPATH    TRUE)
-    set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+if (NOT APPLE)
+    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -cpp")
+    if(CMAKE_Fortran_COMPILER MATCHES "gfortran*")
+        set(CMAKE_SKIP_BUILD_RPATH FALSE)
+        set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+        set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
-    set(CMAKE_Fortran_FLAGS         "${CMAKE_Fortran_FLAGS} -std=f2003 -fimplicit-none")
-    set(CMAKE_Fortran_FLAGS_DEBUG   "-Wall -O0 -g3 -fbounds-check")
-    set(CMAKE_Fortran_FLAGS_RELEASE "-O2")
+        set(CMAKE_Fortran_FLAGS
+            "${CMAKE_Fortran_FLAGS} -std=f2003 -fimplicit-none")
+        set(CMAKE_Fortran_FLAGS_DEBUG "-Wall -O0 -g3 -fbounds-check")
+        set(CMAKE_Fortran_FLAGS_RELEASE "-O2")
+    endif()
 endif()
 
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
@@ -114,23 +119,30 @@ if (PERFSTUBS_USE_STATIC AND NOT APPLE)
     SET(CMAKE_EXE_LINKER_FLAGS "-static")
 endif (PERFSTUBS_USE_STATIC AND NOT APPLE)
 
-# add the executable
+# add the executables
 add_executable(perfstubs_test_cpp examples/main.cpp)
-add_executable(perfstubs_test_c examples/main.c)
-add_executable(perfstubs_test_fort examples/main.F90)
 target_link_libraries (perfstubs_test_cpp ${TOOL_LIBS} ${EXTRA_LIBS})
+add_executable(perfstubs_test_c examples/main.c)
 target_link_libraries (perfstubs_test_c ${TOOL_LIBS} ${EXTRA_LIBS})
-target_link_libraries (perfstubs_test_fort ${TOOL_LIBS} ${EXTRA_LIBS})
+if (NOT APPLE)
+    add_executable(perfstubs_test_fort examples/main.F90)
+    target_link_libraries (perfstubs_test_fort ${TOOL_LIBS} ${EXTRA_LIBS})
+endif ()
 
 include(CTest)
 
 # does the application run
 add_test (cpp_test perfstubs_test_cpp 25)
-set_tests_properties (cpp_test PROPERTIES PASS_REGULAR_EXPRESSION "Tool: perftool_timer_start int main")
+set_tests_properties (cpp_test PROPERTIES PASS_REGULAR_EXPRESSION
+    "Tool: perftool_timer_start int main")
 add_test (c_test perfstubs_test_c 25)
-set_tests_properties (c_test PROPERTIES PASS_REGULAR_EXPRESSION "Tool: perftool_timer_start main")
-add_test (fort_test perfstubs_test_fort 25)
-set_tests_properties (fort_test PROPERTIES PASS_REGULAR_EXPRESSION "Tool: perftool_timer_start main")
+set_tests_properties (c_test PROPERTIES PASS_REGULAR_EXPRESSION
+    "Tool: perftool_timer_start main")
+if (NOT APPLE)
+    add_test (fort_test perfstubs_test_fort 25)
+    set_tests_properties (fort_test PROPERTIES PASS_REGULAR_EXPRESSION
+        "Tool: perftool_timer_start main")
+endif ()
 
 # For dynamic testing, preload the "tool"
 if (NOT PERFSTUBS_USE_STATIC AND NOT APPLE)
@@ -160,7 +172,8 @@ export(PACKAGE PerfStubs)
 foreach(LIB ${TOOL_LIBS})
     set(PRIVATE_CMAKE_LIBS "${PRIVATE_CMAKE_LIBS} ${LIB}")
 endforeach()
-CONFIGURE_FILE("etc/perfstubs-config.cmake.in" "${PROJECT_BINARY_DIR}/perfstubs-config.cmake" @ONLY)
+CONFIGURE_FILE("etc/perfstubs-config.cmake.in"
+    "${PROJECT_BINARY_DIR}/perfstubs-config.cmake" @ONLY)
 
 install (TARGETS perfstubs 
     EXPORT PerfStubsTargets
@@ -171,9 +184,11 @@ install (TARGETS perfstubs
 install (FILES perfstubs_api/Timer.h DESTINATION include/perfstubs_api)
 install (FILES perfstubs_api/Timer_f.h DESTINATION include/perfstubs_api)
 install (FILES perfstubs_api/Tool.h DESTINATION include/perfstubs_api)
-install (FILES ${CMAKE_BINARY_DIR}/perfstubs_api/Config.h DESTINATION include/perfstubs_api)
+install (FILES ${CMAKE_BINARY_DIR}/perfstubs_api/Config.h
+    DESTINATION include/perfstubs_api)
 install (FILES ${CMAKE_BINARY_DIR}/perfstubs.pc DESTINATION lib/pkgconfig)
-install (FILES ${CMAKE_BINARY_DIR}/perfstubs-config.cmake DESTINATION lib/cmake)
+install (FILES ${CMAKE_BINARY_DIR}/perfstubs-config.cmake
+    DESTINATION lib/cmake)
 
 # Install the export set for use with the install-tree
 install(EXPORT PerfStubsTargets 
