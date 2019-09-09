@@ -260,7 +260,7 @@ static const char * psMakeTimerName(const char * file,
 #define PERFSTUBS_INIT()
 #define PERFSTUBS_DUMP_DATA()
 #define PERFSTUBS_REGISTER_THREAD()
-#define PERFSTUBS_TIMER_START(_timer_name)
+#define PERFSTUBS_TIMER_START(_timer, _timer_name)
 #define PERFSTUBS_TIMER_STOP(_timer_name)
 #define PERFSTUBS_DYNAMIC_PHASE_START(_phase_prefix, _iteration_index)
 #define PERFSTUBS_DYNAMIC_PHASE_STOP(_phase_prefix, _iteration_index)

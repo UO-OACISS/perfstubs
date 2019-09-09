@@ -2,10 +2,8 @@
 // Distributed under the BSD Software License
 // (See accompanying file LICENSE.txt)
 
+#define PERFSTUBS_USE_TIMERS
 #include "perfstubs_api/Timer.h"
-
-/* If not enabled, macro out all of the code in this file. */
-#if defined(PERFSTUBS_USE_TIMERS)
 
 #include <unistd.h>
 #ifndef _GNU_SOURCE
@@ -105,6 +103,9 @@ extern "C"
     void perftool_get_counter_data(perftool_counter_data_t *)
         __attribute((weak));
     void perftool_get_metadata(perftool_metadata_t *) __attribute((weak));
+    void perftool_free_timer_data(perftool_timer_data_t *) __attribute((weak));
+    void perftool_free_counter_data(perftool_counter_data_t *) __attribute((weak));
+    void perftool_free_metadata(perftool_metadata_t *) __attribute((weak));
 }
 #endif
 
@@ -249,7 +250,7 @@ void Timer::RegisterThread(void)
 void* Timer::Create(const char *timer_name)
 {
     static Timer &instance = Timer::Get();
-    if (instance.m_Initialized && MyPerfStubsTimerCreate != nullptr)
+    if (MyPerfStubsTimerCreate != nullptr && instance.m_Initialized)
         return MyPerfStubsTimerCreate(timer_name);
     return nullptr;
 }
@@ -262,21 +263,21 @@ void* Timer::Create(const std::string &timer_name)
 void Timer::Start(const void *timer)
 {
     static Timer &instance = Timer::Get();
-    if (instance.m_Initialized && MyPerfStubsTimerStart != nullptr)
+    if (MyPerfStubsTimerStart != nullptr && instance.m_Initialized)
         MyPerfStubsTimerStart(timer);
 }
 
 void Timer::Stop(const void *timer)
 {
     static Timer &instance = Timer::Get();
-    if (instance.m_Initialized && MyPerfStubsTimerStop != nullptr)
+    if (MyPerfStubsTimerStop != nullptr && instance.m_Initialized)
         MyPerfStubsTimerStop(timer);
 }
 
 void Timer::DynamicPhaseStart(const char *phase_prefix, int iteration_index)
 {
     static Timer &instance = Timer::Get();
-    if (instance.m_Initialized && MyPerfStubsDynamicPhaseStart != nullptr)
+    if (MyPerfStubsDynamicPhaseStart != nullptr && instance.m_Initialized)
         MyPerfStubsDynamicPhaseStart(phase_prefix, iteration_index);
 }
 
@@ -289,7 +290,7 @@ void Timer::DynamicPhaseStart(const std::string &phase_prefix,
 void Timer::DynamicPhaseStop(const char *phase_prefix, int iteration_index)
 {
     static Timer &instance = Timer::Get();
-    if (instance.m_Initialized && MyPerfStubsDynamicPhaseStop != nullptr)
+    if (MyPerfStubsDynamicPhaseStop != nullptr && instance.m_Initialized)
         MyPerfStubsDynamicPhaseStop(phase_prefix, iteration_index);
 }
 
@@ -302,7 +303,7 @@ void Timer::DynamicPhaseStop(const std::string &phase_prefix,
 void* Timer::CreateCounter(const char *name)
 {
     static Timer &instance = Timer::Get();
-    if (instance.m_Initialized && MyPerfStubsCreateCounter != nullptr)
+    if (MyPerfStubsCreateCounter != nullptr && instance.m_Initialized)
         return MyPerfStubsCreateCounter(const_cast<char *>(name));
     return nullptr;
 }
@@ -310,21 +311,21 @@ void* Timer::CreateCounter(const char *name)
 void Timer::SampleCounter(const void *counter, const double value)
 {
     static Timer &instance = Timer::Get();
-    if (instance.m_Initialized && MyPerfStubsSampleCounter != nullptr)
+    if (MyPerfStubsSampleCounter != nullptr && instance.m_Initialized)
         MyPerfStubsSampleCounter(counter, value);
 }
 
 void Timer::MetaData(const char *name, const char *value)
 {
     static Timer &instance = Timer::Get();
-    if (instance.m_Initialized && MyPerfStubsMetaData != nullptr)
+    if (MyPerfStubsMetaData != nullptr && instance.m_Initialized)
         MyPerfStubsMetaData(name, value);
 }
 
 void Timer::DumpData(void)
 {
     static Timer &instance = Timer::Get();
-    if (instance.m_Initialized && MyPerfStubsDumpData != nullptr)
+    if (MyPerfStubsDumpData != nullptr && instance.m_Initialized)
         MyPerfStubsDumpData();
 }
 
@@ -337,42 +338,42 @@ Timer::~Timer(void)
 void Timer::GetTimerData(perftool_timer_data_t *timer_data)
 {
     static Timer &instance = Timer::Get();
-    if (instance.m_Initialized && MyPerfStubsGetTimerData != nullptr)
+    if (MyPerfStubsGetTimerData != nullptr && instance.m_Initialized)
         MyPerfStubsGetTimerData(timer_data);
 }
 
 void Timer::GetCounterData(perftool_counter_data_t *counter_data)
 {
     static Timer &instance = Timer::Get();
-    if (instance.m_Initialized && MyPerfStubsGetCounterData != nullptr)
+    if (MyPerfStubsGetCounterData != nullptr && instance.m_Initialized)
         MyPerfStubsGetCounterData(counter_data);
 }
 
 void Timer::GetMetaData(perftool_metadata_t *metadata)
 {
     static Timer &instance = Timer::Get();
-    if (instance.m_Initialized && MyPerfStubsGetMetaData != nullptr)
+    if (MyPerfStubsGetMetaData != nullptr && instance.m_Initialized)
         MyPerfStubsGetMetaData(metadata);
 }
 
 void Timer::FreeTimerData(perftool_timer_data_t *timer_data)
 {
     static Timer &instance = Timer::Get();
-    if (instance.m_Initialized && MyPerfStubsFreeTimerData != nullptr)
+    if (MyPerfStubsFreeTimerData != nullptr && instance.m_Initialized)
         MyPerfStubsFreeTimerData(timer_data);
 }
 
 void Timer::FreeCounterData(perftool_counter_data_t *counter_data)
 {
     static Timer &instance = Timer::Get();
-    if (instance.m_Initialized && MyPerfStubsFreeCounterData != nullptr)
+    if (MyPerfStubsFreeCounterData != nullptr && instance.m_Initialized)
         MyPerfStubsFreeCounterData(counter_data);
 }
 
 void Timer::FreeMetaData(perftool_metadata_t *metadata)
 {
     static Timer &instance = Timer::Get();
-    if (instance.m_Initialized && MyPerfStubsFreeMetaData != nullptr)
+    if (MyPerfStubsFreeMetaData != nullptr && instance.m_Initialized)
         MyPerfStubsFreeMetaData(metadata);
 }
 
@@ -530,4 +531,3 @@ extern "C"
 
 } // extern "C"
 
-#endif // defined(PERFSTUBS_USE_TIMERS)

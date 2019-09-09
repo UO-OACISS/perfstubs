@@ -44,10 +44,6 @@ set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -pthread")
 if (NOT APPLE)
     set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -cpp")
     if(CMAKE_Fortran_COMPILER MATCHES "gfortran*")
-        set(CMAKE_SKIP_BUILD_RPATH FALSE)
-        set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
-        set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-
         set(CMAKE_Fortran_FLAGS
             "${CMAKE_Fortran_FLAGS} -std=f2003 -fimplicit-none")
         set(CMAKE_Fortran_FLAGS_DEBUG "-Wall -O0 -g3 -fbounds-check")
@@ -99,6 +95,7 @@ if (PERFSTUBS_USE_TIMERS)
 endif (PERFSTUBS_USE_TIMERS)
 
 # add the default implementation?
+set (NO_IMPL_EXTRA_LIBS ${EXTRA_LIBS})
 if (PERFSTUBS_USE_DEFAULT_IMPLEMENTATION)
     add_library(implementation implementation/ToolImplementation.cpp)
     if (BUILD_SHARED_LIBS)
@@ -119,6 +116,24 @@ if (PERFSTUBS_USE_STATIC AND NOT APPLE)
     SET(CMAKE_EXE_LINKER_FLAGS "-static")
 endif (PERFSTUBS_USE_STATIC AND NOT APPLE)
 
+# Setup RPATH 
+if (NOT PERFSTUBS_USE_STATIC)
+    # use, i.e. don't skip the full RPATH for the build tree
+    SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
+    # when building, don't use the install RPATH already
+    # (but later on when installing)
+    SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
+    SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+    # add the automatically determined parts of the RPATH
+    # which point to directories outside the build tree to the install RPATH
+    SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+    # the RPATH to be used when installing, but only if it's not a system directory
+    LIST(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_PREFIX}/lib" isSystemDir)
+    IF("${isSystemDir}" STREQUAL "-1")
+        SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+    ENDIF("${isSystemDir}" STREQUAL "-1")
+endif (NOT PERFSTUBS_USE_STATIC)
+
 # add the executables
 add_executable(perfstubs_test_api_cpp examples/all_api.cpp)
 target_link_libraries (perfstubs_test_api_cpp ${TOOL_LIBS} ${EXTRA_LIBS})
@@ -128,6 +143,10 @@ add_executable(perfstubs_test_cpp examples/main.cpp)
 target_link_libraries (perfstubs_test_cpp ${TOOL_LIBS} ${EXTRA_LIBS})
 add_executable(perfstubs_test_c examples/main.c)
 target_link_libraries (perfstubs_test_c ${TOOL_LIBS} ${EXTRA_LIBS})
+add_executable(perfstubs_test_overhead examples/overhead.c)
+add_executable(perfstubs_test_overhead_cpp examples/overhead.cpp)
+target_link_libraries (perfstubs_test_overhead ${TOOL_LIBS} ${NO_IMPL_EXTRA_LIBS})
+target_link_libraries (perfstubs_test_overhead_cpp ${TOOL_LIBS} ${NO_IMPL_EXTRA_LIBS})
 if (NOT APPLE)
     add_executable(perfstubs_test_fort examples/main.F90)
     target_link_libraries (perfstubs_test_fort ${TOOL_LIBS} ${EXTRA_LIBS})
@@ -149,6 +168,8 @@ if (NOT APPLE)
     set_tests_properties (fort_test PROPERTIES PASS_REGULAR_EXPRESSION
         "Tool: perftool_timer_start main")
 endif ()
+# add_test (overhead_test perfstubs_test_overhead)
+# add_test (overhead_test_cpp perfstubs_test_overhead_cpp)
 
 # For dynamic testing, preload the "tool"
 if (NOT PERFSTUBS_USE_STATIC AND NOT APPLE)
