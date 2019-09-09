@@ -23,7 +23,7 @@ cmake \
 -DCMAKE_C_COMPILER=`which gcc` \
 -DCMAKE_CXX_COMPILER=`which g++` \
 -DCMAKE_Fortran_COMPILER=`which gfortran` \
--DCMAKE_BUILD_TYPE=Debug \
+-DCMAKE_BUILD_TYPE=Release \
 -DCMAKE_INSTALL_PREFIX=${workdir}/install_static \
 -DPERFSTUBS_USE_STATIC=ON \
 ..
@@ -39,7 +39,7 @@ cmake \
 -DCMAKE_C_COMPILER=`which gcc` \
 -DCMAKE_CXX_COMPILER=`which g++` \
 -DCMAKE_Fortran_COMPILER=`which gfortran` \
--DCMAKE_BUILD_TYPE=Debug \
+-DCMAKE_BUILD_TYPE=Release \
 -DCMAKE_INSTALL_PREFIX=${workdir}/install_dynamic \
 -DPERFSTUBS_USE_STATIC=OFF \
 ..

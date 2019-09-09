@@ -64,7 +64,7 @@ int main(int argc, char* argv[])
     if (argc > 1) s = atoi(argv[1]);
     if (argc > 2) imax = atoi(argv[2]);
     if (s == 0) s = 100;
-    if (imax == 0) imax = 5000;
+    if (imax == 0) imax = 10000;
     PERFSTUBS_INIT();
 
     printf("Running %dx a MM on %d x %d\n", imax, s,s);
