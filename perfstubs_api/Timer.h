@@ -21,6 +21,8 @@
 #define __PERFSTUBS_FUNCTION__ __func__
 #endif
 
+extern int perfstubs_initialized;
+
 #ifdef __cplusplus
 
 #if defined(PERFSTUBS_USE_TIMERS)
@@ -106,9 +108,12 @@ private:
 public:
     ScopedTimer(const void * timer) : m_timer(timer)
     {
-        if (m_timer != nullptr) Timer::Start(m_timer);
+        if (perfstubs_initialized == 1) Timer::Start(m_timer);
     }
-    ~ScopedTimer() { if (m_timer != nullptr) Timer::Stop(m_timer); }
+    ~ScopedTimer()
+    {
+        if (perfstubs_initialized == 1) Timer::Stop(m_timer);
+    }
 };
 
 } // namespace PERFSTUBS_INTERNAL_NAMESPACE
@@ -125,24 +130,23 @@ namespace PSNS = external::PERFSTUBS_INTERNAL_NAMESPACE;
 
 #define PERFSTUBS_TIMER_START(_timer, _timer_name) \
     static void * _timer = PSNS::Timer::Create(_timer_name); \
-    if (_timer != nullptr) { \
-        PSNS::Timer::Start(_timer); \
-    }
+    if (perfstubs_initialized == 1) PSNS::Timer::Start(_timer);
 
 #define PERFSTUBS_TIMER_STOP(_timer) \
-    if (_timer != nullptr) { \
-        PSNS::Timer::Stop(_timer); \
-    }
+    if (perfstubs_initialized == 1) PSNS::Timer::Stop(_timer);
 
 #define PERFSTUBS_DYNAMIC_PHASE_START(_phase_prefix, _iteration_index) \
+    if (perfstubs_initialized == 1) \
     PSNS::Timer::DynamicPhaseStart( _phase_prefix, _iteration_index);
 
 #define PERFSTUBS_DYNAMIC_PHASE_STOP(_phase_prefix, _iteration_index) \
+    if (perfstubs_initialized == 1) \
     PSNS::Timer::DynamicPhaseStop( _phase_prefix, _iteration_index);
 
 #define PERFSTUBS_SAMPLE_COUNTER(_name, _value) \
     static void * CONCAT(__counter,__LINE__) = \
         PSNS::Timer::CreateCounter(_name); \
+    if (perfstubs_initialized == 1) \
     PSNS::Timer::SampleCounter(CONCAT(__counter,__LINE__), _value);
 
 #define PERFSTUBS_METADATA(_name, _value) PSNS::Timer::MetaData(_name, _value);
@@ -191,7 +195,7 @@ namespace PSNS = external::PERFSTUBS_INTERNAL_NAMESPACE;
 void psInit(void);
 void psRegisterThread(void);
 void psDumpData(void);
-void* psTimerCreate(int *success, const char *timerName);
+void* psTimerCreate(const char *timerName);
 void psTimerStart(const void *timer);
 void psTimerStop(const void *timer);
 void psDynamicPhaseStart(const char *phasePrefix, int iterationIndex);
@@ -229,48 +233,48 @@ static const char * psMakeTimerName(const char * file,
 
 #define PERFSTUBS_TIMER_START(_timer, _timer_name) \
     static void * _timer = NULL; \
-    { static int id = { 0 }; \
-        if (id >= 0) { \
-            if (_timer == NULL) { \
-                _timer = psTimerCreate(&id, _timer_name); \
-            } \
-            psTimerStart(_timer); \
+    if (perfstubs_initialized == 1) { \
+        if (_timer == NULL) { \
+            _timer = psTimerCreate(_timer_name); \
         } \
+        psTimerStart(_timer); \
     };
 
 #define PERFSTUBS_TIMER_STOP(_timer) \
-    if (_timer != NULL) { \
-        psTimerStop(_timer); \
-    }
+    if (perfstubs_initialized == 1) psTimerStop(_timer); \
 
 #define PERFSTUBS_DYNAMIC_PHASE_START(_phase_prefix, _iteration_index) \
+    if (perfstubs_initialized == 1) \
     psDynamicPhaseStart(_phase_prefix, _iteration_index);
 
 #define PERFSTUBS_DYNAMIC_PHASE_STOP(_phase_prefix, _iteration_index) \
+    if (perfstubs_initialized == 1) \
     psDynamicPhaseStop(_phase_prefix, _iteration_index);
 
 #define PERFSTUBS_TIMER_START_FUNC(_timer) \
     static void * _timer = NULL; \
-    { static int id = { 0 }; \
-        if (id >= 0) { \
-            if (_timer == NULL) { \
-                _timer = psTimerCreate(&id, \
-                psMakeTimerName(__FILE__, \
-                __PERFSTUBS_FUNCTION__, __LINE__)); \
-            } \
-            psTimerStart(_timer); \
-        } };
+    if (perfstubs_initialized == 1) { \
+        if (_timer == NULL) { \
+            _timer = psTimerCreate(psMakeTimerName(__FILE__, \
+            __PERFSTUBS_FUNCTION__, __LINE__)); \
+        } \
+        psTimerStart(_timer); \
+    };
 
-#define PERFSTUBS_TIMER_STOP_FUNC(_timer) psTimerStop(_timer);
+#define PERFSTUBS_TIMER_STOP_FUNC(_timer) \
+    if (perfstubs_initialized == 1) psTimerStop(_timer);
 
 #define PERFSTUBS_SAMPLE_COUNTER(_name, _value) \
     static void * CONCAT(__var,__LINE__) =  NULL; \
-    if (CONCAT(__var,__LINE__) == NULL) { \
-        CONCAT(__var,__LINE__) = psCreateCounter(_name); \
-    } \
-    psSampleCounter(CONCAT(__var,__LINE__), _value);
+    if (perfstubs_initialized == 1) { \
+        if (CONCAT(__var,__LINE__) == NULL) { \
+            CONCAT(__var,__LINE__) = psCreateCounter(_name); \
+        } \
+        psSampleCounter(CONCAT(__var,__LINE__), _value); \
+    };
 
-#define PERFSTUBS_METADATA(_name, _value) psMetaData(_name, _value);
+#define PERFSTUBS_METADATA(_name, _value) \
+    if (perfstubs_initialized == 1) psMetaData(_name, _value);
 
 #else // defined(PERFSTUBS_USE_TIMERS)
 

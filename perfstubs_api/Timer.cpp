@@ -29,6 +29,8 @@
  * we can assert that we have m_Initialized on the main thread. */
 // static void __attribute__((constructor)) InitializeLibrary(void);
 
+int perfstubs_initialized = 0;
+
 /* Function pointer types */
 
 /* Logistical functions */
@@ -123,6 +125,7 @@ extern "C"
 int AssignFunctionPointers(void)
 {
 #ifdef PERFSTUBS_USE_STATIC
+    /* The initialization function is the only required one */
     MyPerfStubsInit = &perftool_init;
     if (MyPerfStubsInit == nullptr)
     {
@@ -199,6 +202,7 @@ int PerfStubsStubInitializeSimple(void)
 #endif
         return PERFSTUBS_FAILURE;
     }
+    /* Initialize the external tool */
     MyPerfStubsInit();
     return PERFSTUBS_SUCCESS;
 }
@@ -225,6 +229,8 @@ Timer::Timer(void) : m_Initialized(false)
     if (PerfStubsStubInitializeSimple() == PERFSTUBS_SUCCESS)
     {
         m_Initialized = true;
+        // set the external flag
+        perfstubs_initialized = 1;
     }
     m_ThreadSeen = true;
 }
@@ -233,7 +239,7 @@ Timer::Timer(void) : m_Initialized(false)
 Timer &Timer::Get(void)
 {
     static std::unique_ptr<Timer> instance(new Timer);
-    if (!m_ThreadSeen && instance.get()->m_Initialized)
+    if (!m_ThreadSeen && instance->m_Initialized)
     {
         _RegisterThread();
     }
@@ -408,14 +414,9 @@ extern "C"
 
     void psDumpData() { PSNS::Timer::DumpData(); }
 
-    void* psTimerCreate(int *success, const char *timerName)
+    void* psTimerCreate(const char *timerName)
     {
-        void * tmp = PSNS::Timer::Create(timerName);
-        if (tmp == nullptr) {
-            // disable future calls
-            *success = -1;
-        }
-        return tmp;
+        return PSNS::Timer::Create(timerName);
     }
 
     void psTimerStart(const void *timer)
@@ -438,9 +439,9 @@ extern "C"
         PSNS::Timer::DynamicPhaseStop(phase_prefix, iteration_index);
     }
 
-    void psCreateCounter(const char *name)
+    void* psCreateCounter(const char *name)
     {
-        PSNS::Timer::CreateCounter(name);
+        return PSNS::Timer::CreateCounter(name);
     }
 
     void psSampleCounter(const char *counter, const double value)
