@@ -408,9 +408,14 @@ extern "C"
 
     void psDumpData() { PSNS::Timer::DumpData(); }
 
-    void* psTimerCreate(const char *timerName)
+    void* psTimerCreate(int *success, const char *timerName)
     {
-        return PSNS::Timer::Create(timerName);
+        void * tmp = PSNS::Timer::Create(timerName);
+        if (tmp == nullptr) {
+            // disable future calls
+            *success = -1;
+        }
+        return tmp;
     }
 
     void psTimerStart(const void *timer)

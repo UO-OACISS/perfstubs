@@ -1,6 +1,10 @@
+#define _GNU_SOURCE             /* See feature_test_macros(7) */
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
+#include <pthread.h>
+#include <unistd.h>
+#include <errno.h>
 #define PERFSTUBS_USE_TIMERS
 #include "perfstubs_api/Timer.h"
 
@@ -21,6 +25,29 @@ __attribute__((weak)) void inst_val(int id, int v) {}
      inst_val(id, val);                         \
    } } while(0)
 #endif
+
+#define handle_error_en(en, msg) \
+               do { errno = en; perror(msg); exit(EXIT_FAILURE); } while (0)
+
+void set_thread_affinity(void) {
+#if !defined(__APPLE__) && !defined(_MSC_VER)
+    unsigned int s, j;
+    cpu_set_t cpuset;
+    pthread_t thread;
+    thread = pthread_self();
+
+    /* Set affinity mask to the last physical core */
+    CPU_ZERO(&cpuset);
+    unsigned int cores = sysconf(_SC_NPROCESSORS_ONLN) >> 2;
+    j = cores - 1;
+    j = 0;
+    CPU_SET(j, &cpuset);
+    printf("Pinned to core %u\n", j);
+
+    s = pthread_setaffinity_np(thread, sizeof(cpu_set_t), &cpuset);
+    if (s != 0) handle_error_en(s, "pthread_setaffinity_np");
+#endif
+}
 
 double wtime()
 {
@@ -66,8 +93,9 @@ int main(int argc, char* argv[])
     if (argc > 2) imax = atoi(argv[2]);
     if (s == 0) s = 100;
     if (imax == 0) imax = 10000;
-    PERFSTUBS_INIT();
+    set_thread_affinity();
 
+    PERFSTUBS_INIT();
     printf("Running %dx a MM on %d x %d\n", imax, s,s);
     double* a = malloc(s*s*sizeof(double));
     double* b = malloc(s*s*sizeof(double));

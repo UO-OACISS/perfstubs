@@ -11,39 +11,43 @@ fi
 workdir="$( dirname "${scriptdir}" )"
 echo $workdir
 
-rm -rf ${workdir}/build_static
-mkdir ${workdir}/build_static
-cd ${workdir}/build_static
+buildtype=Release
 
-#export CFLAGS="-fsanitize=address"
-#export CXXFLAGS="-fsanitize=address"
-#export LDFLAGS="-fsanitize=address"
+do_static() {
+    rm -rf ${workdir}/build_static
+    mkdir ${workdir}/build_static
+    cd ${workdir}/build_static
 
-cmake \
--DCMAKE_C_COMPILER=`which gcc` \
--DCMAKE_CXX_COMPILER=`which g++` \
--DCMAKE_Fortran_COMPILER=`which gfortran` \
--DCMAKE_BUILD_TYPE=Release \
--DCMAKE_INSTALL_PREFIX=${workdir}/install_static \
--DPERFSTUBS_USE_STATIC=ON \
-..
-make
-make test
-make install
+    cmake \
+    -DCMAKE_C_COMPILER=`which gcc` \
+    -DCMAKE_CXX_COMPILER=`which g++` \
+    -DCMAKE_Fortran_COMPILER=`which gfortran` \
+    -DCMAKE_BUILD_TYPE=${buildtype} \
+    -DCMAKE_INSTALL_PREFIX=${workdir}/install_static \
+    -DPERFSTUBS_USE_STATIC=ON \
+    ..
+    make
+    make test
+    make install
+}
 
-rm -rf ${workdir}/build_dynamic
-mkdir ${workdir}/build_dynamic
-cd ${workdir}/build_dynamic
+do_dynamic() {
+    rm -rf ${workdir}/build_dynamic
+    mkdir ${workdir}/build_dynamic
+    cd ${workdir}/build_dynamic
 
-cmake \
--DCMAKE_C_COMPILER=`which gcc` \
--DCMAKE_CXX_COMPILER=`which g++` \
--DCMAKE_Fortran_COMPILER=`which gfortran` \
--DCMAKE_BUILD_TYPE=Release \
--DCMAKE_INSTALL_PREFIX=${workdir}/install_dynamic \
--DPERFSTUBS_USE_STATIC=OFF \
-..
-make
-make test
-make install
+    cmake \
+    -DCMAKE_C_COMPILER=`which gcc` \
+    -DCMAKE_CXX_COMPILER=`which g++` \
+    -DCMAKE_Fortran_COMPILER=`which gfortran` \
+    -DCMAKE_BUILD_TYPE=${buildtype} \
+    -DCMAKE_INSTALL_PREFIX=${workdir}/install_dynamic \
+    -DPERFSTUBS_USE_STATIC=OFF \
+    ..
+    make
+    make test
+    make install
+}
 
+do_dynamic
+do_static
