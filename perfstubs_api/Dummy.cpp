@@ -25,6 +25,7 @@ extern "C"
     PS_EXPORT PS_WEAK_PRE void* perftool_timer_create(const char *) PS_WEAK_POST_NULL;
     PS_EXPORT PS_WEAK_PRE void perftool_timer_start(const void *) PS_WEAK_POST;
     PS_EXPORT PS_WEAK_PRE void perftool_timer_stop(const void *) PS_WEAK_POST;
+    PS_EXPORT PS_WEAK_PRE void perftool_set_parameter(const char *, int64_t) PS_WEAK_POST;
     PS_EXPORT PS_WEAK_PRE void perftool_dynamic_phase_start(const char *, int) PS_WEAK_POST;
     PS_EXPORT PS_WEAK_PRE void perftool_dynamic_phase_stop(const char *, int) PS_WEAK_POST;
     PS_EXPORT PS_WEAK_PRE void* perftool_create_counter(const char *) PS_WEAK_POST_NULL;

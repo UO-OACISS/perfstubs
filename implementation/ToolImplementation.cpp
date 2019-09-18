@@ -84,6 +84,12 @@ extern "C"
         p->stop();
     }
 
+    void perftool_set_parameter(const char *parameter_name, int64_t parameter_value)
+    {
+        cout << "Tool: " << __func__ << " " << parameter_name
+             << " " << parameter_value << endl;
+    }
+
     void perftool_dynamic_phase_start(const char *phase_prefix,
                                       int iteration_index)
     {

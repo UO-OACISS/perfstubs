@@ -42,6 +42,7 @@ typedef void PerfStubsDumpDataType(void);
 typedef void* PerfStubsTimerCreateType(const char *);
 typedef void PerfStubsTimerStartType(const void *);
 typedef void PerfStubsTimerStopType(const void *);
+typedef void PerfStubsSetParameterType(const char *, int64_t);
 typedef void PerfStubsDynamicPhaseStartType(const char *, int);
 typedef void PerfStubsDynamicPhaseStopType(const char *, int);
 typedef void* PerfStubsCreateCounterType(const char *);
@@ -64,6 +65,7 @@ PerfStubsDumpDataType *MyPerfStubsDumpData = nullptr;
 PerfStubsTimerCreateType *MyPerfStubsTimerCreate = nullptr;
 PerfStubsTimerStartType *MyPerfStubsTimerStart = nullptr;
 PerfStubsTimerStopType *MyPerfStubsTimerStop = nullptr;
+PerfStubsSetParameterType *MyPerfStubsSetParameter = nullptr;
 PerfStubsDynamicPhaseStartType *MyPerfStubsDynamicPhaseStart = nullptr;
 PerfStubsDynamicPhaseStopType *MyPerfStubsDynamicPhaseStop = nullptr;
 PerfStubsCreateCounterType *MyPerfStubsCreateCounter = nullptr;
@@ -107,6 +109,7 @@ extern "C"
     PS_WEAK_PRE void* perftool_timer_create(const char *) PS_WEAK_POST;
     PS_WEAK_PRE void perftool_timer_start(const void *) PS_WEAK_POST;
     PS_WEAK_PRE void perftool_timer_stop(const void *) PS_WEAK_POST;
+    PS_WEAK_PRE void perftool_set_parameter(const char *, int64_t) PS_WEAK_POST;
     PS_WEAK_PRE void perftool_dynamic_phase_start(const char *, int) PS_WEAK_POST;
     PS_WEAK_PRE void perftool_dynamic_phase_stop(const char *, int) PS_WEAK_POST;
     PS_WEAK_PRE void* perftool_create_counter(const char *) PS_WEAK_POST;
@@ -138,6 +141,7 @@ int AssignFunctionPointers(void)
     MyPerfStubsTimerCreate = &perftool_timer_create;
     MyPerfStubsTimerStart = &perftool_timer_start;
     MyPerfStubsTimerStop = &perftool_timer_stop;
+    MyPerfStubsSetParameter = &perftool_set_parameter;
     MyPerfStubsDynamicPhaseStart = &perftool_dynamic_phase_start;
     MyPerfStubsDynamicPhaseStop = &perftool_dynamic_phase_stop;
     MyPerfStubsCreateCounter = &perftool_create_counter;
@@ -166,6 +170,8 @@ int AssignFunctionPointers(void)
         (PerfStubsTimerStartType *)dlsym(RTLD_DEFAULT, "perftool_timer_start");
     MyPerfStubsTimerStop =
         (PerfStubsTimerStopType *)dlsym(RTLD_DEFAULT, "perftool_timer_stop");
+    MyPerfStubsSetParameter =
+        (PerfStubsSetParameterType *)dlsym(RTLD_DEFAULT, "perftool_set_parameter");
     MyPerfStubsDynamicPhaseStart = (PerfStubsDynamicPhaseStartType *)dlsym(
         RTLD_DEFAULT, "perftool_dynamic_phase_start");
     MyPerfStubsDynamicPhaseStop = (PerfStubsDynamicPhaseStopType *)dlsym(
@@ -289,6 +295,13 @@ void Timer::Stop(const void *timer)
     static Timer &instance = Timer::Get();
     if (MyPerfStubsTimerStop != nullptr && instance.m_Initialized)
         MyPerfStubsTimerStop(timer);
+}
+
+void Timer::SetParameter(const char * parameter_name, int64_t parameter_value)
+{
+    static Timer &instance = Timer::Get();
+    if (MyPerfStubsSetParameter != nullptr && instance.m_Initialized)
+        MyPerfStubsSetParameter(parameter_name, parameter_value);
 }
 
 void Timer::DynamicPhaseStart(const char *phase_prefix, int iteration_index)
@@ -429,6 +442,11 @@ extern "C"
         PSNS::Timer::Stop(timer);
     }
 
+    void psSetParameter(const char *parameter_name, int64_t parameter_value)
+    {
+        PSNS::Timer::SetParameter(parameter_name, parameter_value);
+    }
+
     void psDynamicPhaseStart(const char *phase_prefix, int iteration_index)
     {
         PSNS::Timer::DynamicPhaseStart(phase_prefix, iteration_index);
@@ -509,9 +527,15 @@ extern "C"
     {
         PSNS::Timer::Start(psfindtimer_(timerName));
     }
+
     void pstimerstop_(const char *timerName)
     {
         PSNS::Timer::Stop(psfindtimer_(timerName));
+    }
+
+    void pssetparameter_(const char *parameterName, int64_t parameterValue)
+    {
+        PSNS::Timer::SetParameter(parameterName, parameterValue);
     }
 
     void psdynamicphasestart_(const char *phase_prefix, int iteration_index)

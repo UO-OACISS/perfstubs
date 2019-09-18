@@ -26,7 +26,7 @@ do_static() {
     -DCMAKE_INSTALL_PREFIX=${workdir}/install_static \
     -DPERFSTUBS_USE_STATIC=ON \
     ..
-    make
+    make -j
     make test
     make install
 }
@@ -44,7 +44,7 @@ do_dynamic() {
     -DCMAKE_INSTALL_PREFIX=${workdir}/install_dynamic \
     -DPERFSTUBS_USE_STATIC=OFF \
     ..
-    make
+    make -j
     make test
     make install
 }

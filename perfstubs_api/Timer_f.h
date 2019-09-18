@@ -17,6 +17,8 @@
     call pstimerstart(_timer_name//CHAR(0))
 #define PERFSTUBS_TIMER_STOP(_timer_name) \
     call pstimerstop(_timer_name//CHAR(0))
+#define PERFSTUBS_SET_PARAMETER(_parameter_name, parameter_value) \
+    call pstimersetparameter(_parameter_name//CHAR(0), parameter_value)
 #define PERFSTUBS_DYNAMIC_PHASE_START(_phase_prefix, _iteration_index) \
     call psdynamicphasestart(_phase_prefix//CHAR(0), _iteration_index)
 #define PERFSTUBS_DYNAMIC_PHASE_STOP(_phase_prefix, _iteration_index) \
@@ -34,6 +36,7 @@
 #define PERFSTUBS_REGISTER_THREAD()
 #define PERFSTUBS_TIMER_START(_timer_name)
 #define PERFSTUBS_TIMER_STOP(_timer_name)
+#define PERFSTUBS_SET_PARAMETER(_parameter_name, _parameter_value)
 #define PERFSTUBS_DYNAMIC_PHASE_START(_phase_prefix, _iteration_index)
 #define PERFSTUBS_DYNAMIC_PHASE_STOP(_phase_prefix, _iteration_index)
 #define PERFSTUBS_TIMER_START_FUNC()

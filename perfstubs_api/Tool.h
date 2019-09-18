@@ -4,6 +4,8 @@
 
 /* Declare the functions that a tool should implement. */
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -46,8 +48,10 @@ extern "C"
 
     // measurement function declarations
     void * perftool_create_timer(const char * timer_name);
-    void perftool_start_timer(void * timer);
-    void perftool_stop_timer(void * timer);
+    void perftool_timer_start(const void * timer);
+    void perftool_timer_stop(const void * timer);
+    void perftool_set_parameter(const char *variable_name,
+                                int64_t variable_value);
     void perftool_dynamic_phase_start(const char *iteration_prefix,
                                       int iteration_number);
     void perftool_dynamic_phase_stop(const char *iteration_prefix,

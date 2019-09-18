@@ -21,6 +21,7 @@ void threaded_function(void *param)
 double compute(double value)
 {
     PERFSTUBS_SCOPED_TIMER_FUNC();
+    PERFSTUBS_SET_PARAMETER("value", (int64_t)(value));
     return sqrt(value);
 }
 

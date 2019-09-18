@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <stdint.h>
 #include "perfstubs_api/Config.h"
 #include "perfstubs_api/Tool.h"
 
@@ -43,7 +44,6 @@ extern int perfstubs_initialized;
 
 #include <memory>
 #include <sstream>
-#include <stdint.h>
 #include <string>
 
 namespace external
@@ -62,6 +62,8 @@ public:
     static void* Create(const std::string &timer_name);
     static void Start(const void * timer);
     static void Stop(const void * timer);
+    static void SetParameter(const char * parameter_name,
+                             int64_t parameter_value);
     static void DynamicPhaseStart(const char *phase_prefix,
                                   int iteration_index);
     static void DynamicPhaseStart(const std::string &phase_prefix,
@@ -135,6 +137,10 @@ namespace PSNS = external::PERFSTUBS_INTERNAL_NAMESPACE;
 #define PERFSTUBS_TIMER_STOP(_timer) \
     if (perfstubs_initialized == 1) PSNS::Timer::Stop(_timer);
 
+#define PERFSTUBS_SET_PARAMETER(_parameter, _value) \
+    if (perfstubs_initialized == 1) \
+    PSNS::Timer::SetParameter(_parameter, _value);
+
 #define PERFSTUBS_DYNAMIC_PHASE_START(_phase_prefix, _iteration_index) \
     if (perfstubs_initialized == 1) \
     PSNS::Timer::DynamicPhaseStart( _phase_prefix, _iteration_index);
@@ -168,6 +174,7 @@ namespace PSNS = external::PERFSTUBS_INTERNAL_NAMESPACE;
 #define PERFSTUBS_REGISTER_THREAD()
 #define PERFSTUBS_TIMER_START(_timer, _timer_name)
 #define PERFSTUBS_TIMER_STOP(_timer)
+#define PERFSTUBS_SET_PARAMETER(_parameter, _value)
 #define PERFSTUBS_DYNAMIC_PHASE_START(_phase_prefix, _iteration_index)
 #define PERFSTUBS_DYNAMIC_PHASE_STOP(_phase_prefix, _iteration_index)
 #define PERFSTUBS_TIMER_START_FUNC(_timer)
@@ -183,6 +190,7 @@ namespace PSNS = external::PERFSTUBS_INTERNAL_NAMESPACE;
 
 #include <string.h>
 #include <stdio.h>
+#include <stdint.h>
 
 /* ------------------------------------------------------------------ */
 /* Now define the C API */
@@ -198,6 +206,7 @@ void psDumpData(void);
 void* psTimerCreate(const char *timerName);
 void psTimerStart(const void *timer);
 void psTimerStop(const void *timer);
+void psSetParameter(const char *parameter_name, int64_t parameter_value);
 void psDynamicPhaseStart(const char *phasePrefix, int iterationIndex);
 void psDynamicPhaseStop(const char *phasePrefix, int iterationIndex);
 void* psCreateCounter(const char *name);
@@ -243,6 +252,9 @@ static const char * psMakeTimerName(const char * file,
 #define PERFSTUBS_TIMER_STOP(_timer) \
     if (perfstubs_initialized == 1) psTimerStop(_timer); \
 
+#define PERFSTUBS_SET_PARAMETER(_parameter, _value) \
+    if (perfstubs_initialized == 1) psSetParameter(_parameter, _value);
+
 #define PERFSTUBS_DYNAMIC_PHASE_START(_phase_prefix, _iteration_index) \
     if (perfstubs_initialized == 1) \
     psDynamicPhaseStart(_phase_prefix, _iteration_index);
@@ -283,6 +295,7 @@ static const char * psMakeTimerName(const char * file,
 #define PERFSTUBS_REGISTER_THREAD()
 #define PERFSTUBS_TIMER_START(_timer, _timer_name)
 #define PERFSTUBS_TIMER_STOP(_timer_name)
+#define PERFSTUBS_SET_PARAMETER(_parameter, _value)
 #define PERFSTUBS_DYNAMIC_PHASE_START(_phase_prefix, _iteration_index)
 #define PERFSTUBS_DYNAMIC_PHASE_STOP(_phase_prefix, _iteration_index)
 #define PERFSTUBS_TIMER_START_FUNC(_timer)

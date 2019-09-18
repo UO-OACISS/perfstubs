@@ -16,6 +16,7 @@ int main(int argc, char *argv[])
     PERFSTUBS_REGISTER_THREAD()
     PERFSTUBS_METADATA("meta", "data")
     PERFSTUBS_SCOPED_TIMER_FUNC();
+    PERFSTUBS_SET_PARAMETER("argc", argc);
 
     // starts
     PERFSTUBS_TIMER_START(timer2, "timer")
