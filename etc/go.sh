@@ -11,43 +11,37 @@ fi
 workdir="$( dirname "${scriptdir}" )"
 echo $workdir
 
+export CFLAGS="-Wall -Werror"
+export CXXFLAGS="-Wall -Werror"
+
+do_build() {
+    rm -rf ${workdir}/build_${linktype}_${buildtype} ${workdir}/install_${linktype}_${buildtype}
+    mkdir ${workdir}/build_${linktype}_${buildtype}
+    cd ${workdir}/build_${linktype}_${buildtype}
+
+    cmake \
+    -DCMAKE_C_COMPILER=`which gcc` \
+    -DCMAKE_CXX_COMPILER=`which g++` \
+    -DCMAKE_Fortran_COMPILER=`which gfortran` \
+    -DCMAKE_BUILD_TYPE=${buildtype} \
+    -DCMAKE_INSTALL_PREFIX=${workdir}/install_${linktype}_${buildtype} \
+    -DPERFSTUBS_USE_STATIC=${staticflag} \
+    ..
+    make -j
+    make test
+    make install
+}
+
+buildtype=Debug
+linktype=static
+staticflag=ON
+do_build
 buildtype=Release
+do_build
 
-do_static() {
-    rm -rf ${workdir}/build_static
-    mkdir ${workdir}/build_static
-    cd ${workdir}/build_static
-
-    cmake \
-    -DCMAKE_C_COMPILER=`which gcc` \
-    -DCMAKE_CXX_COMPILER=`which g++` \
-    -DCMAKE_Fortran_COMPILER=`which gfortran` \
-    -DCMAKE_BUILD_TYPE=${buildtype} \
-    -DCMAKE_INSTALL_PREFIX=${workdir}/install_static \
-    -DPERFSTUBS_USE_STATIC=ON \
-    ..
-    make -j
-    make test
-    make install
-}
-
-do_dynamic() {
-    rm -rf ${workdir}/build_dynamic
-    mkdir ${workdir}/build_dynamic
-    cd ${workdir}/build_dynamic
-
-    cmake \
-    -DCMAKE_C_COMPILER=`which gcc` \
-    -DCMAKE_CXX_COMPILER=`which g++` \
-    -DCMAKE_Fortran_COMPILER=`which gfortran` \
-    -DCMAKE_BUILD_TYPE=${buildtype} \
-    -DCMAKE_INSTALL_PREFIX=${workdir}/install_dynamic \
-    -DPERFSTUBS_USE_STATIC=OFF \
-    ..
-    make -j
-    make test
-    make install
-}
-
-do_dynamic
-do_static
+buildtype=Debug
+linktype=dynamic
+staticflag=OFF
+do_build
+buildtype=Release
+do_build

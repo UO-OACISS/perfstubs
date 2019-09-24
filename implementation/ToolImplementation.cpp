@@ -41,11 +41,13 @@ std::unordered_map<std::string, MINE::counter*> counters;
 extern "C"
 {
 
-    void perftool_init(void) { cout << "Tool: " << __func__ << endl; }
+    // On some systems, can't write output during pre-initialization
+    void perftool_init(void) { /* cout << "Tool: " << __func__ << endl; */ }
 
+    // On some systems, can't write output during pre-initialization
     void perftool_register_thread(void)
     {
-        cout << "Tool: " << __func__ << endl;
+        /* cout << "Tool: " << __func__ << endl; */
     }
 
     void perftool_exit(void) { cout << "Tool: " << __func__ << endl; }

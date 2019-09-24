@@ -3,7 +3,7 @@
 // (See accompanying file LICENSE.txt)
 
 #define PERFSTUBS_USE_TIMERS
-#include "perfstubs_api/Timer_c.h"
+#include "perfstubs_api/Timer.h"
 
 #include <unistd.h>
 #ifndef _GNU_SOURCE
@@ -17,14 +17,13 @@
 #include <sys/syscall.h>
 #include <sys/types.h>
 
-#define PERFSTUBS_UNKNOWN 0
-#define PERFSTUBS_SUCCESS 1
-#define PERFSTUBS_FAILURE 2
-
-/* Make sure that the Timer singleton is constructed when the
+/* Make sure that the function pointers are initialized when this
  * library is loaded.  This will ensure (on linux, anyway) that
- * we can assert that we have m_Initialized on the main thread. */
-// static void __attribute__((constructor)) InitializeLibrary(void);
+ * we can assert that we have perfstubs_initialized on the main thread.
+ * If your code explicitly calls psInit() and psFinalize(), these
+ * aren't needed.  */
+static void __attribute__((constructor)) InitializeLibrary(void);
+static void __attribute__((destructor)) FinalizeLibrary(void);
 
 int perfstubs_initialized = PERFSTUBS_UNKNOWN;
 __thread int m_ThreadSeen = 0;
@@ -199,7 +198,7 @@ int PerfStubsStubInitializeSimple(void)
 }
 
 // used internally to the class
-inline void _RegisterThread(void)
+void _RegisterThread(void)
 {
     if (m_ThreadSeen == 0 && MyPerfStubsRegisterThread != NULL)
     {
@@ -216,8 +215,19 @@ static void InitializeLibrary(void)
         // set the external flag
         perfstubs_initialized = PERFSTUBS_SUCCESS;
         _RegisterThread();
+    } else {
+        perfstubs_initialized = PERFSTUBS_FAILURE;
     }
-    m_ThreadSeen = 1;
+}
+
+static void FinalizeLibrary(void)
+{
+    if (perfstubs_initialized == PERFSTUBS_SUCCESS) {
+        if (MyPerfStubsExit != NULL) {
+            MyPerfStubsExit();
+        }
+        perfstubs_initialized = PERFSTUBS_FINALIZED;
+    }
 }
 
 char * psMakeTimerName(const char * file, const char * func, int line) {
@@ -229,26 +239,15 @@ char * psMakeTimerName(const char * file, const char * func, int line) {
 }
 
 #define CHECK_INITIALIZED \
-if (perfstubs_initialized == PERFSTUBS_UNKNOWN) { \
-    InitializeLibrary(); \
-} else if (perfstubs_initialized == PERFSTUBS_FAILURE) { \
-    return; \
-} \
-if (m_ThreadSeen == 0) _RegisterThread();
-
-#define CHECK_INITIALIZED_NULL \
-if (perfstubs_initialized == PERFSTUBS_UNKNOWN) { \
-    InitializeLibrary(); \
-} else if (perfstubs_initialized == PERFSTUBS_FAILURE) { \
-    return NULL; \
-} \
 if (m_ThreadSeen == 0) _RegisterThread();
 
 // external API calls
 
 void psInit()
 {
-    CHECK_INITIALIZED
+    if (perfstubs_initialized == PERFSTUBS_UNKNOWN) {
+        InitializeLibrary();
+    }
 }
 
 void psRegisterThread(void)
@@ -258,7 +257,7 @@ void psRegisterThread(void)
 
 void* psTimerCreate(const char *timer_name)
 {
-    CHECK_INITIALIZED_NULL
+    CHECK_INITIALIZED
     return (MyPerfStubsTimerCreate == NULL) ? NULL :
         MyPerfStubsTimerCreate(timer_name);
 }
@@ -300,7 +299,7 @@ void psDynamicPhaseStop(const char *phase_prefix, int iteration_index)
 
 void* psCreateCounter(const char *name)
 {
-    CHECK_INITIALIZED_NULL
+    CHECK_INITIALIZED
     return (MyPerfStubsCreateCounter == NULL) ? NULL :
         MyPerfStubsCreateCounter(name);
 }
@@ -329,8 +328,7 @@ void psDumpData(void)
 void psFinalize(void)
 {
     CHECK_INITIALIZED
-    if (MyPerfStubsExit != NULL)
-        MyPerfStubsExit();
+    FinalizeLibrary();
 }
 
 void psGetTimerData(perftool_timer_data_t *timer_data)

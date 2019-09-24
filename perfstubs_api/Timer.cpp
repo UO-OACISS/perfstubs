@@ -10,26 +10,23 @@
 #define _GNU_SOURCE
 #endif
 #include <dlfcn.h>
-#include <iostream>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/syscall.h>
 #include <sys/types.h>
+#include <iostream>
 #include <thread>
 #include <utility>
 #include <unordered_map>
 
-#define PERFSTUBS_SUCCESS 0
-#define PERFSTUBS_FAILURE 1
-
 /* Make sure that the Timer singleton is constructed when the
  * library is loaded.  This will ensure (on linux, anyway) that
  * we can assert that we have m_Initialized on the main thread. */
-// static void __attribute__((constructor)) InitializeLibrary(void);
+static void __attribute__((constructor)) InitializeLibrary(void);
 
-int perfstubs_initialized = 0;
+int perfstubs_initialized = PERFSTUBS_UNKNOWN;
 
 /* Function pointer types */
 
@@ -50,10 +47,10 @@ typedef void PerfStubsSampleCounterType(const void *, double);
 typedef void PerfStubsMetaDataType(const char *, const char *);
 /* Data Query Functions */
 typedef void PerfStubsGetTimerDataType(perftool_timer_data_t *);
-typedef void PerfStubsGetCounterDataType(perftool_counter_data *);
+typedef void PerfStubsGetCounterDataType(perftool_counter_data_t *);
 typedef void PerfStubsGetMetaDataType(perftool_metadata_t *);
 typedef void PerfStubsFreeTimerDataType(perftool_timer_data_t *);
-typedef void PerfStubsFreeCounterDataType(perftool_counter_data *);
+typedef void PerfStubsFreeCounterDataType(perftool_counter_data_t *);
 typedef void PerfStubsFreeMetaDataType(perftool_metadata_t *);
 
 /* Function pointers */
@@ -420,6 +417,14 @@ std::unordered_map<std::string, void*> fortran_counter_map;
 
 extern "C"
 { // C Bindings
+
+    char * psMakeTimerName(const char * file, const char * func, int line) {
+        // allocate enough length to hold the timer name
+        int length = strlen(file) + strlen(func) + 32;
+        char * tmpstr = (char*)(malloc(sizeof(char) * length));
+        sprintf(tmpstr, "%s [{%s} {%d,0}]", func, file, line);
+        return tmpstr;
+    }
 
     void psInit() { InitializeLibrary(); }
 
