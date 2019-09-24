@@ -2,13 +2,13 @@
 // Distributed under the BSD Software License
 // (See accompanying file LICENSE.txt)
 
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
 #define PERFSTUBS_USE_TIMERS
 #include "perfstubs_api/Timer_c.h"
 
 #include <unistd.h>
-#ifndef _GNU_SOURCE
-#define _GNU_SOURCE
-#endif
 #include <dlfcn.h>
 #include <stddef.h>
 #include <stdio.h>
