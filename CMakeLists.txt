@@ -84,13 +84,16 @@ endif (PERFSTUBS_USE_STATIC AND NOT APPLE)
 set (EXTRA_LIBS ${EXTRA_LIBS} ${PTHREAD_LIB} m)
 
 add_library(perfstubs perfstubs_api/Timer.cpp)
-add_library(perfstubs_dummy perfstubs_api/Dummy.cpp)
+add_library(perfstubs_c perfstubs_api/Timer.c)
+add_library(perfstubs_dummy perfstubs_api/Dummy.c)
 
 # add the perfstubs library
 if (PERFSTUBS_USE_TIMERS)
     if (PERFSTUBS_USE_STATIC)
+        set (TOOL_LIBS_C ${TOOL_LIBS} perfstubs_c)
         set (TOOL_LIBS ${TOOL_LIBS} perfstubs)
     else (PERFSTUBS_USE_STATIC)
+        set (TOOL_LIBS_C ${TOOL_LIBS} perfstubs_c dl)
         set (TOOL_LIBS ${TOOL_LIBS} perfstubs dl)
     endif (PERFSTUBS_USE_STATIC)
 endif (PERFSTUBS_USE_TIMERS)
@@ -140,6 +143,8 @@ add_executable(perfstubs_test_api_cpp examples/all_api.cpp)
 target_link_libraries (perfstubs_test_api_cpp ${TOOL_LIBS} ${EXTRA_LIBS})
 add_executable(perfstubs_test_api_c examples/all_api.c)
 target_link_libraries (perfstubs_test_api_c ${TOOL_LIBS} ${EXTRA_LIBS})
+add_executable(perfstubs_test_api_c_only examples/all_api.c)
+target_link_libraries (perfstubs_test_api_c_only ${TOOL_LIBS_C} ${EXTRA_LIBS})
 add_executable(perfstubs_test_cpp examples/main.cpp)
 target_link_libraries (perfstubs_test_cpp ${TOOL_LIBS} ${EXTRA_LIBS})
 add_executable(perfstubs_test_c examples/main.c)
@@ -163,6 +168,7 @@ include(CTest)
 # does the application run
 add_test (cpp_api_test perfstubs_test_api_cpp)
 add_test (c_api_test perfstubs_test_api_c)
+add_test (c_only_api_test perfstubs_test_api_c_only)
 add_test (cpp_test perfstubs_test_cpp 25)
 set_tests_properties (cpp_test PROPERTIES PASS_REGULAR_EXPRESSION
     "Tool: perftool_timer_start int main")
@@ -215,6 +221,7 @@ install (TARGETS perfstubs
     COMPONENT library
 )
 install (FILES perfstubs_api/Timer.h DESTINATION include/perfstubs_api)
+install (FILES perfstubs_api/Timer_c.h DESTINATION include/perfstubs_api)
 install (FILES perfstubs_api/Timer_f.h DESTINATION include/perfstubs_api)
 install (FILES perfstubs_api/Tool.h DESTINATION include/perfstubs_api)
 install (FILES ${CMAKE_BINARY_DIR}/perfstubs_api/Config.h
