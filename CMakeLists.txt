@@ -185,12 +185,18 @@ endif ()
 
 # For dynamic testing, preload the "tool"
 if (NOT PERFSTUBS_USE_STATIC AND NOT APPLE)
-set_tests_properties(cpp_test PROPERTIES
-    ENVIRONMENT LD_PRELOAD=${CMAKE_BINARY_DIR}/libimplementation.so)
-set_tests_properties(c_test PROPERTIES
-    ENVIRONMENT LD_PRELOAD=${CMAKE_BINARY_DIR}/libimplementation.so)
-set_tests_properties(fort_test PROPERTIES
-    ENVIRONMENT LD_PRELOAD=${CMAKE_BINARY_DIR}/libimplementation.so)
+    set_tests_properties(cpp_api_test PROPERTIES
+        ENVIRONMENT LD_PRELOAD=${CMAKE_BINARY_DIR}/libimplementation.so)
+    set_tests_properties(c_api_test PROPERTIES
+        ENVIRONMENT LD_PRELOAD=${CMAKE_BINARY_DIR}/libimplementation.so)
+    set_tests_properties(c_only_api_test PROPERTIES
+        ENVIRONMENT LD_PRELOAD=${CMAKE_BINARY_DIR}/libimplementation.so)
+    set_tests_properties(cpp_test PROPERTIES
+        ENVIRONMENT LD_PRELOAD=${CMAKE_BINARY_DIR}/libimplementation.so)
+    set_tests_properties(c_test PROPERTIES
+        ENVIRONMENT LD_PRELOAD=${CMAKE_BINARY_DIR}/libimplementation.so)
+    set_tests_properties(fort_test PROPERTIES
+        ENVIRONMENT LD_PRELOAD=${CMAKE_BINARY_DIR}/libimplementation.so)
 endif (NOT PERFSTUBS_USE_STATIC AND NOT APPLE)
 
 # build a pkg-config file

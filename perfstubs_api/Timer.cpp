@@ -27,6 +27,7 @@
 static void __attribute__((constructor)) InitializeLibrary(void);
 
 int perfstubs_initialized = PERFSTUBS_UNKNOWN;
+bool static_constructor = true;
 
 /* Function pointer types */
 
@@ -200,8 +201,12 @@ int PerfStubsStubInitializeSimple(void)
     if (AssignFunctionPointers() == PERFSTUBS_FAILURE)
     {
 #if defined(DEBUG) || defined(_DEBUG)
-        std::cerr << "ERROR: Unable to initialize the perftool API"
-                  << std::endl;
+        // Can't write to std::cerr before main() is called...
+        // so fail silently in that case.
+        if (!static_constructor) {
+            std::cerr << "ERROR: Unable to initialize the perftool API"
+                      << std::endl;
+        }
 #endif
         return PERFSTUBS_FAILURE;
     }
@@ -426,7 +431,7 @@ extern "C"
         return tmpstr;
     }
 
-    void psInit() { InitializeLibrary(); }
+    void psInit() { static_constructor = false; InitializeLibrary(); }
 
     void psRegisterThread() { PSNS::Timer::RegisterThread(); }
 
@@ -510,7 +515,7 @@ extern "C"
     /* End of C function definitions */
 
     // Fortran Bindings
-    void psinit_() { InitializeLibrary(); }
+    void psinit_() { static_constructor = false; InitializeLibrary(); }
 
     void psregisterthread_() { PSNS::Timer::RegisterThread(); }
 
