@@ -14,3 +14,4 @@ The initial prototype implementation was tied to TAU, but evolved to this more
 generic version, which was extracted as a separate repository for testing and
 demonstration purposes.
 
+For a more extensive readme, see [perfstubs_api/README.md](perfstubs_api/README.md).
