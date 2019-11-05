@@ -11,6 +11,12 @@ fi
 workdir="$( dirname "${scriptdir}" )"
 echo $workdir
 
+UNAME=`uname`
+FORTRAN_COMPILER=""
+if [ ${UNAME} != "Darwin" ] ; then
+    FORTRAN_COMPILER="-DCMAKE_Fortran_COMPILER=`which gfortran`"
+fi
+
 export CFLAGS="-Wall -Werror"
 export CXXFLAGS="-Wall -Werror"
 
@@ -22,7 +28,7 @@ do_build() {
     cmake \
     -DCMAKE_C_COMPILER=`which gcc` \
     -DCMAKE_CXX_COMPILER=`which g++` \
-    -DCMAKE_Fortran_COMPILER=`which gfortran` \
+    ${FORTRAN_COMPILER} \
     -DCMAKE_BUILD_TYPE=${buildtype} \
     -DCMAKE_INSTALL_PREFIX=${workdir}/install_${linktype}_${buildtype} \
     -DPERFSTUBS_USE_STATIC=${staticflag} \
