@@ -32,49 +32,49 @@ bool static_constructor = true;
 /* Function pointer types */
 
 /* Logistical functions */
-typedef void PerfStubsInitType(void);
-typedef void PerfStubsRegisterThreadType(void);
-typedef void PerfStubsExitType(void);
-typedef void PerfStubsDumpDataType(void);
+typedef void (*PerfStubsInitType)(void);
+typedef void (*PerfStubsRegisterThreadType)(void);
+typedef void (*PerfStubsExitType)(void);
+typedef void (*PerfStubsDumpDataType)(void);
 /* Data entry functions */
-typedef void* PerfStubsTimerCreateType(const char *);
-typedef void PerfStubsTimerStartType(const void *);
-typedef void PerfStubsTimerStopType(const void *);
-typedef void PerfStubsSetParameterType(const char *, int64_t);
-typedef void PerfStubsDynamicPhaseStartType(const char *, int);
-typedef void PerfStubsDynamicPhaseStopType(const char *, int);
-typedef void* PerfStubsCreateCounterType(const char *);
-typedef void PerfStubsSampleCounterType(const void *, double);
-typedef void PerfStubsMetaDataType(const char *, const char *);
+typedef void* (*PerfStubsTimerCreateType)(const char *);
+typedef void (*PerfStubsTimerStartType)(const void *);
+typedef void (*PerfStubsTimerStopType)(const void *);
+typedef void (*PerfStubsSetParameterType)(const char *, int64_t);
+typedef void (*PerfStubsDynamicPhaseStartType)(const char *, int);
+typedef void (*PerfStubsDynamicPhaseStopType)(const char *, int);
+typedef void* (*PerfStubsCreateCounterType)(const char *);
+typedef void (*PerfStubsSampleCounterType)(const void *, double);
+typedef void (*PerfStubsMetaDataType)(const char *, const char *);
 /* Data Query Functions */
-typedef void PerfStubsGetTimerDataType(perftool_timer_data_t *);
-typedef void PerfStubsGetCounterDataType(perftool_counter_data_t *);
-typedef void PerfStubsGetMetaDataType(perftool_metadata_t *);
-typedef void PerfStubsFreeTimerDataType(perftool_timer_data_t *);
-typedef void PerfStubsFreeCounterDataType(perftool_counter_data_t *);
-typedef void PerfStubsFreeMetaDataType(perftool_metadata_t *);
+typedef void (*PerfStubsGetTimerDataType)(perftool_timer_data_t *);
+typedef void (*PerfStubsGetCounterDataType)(perftool_counter_data_t *);
+typedef void (*PerfStubsGetMetaDataType)(perftool_metadata_t *);
+typedef void (*PerfStubsFreeTimerDataType)(perftool_timer_data_t *);
+typedef void (*PerfStubsFreeCounterDataType)(perftool_counter_data_t *);
+typedef void (*PerfStubsFreeMetaDataType)(perftool_metadata_t *);
 
 /* Function pointers */
 
-PerfStubsInitType *MyPerfStubsInit = nullptr;
-PerfStubsRegisterThreadType *MyPerfStubsRegisterThread = nullptr;
-PerfStubsExitType *MyPerfStubsExit = nullptr;
-PerfStubsDumpDataType *MyPerfStubsDumpData = nullptr;
-PerfStubsTimerCreateType *MyPerfStubsTimerCreate = nullptr;
-PerfStubsTimerStartType *MyPerfStubsTimerStart = nullptr;
-PerfStubsTimerStopType *MyPerfStubsTimerStop = nullptr;
-PerfStubsSetParameterType *MyPerfStubsSetParameter = nullptr;
-PerfStubsDynamicPhaseStartType *MyPerfStubsDynamicPhaseStart = nullptr;
-PerfStubsDynamicPhaseStopType *MyPerfStubsDynamicPhaseStop = nullptr;
-PerfStubsCreateCounterType *MyPerfStubsCreateCounter = nullptr;
-PerfStubsSampleCounterType *MyPerfStubsSampleCounter = nullptr;
-PerfStubsMetaDataType *MyPerfStubsMetaData = nullptr;
-PerfStubsGetTimerDataType *MyPerfStubsGetTimerData = nullptr;
-PerfStubsGetCounterDataType *MyPerfStubsGetCounterData = nullptr;
-PerfStubsGetMetaDataType *MyPerfStubsGetMetaData = nullptr;
-PerfStubsFreeTimerDataType *MyPerfStubsFreeTimerData = nullptr;
-PerfStubsFreeCounterDataType *MyPerfStubsFreeCounterData = nullptr;
-PerfStubsFreeMetaDataType *MyPerfStubsFreeMetaData = nullptr;
+std::vector<PerfStubsInitType> MyPerfStubsInit;
+std::vector<PerfStubsRegisterThreadType> MyPerfStubsRegisterThread;
+std::vector<PerfStubsExitType> MyPerfStubsExit;
+std::vector<PerfStubsDumpDataType> MyPerfStubsDumpData;
+std::vector<PerfStubsTimerCreateType> MyPerfStubsTimerCreate;
+std::vector<PerfStubsTimerStartType> MyPerfStubsTimerStart;
+std::vector<PerfStubsTimerStopType> MyPerfStubsTimerStop;
+std::vector<PerfStubsSetParameterType> MyPerfStubsSetParameter;
+std::vector<PerfStubsDynamicPhaseStartType> MyPerfStubsDynamicPhaseStart;
+std::vector<PerfStubsDynamicPhaseStopType> MyPerfStubsDynamicPhaseStop;
+std::vector<PerfStubsCreateCounterType> MyPerfStubsCreateCounter;
+std::vector<PerfStubsSampleCounterType> MyPerfStubsSampleCounter;
+std::vector<PerfStubsMetaDataType> MyPerfStubsMetaData;
+std::vector<PerfStubsGetTimerDataType> MyPerfStubsGetTimerData;
+std::vector<PerfStubsGetCounterDataType> MyPerfStubsGetCounterData;
+std::vector<PerfStubsGetMetaDataType> MyPerfStubsGetMetaData;
+std::vector<PerfStubsFreeTimerDataType> MyPerfStubsFreeTimerData;
+std::vector<PerfStubsFreeCounterDataType> MyPerfStubsFreeCounterData;
+std::vector<PerfStubsFreeMetaDataType> MyPerfStubsFreeMetaData;
 
 #define UNUSED(expr) do { (void)(expr); } while (0);
 
@@ -127,71 +127,72 @@ int AssignFunctionPointers(void)
 {
 #ifdef PERFSTUBS_USE_STATIC
     /* The initialization function is the only required one */
-    MyPerfStubsInit = &perftool_init;
+    MyPerfStubsInit.push_back(&perftool_init);
     if (MyPerfStubsInit == nullptr)
     {
         std::cout << "perftool_init not defined" << std::endl;
         return PERFSTUBS_FAILURE;
     }
-    MyPerfStubsRegisterThread = &perftool_register_thread;
-    MyPerfStubsExit = &perftool_exit;
-    MyPerfStubsDumpData = &perftool_dump_data;
-    MyPerfStubsTimerCreate = &perftool_timer_create;
-    MyPerfStubsTimerStart = &perftool_timer_start;
-    MyPerfStubsTimerStop = &perftool_timer_stop;
-    MyPerfStubsSetParameter = &perftool_set_parameter;
-    MyPerfStubsDynamicPhaseStart = &perftool_dynamic_phase_start;
-    MyPerfStubsDynamicPhaseStop = &perftool_dynamic_phase_stop;
-    MyPerfStubsCreateCounter = &perftool_create_counter;
-    MyPerfStubsSampleCounter = &perftool_sample_counter;
-    MyPerfStubsMetaData = &perftool_metadata;
-    MyPerfStubsGetTimerData = &perftool_get_timer_data;
-    MyPerfStubsGetCounterData = &perftool_get_counter_data;
-    MyPerfStubsGetMetaData = &perftool_get_metadata;
-    MyPerfStubsFreeTimerData = &perftool_free_timer_data;
-    MyPerfStubsFreeCounterData = &perftool_free_counter_data;
-    MyPerfStubsFreeMetaData = &perftool_free_metadata;
+    MyPerfStubsRegisterThread.push_back(&perftool_register_thread);
+    MyPerfStubsExit.push_back(&perftool_exit);
+    MyPerfStubsDumpData.push_back(&perftool_dump_data);
+    MyPerfStubsTimerCreate.push_back(&perftool_timer_create);
+    MyPerfStubsTimerStart.push_back(&perftool_timer_start);
+    MyPerfStubsTimerStop.push_back(&perftool_timer_stop);
+    MyPerfStubsSetParameter.push_back(&perftool_set_parameter);
+    MyPerfStubsDynamicPhaseStart.push_back(&perftool_dynamic_phase_start);
+    MyPerfStubsDynamicPhaseStop.push_back(&perftool_dynamic_phase_stop);
+    MyPerfStubsCreateCounter.push_back(&perftool_create_counter);
+    MyPerfStubsSampleCounter.push_back(&perftool_sample_counter);
+    MyPerfStubsMetaData.push_back(&perftool_metadata);
+    MyPerfStubsGetTimerData.push_back(&perftool_get_timer_data);
+    MyPerfStubsGetCounterData.push_back(&perftool_get_counter_data);
+    MyPerfStubsGetMetaData.push_back(&perftool_get_metadata);
+    MyPerfStubsFreeTimerData.push_back(&perftool_free_timer_data);
+    MyPerfStubsFreeCounterData.push_back(&perftool_free_counter_data);
+    MyPerfStubsFreeMetaData.push_back(&perftool_free_metadata);
 #else
-    MyPerfStubsInit = (PerfStubsInitType *)dlsym(RTLD_DEFAULT, "perftool_init");
+    auto tmp = (PerfStubsInitType *)dlsym(RTLD_DEFAULT, "perftool_init");
     if (MyPerfStubsInit == nullptr)
     {
         return PERFSTUBS_FAILURE;
     }
-    MyPerfStubsRegisterThread = (PerfStubsRegisterThreadType *)dlsym(
-        RTLD_DEFAULT, "perftool_register_thread");
-    MyPerfStubsDumpData =
-        (PerfStubsDumpDataType *)dlsym(RTLD_DEFAULT, "perftool_dump_data");
-    MyPerfStubsTimerCreate =
+    MyPerfStubsInit.push_back(tmp);
+    MyPerfStubsRegisterThread.push_back((PerfStubsRegisterThreadType *)dlsym(
+        RTLD_DEFAULT, "perftool_register_thread"));
+    MyPerfStubsDumpData.push_back(
+        (PerfStubsDumpDataType *)dlsym(RTLD_DEFAULT, "perftool_dump_data"));
+    MyPerfStubsTimerCreate.push_back(
         (PerfStubsTimerCreateType *)dlsym(RTLD_DEFAULT,
-        "perftool_timer_create");
-    MyPerfStubsTimerStart =
-        (PerfStubsTimerStartType *)dlsym(RTLD_DEFAULT, "perftool_timer_start");
-    MyPerfStubsTimerStop =
-        (PerfStubsTimerStopType *)dlsym(RTLD_DEFAULT, "perftool_timer_stop");
-    MyPerfStubsSetParameter =
-        (PerfStubsSetParameterType *)dlsym(RTLD_DEFAULT, "perftool_set_parameter");
-    MyPerfStubsDynamicPhaseStart = (PerfStubsDynamicPhaseStartType *)dlsym(
-        RTLD_DEFAULT, "perftool_dynamic_phase_start");
-    MyPerfStubsDynamicPhaseStop = (PerfStubsDynamicPhaseStopType *)dlsym(
-        RTLD_DEFAULT, "perftool_dynamic_phase_stop");
-    MyPerfStubsCreateCounter = (PerfStubsCreateCounterType *)dlsym(
-        RTLD_DEFAULT, "perftool_create_counter");
-    MyPerfStubsSampleCounter = (PerfStubsSampleCounterType *)dlsym(
-        RTLD_DEFAULT, "perftool_sample_counter");
-    MyPerfStubsMetaData =
-        (PerfStubsMetaDataType *)dlsym(RTLD_DEFAULT, "perftool_metadata");
-    MyPerfStubsGetTimerData = (PerfStubsGetTimerDataType *)dlsym(
-        RTLD_DEFAULT, "perftool_get_timer_data");
-    MyPerfStubsGetCounterData = (PerfStubsGetCounterDataType *)dlsym(
-        RTLD_DEFAULT, "perftool_get_counter_data");
-    MyPerfStubsGetMetaData = (PerfStubsGetMetaDataType *)dlsym(
-        RTLD_DEFAULT, "perftool_get_metadata");
-    MyPerfStubsFreeTimerData = (PerfStubsFreeTimerDataType *)dlsym(
-        RTLD_DEFAULT, "perftool_free_timer_data");
-    MyPerfStubsFreeCounterData = (PerfStubsFreeCounterDataType *)dlsym(
-        RTLD_DEFAULT, "perftool_free_counter_data");
-    MyPerfStubsFreeMetaData = (PerfStubsFreeMetaDataType *)dlsym(
-        RTLD_DEFAULT, "perftool_free_metadata");
+        "perftool_timer_create"));
+    MyPerfStubsTimerStart.push_back(
+        (PerfStubsTimerStartType *)dlsym(RTLD_DEFAULT, "perftool_timer_start"));
+    MyPerfStubsTimerStop.push_back(
+        (PerfStubsTimerStopType *)dlsym(RTLD_DEFAULT, "perftool_timer_stop"));
+    MyPerfStubsSetParameter.push_back(
+        (PerfStubsSetParameterType *)dlsym(RTLD_DEFAULT, "perftool_set_parameter"));
+    MyPerfStubsDynamicPhaseStart.push_back((PerfStubsDynamicPhaseStartType *)dlsym(
+        RTLD_DEFAULT, "perftool_dynamic_phase_start"));
+    MyPerfStubsDynamicPhaseStop.push_back((PerfStubsDynamicPhaseStopType *)dlsym(
+        RTLD_DEFAULT, "perftool_dynamic_phase_stop"));
+    MyPerfStubsCreateCounter.push_back((PerfStubsCreateCounterType *)dlsym(
+        RTLD_DEFAULT, "perftool_create_counter"));
+    MyPerfStubsSampleCounter.push_back((PerfStubsSampleCounterType *)dlsym(
+        RTLD_DEFAULT, "perftool_sample_counter"));
+    MyPerfStubsMetaData.push_back(
+        (PerfStubsMetaDataType *)dlsym(RTLD_DEFAULT, "perftool_metadata"));
+    MyPerfStubsGetTimerData.push_back((PerfStubsGetTimerDataType *)dlsym(
+        RTLD_DEFAULT, "perftool_get_timer_data"));
+    MyPerfStubsGetCounterData.push_back((PerfStubsGetCounterDataType *)dlsym(
+        RTLD_DEFAULT, "perftool_get_counter_data"));
+    MyPerfStubsGetMetaData.push_back((PerfStubsGetMetaDataType *)dlsym(
+        RTLD_DEFAULT, "perftool_get_metadata"));
+    MyPerfStubsFreeTimerData.push_back((PerfStubsFreeTimerDataType *)dlsym(
+        RTLD_DEFAULT, "perftool_free_timer_data"));
+    MyPerfStubsFreeCounterData.push_back((PerfStubsFreeCounterDataType *)dlsym(
+        RTLD_DEFAULT, "perftool_free_counter_data"));
+    MyPerfStubsFreeMetaData.push_back((PerfStubsFreeMetaDataType *)dlsym(
+        RTLD_DEFAULT, "perftool_free_metadata"));
 #endif
     return PERFSTUBS_SUCCESS;
 }
@@ -257,10 +258,12 @@ Timer &Timer::Get(void)
 // used internally to the class
 inline void Timer::_RegisterThread(void)
 {
-    if (!m_ThreadSeen && MyPerfStubsRegisterThread != nullptr)
-    {
-        MyPerfStubsRegisterThread();
-        m_ThreadSeen = true;
+    if (!m_ThreadSeen) {
+        for (auto f : MyPerfStubsRegisterThread)
+        {
+            f();
+            m_ThreadSeen = true;
+        }
     }
 }
 
