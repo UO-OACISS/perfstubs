@@ -83,12 +83,12 @@ public:
 
     // data query api
     // data query function declarations
-    static void GetTimerData(perftool_timer_data_t *timer_data);
-    static void GetCounterData(perftool_counter_data_t *counter_data);
-    static void GetMetaData(perftool_metadata_t *metadata);
-    static void FreeTimerData(perftool_timer_data_t *timer_data);
-    static void FreeCounterData(perftool_counter_data_t *counter_data);
-    static void FreeMetaData(perftool_metadata_t *metadata);
+    static void GetTimerData(perftool_timer_data_t *timer_data, int tool_index);
+    static void GetCounterData(perftool_counter_data_t *counter_data, int tool_index);
+    static void GetMetaData(perftool_metadata_t *metadata, int tool_index);
+    static void FreeTimerData(perftool_timer_data_t *timer_data, int tool_index);
+    static void FreeCounterData(perftool_counter_data_t *counter_data, int tool_index);
+    static void FreeMetaData(perftool_metadata_t *metadata, int tool_index);
 
     // The only way to get an instance of this class
     static Timer &Get(void);
@@ -221,12 +221,12 @@ void psMetaData(const char *name, const char *value);
 
 /* data query API */
 
-void psGetTimerData(perftool_timer_data_t *timer_data);
-void psGetCounterData(perftool_counter_data_t *counter_data);
-void psGetMetaData(perftool_metadata_t *metadata);
-void psFreeTimerData(perftool_timer_data_t *timer_data);
-void psFreeCounterData(perftool_counter_data_t *counter_data);
-void psFreeMetaData(perftool_metadata_t *metadata);
+void psGetTimerData(perftool_timer_data_t *timer_data, int tool_index);
+void psGetCounterData(perftool_counter_data_t *counter_data, int tool_index);
+void psGetMetaData(perftool_metadata_t *metadata, int tool_index);
+void psFreeTimerData(perftool_timer_data_t *timer_data, int tool_index);
+void psFreeCounterData(perftool_counter_data_t *counter_data, int tool_index);
+void psFreeMetaData(perftool_metadata_t *metadata, int tool_index);
 
 char * psMakeTimerName(const char * file, const char * func, int line);
 

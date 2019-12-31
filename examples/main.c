@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
 
 #ifdef PERFSTUBS_USE_TIMERS
     perftool_timer_data_t timer_data;
-    psGetTimerData(&timer_data);
+    psGetTimerData(&timer_data, 0);
     int index = 0;
     for (int i = 0; i < timer_data.num_timers; i++)
     {
@@ -89,11 +89,11 @@ int main(int argc, char *argv[])
             }
         }
     }
-    psFreeTimerData(&timer_data);
+    psFreeTimerData(&timer_data, 0);
 
     index = 0;
     perftool_counter_data_t counter_data;
-    psGetCounterData(&counter_data);
+    psGetCounterData(&counter_data, 0);
     for (int i = 0; i < counter_data.num_counters; i++)
     {
         for (int k = 0; k < counter_data.num_threads; k++)
@@ -119,15 +119,15 @@ int main(int argc, char *argv[])
             index = index + 1;
         }
     }
-    psFreeCounterData(&counter_data);
+    psFreeCounterData(&counter_data, 0);
 
     perftool_metadata_t metadata;
-    psGetMetaData(&metadata);
+    psGetMetaData(&metadata, 0);
     for (int i = 0; i < metadata.num_values; i++)
     {
         printf("'%s' = '%s'\n", metadata.names[i], metadata.values[i]);
     }
-    psFreeMetaData(&metadata);
+    psFreeMetaData(&metadata, 0);
 #endif
     return 0;
 }
