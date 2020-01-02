@@ -2,12 +2,12 @@
     "tools" : [
         {
             "name" : "Implementation 1",
-            "library" : "libimplementation",
+            "library" : "libimplementation.so",
             "init function" : "perftool_init_1"
         },
         {
             "name" : "Implementation 2",
-            "library" : "libimplementation2",
+            "library" : "libimplementation2.so",
             "init function" : "perftool_init_2"
         }
     ]

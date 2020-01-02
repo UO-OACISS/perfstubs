@@ -85,7 +85,6 @@ set (EXTRA_LIBS ${EXTRA_LIBS} ${PTHREAD_LIB} m)
 
 add_library(perfstubs perfstubs_api/Timer.cpp)
 #add_library(perfstubs_c perfstubs_api/Timer.c)
-add_library(perfstubs_dummy perfstubs_api/Dummy.c)
 
 # add the perfstubs library
 if (PERFSTUBS_USE_TIMERS)
@@ -101,9 +100,10 @@ endif (PERFSTUBS_USE_TIMERS)
 # add the default implementation?
 set (NO_IMPL_EXTRA_LIBS ${EXTRA_LIBS})
 if (PERFSTUBS_USE_DEFAULT_IMPLEMENTATION)
-    add_library(implementation implementation/ToolImplementation.cpp)
+    add_library(implementation SHARED implementation/ToolImplementation.cpp)
+    add_library(implementation2 SHARED implementation/ToolImplementation2.cpp)
     if (BUILD_SHARED_LIBS)
-        set (IMPL_LIB implementation)
+        set (IMPL_LIB implementation implementation2)
     else (BUILD_SHARED_LIBS)
         if (APPLE)
             set (IMPL_LIB -Wl,-all_load implementation)
@@ -151,17 +151,16 @@ add_executable(perfstubs_test_c examples/main.c)
 target_link_libraries (perfstubs_test_c ${TOOL_LIBS} ${EXTRA_LIBS})
 #add_executable(perfstubs_test_overhead examples/overhead.c)
 add_executable(perfstubs_test_overhead_cpp examples/overhead.cpp)
-if (PERFSTUBS_USE_STATIC)
-#target_link_libraries (perfstubs_test_overhead ${TOOL_LIBS_C} ${NO_IMPL_EXTRA_LIBS} perfstubs_dummy)
-target_link_libraries (perfstubs_test_overhead_cpp ${TOOL_LIBS} ${NO_IMPL_EXTRA_LIBS} perfstubs_dummy)
-else (PERFSTUBS_USE_STATIC)
 #target_link_libraries (perfstubs_test_overhead ${TOOL_LIBS_C} ${NO_IMPL_EXTRA_LIBS})
 target_link_libraries (perfstubs_test_overhead_cpp ${TOOL_LIBS} ${NO_IMPL_EXTRA_LIBS})
-endif (PERFSTUBS_USE_STATIC)
 if (NOT APPLE)
     add_executable(perfstubs_test_fort examples/main.F90)
     target_link_libraries (perfstubs_test_fort ${TOOL_LIBS} ${EXTRA_LIBS})
 endif ()
+add_executable(perfstubs_preload_cpp examples/main.cpp)
+target_link_libraries (perfstubs_preload_cpp ${TOOL_LIBS} ${NO_IMPL_EXTRA_LIBS})
+add_executable(perfstubs_preload_c examples/main.c)
+target_link_libraries (perfstubs_preload_c ${TOOL_LIBS} ${NO_IMPL_EXTRA_LIBS})
 
 include(CTest)
 
@@ -170,34 +169,49 @@ add_test (cpp_api_test perfstubs_test_api_cpp)
 add_test (c_api_test perfstubs_test_api_c)
 #add_test (c_only_api_test perfstubs_test_api_c_only)
 add_test (cpp_test perfstubs_test_cpp 25)
-set_tests_properties (cpp_test PROPERTIES PASS_REGULAR_EXPRESSION
-    "Tool: perftool_timer_start int main")
 add_test (c_test perfstubs_test_c 25)
-set_tests_properties (c_test PROPERTIES PASS_REGULAR_EXPRESSION
-    "Tool: perftool_timer_start .* main")
+add_test (two_tools_test perfstubs_test_cpp 25)
+add_test (perfstubs_test_preload_cpp perfstubs_preload_cpp 25)
+add_test (perfstubs_test_preload_c perfstubs_preload_c 25)
+set_tests_properties (
+    cpp_api_test
+    c_api_test
+    cpp_test
+    c_test
+    two_tools_test
+    perfstubs_test_preload_cpp
+    perfstubs_test_preload_c
+    PROPERTIES PASS_REGULAR_EXPRESSION
+    "Tool: perftool_timer_start int main")
+
 if (NOT APPLE)
     add_test (fort_test perfstubs_test_fort 25)
     set_tests_properties (fort_test PROPERTIES PASS_REGULAR_EXPRESSION
         "Tool: perftool_timer_start main")
 endif ()
+
+set_tests_properties (two_tools_test
+    PROPERTIES
+    PASS_REGULAR_EXPRESSION "Tool2: perftool_timer_start int main"
+    ENVIRONMENT
+    PERFSTUBS_CONFIG_FILE=${CMAKE_SOURCE_DIR}/examples/perfstubs_config_apple.json)
+
 # add_test (overhead_test perfstubs_test_overhead)
 # add_test (overhead_test_cpp perfstubs_test_overhead_cpp)
 
-# For dynamic testing, preload the "tool"
-if (NOT PERFSTUBS_USE_STATIC AND NOT APPLE)
-    set_tests_properties(cpp_api_test PROPERTIES
+if (APPLE)
+    set_tests_properties(
+        perfstubs_test_preload_cpp
+        perfstubs_test_preload_c
+        PROPERTIES
+        ENVIRONMENT DYLD_INSERT_LIBRARIES=${CMAKE_BINARY_DIR}/libimplementation.dylib)
+elseif (APPLE)
+    set_tests_properties(
+        perfstubs_test_preload_cpp
+        perfstubs_test_preload_c
+        PROPERTIES
         ENVIRONMENT LD_PRELOAD=${CMAKE_BINARY_DIR}/libimplementation.so)
-    set_tests_properties(c_api_test PROPERTIES
-        ENVIRONMENT LD_PRELOAD=${CMAKE_BINARY_DIR}/libimplementation.so)
-    set_tests_properties(c_only_api_test PROPERTIES
-        ENVIRONMENT LD_PRELOAD=${CMAKE_BINARY_DIR}/libimplementation.so)
-    set_tests_properties(cpp_test PROPERTIES
-        ENVIRONMENT LD_PRELOAD=${CMAKE_BINARY_DIR}/libimplementation.so)
-    set_tests_properties(c_test PROPERTIES
-        ENVIRONMENT LD_PRELOAD=${CMAKE_BINARY_DIR}/libimplementation.so)
-    set_tests_properties(fort_test PROPERTIES
-        ENVIRONMENT LD_PRELOAD=${CMAKE_BINARY_DIR}/libimplementation.so)
-endif (NOT PERFSTUBS_USE_STATIC AND NOT APPLE)
+endif (APPLE)
 
 # build a pkg-config file
 set(DEST_DIR "${CMAKE_INSTALL_PREFIX}")

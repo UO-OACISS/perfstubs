@@ -1,0 +1,14 @@
+{
+    "tools" : [
+        {
+            "name" : "Implementation 1",
+            "library" : "libimplementation.dylib",
+            "init function" : "perftool_init_1"
+        },
+        {
+            "name" : "Implementation 2",
+            "library" : "libimplementation2.dylib",
+            "init function" : "perftool_init_2"
+        }
+    ]
+}

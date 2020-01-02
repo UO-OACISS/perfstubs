@@ -4,6 +4,7 @@
 
 #define PERFSTUBS_USE_TIMERS
 #include "perfstubs_api/Timer.h"
+#include "perfstubs_api/json.h"
 
 #include <unistd.h>
 #ifndef _GNU_SOURCE
@@ -17,6 +18,7 @@
 #include <sys/syscall.h>
 #include <sys/types.h>
 #include <iostream>
+#include <fstream>
 #include <thread>
 #include <utility>
 #include <unordered_map>
@@ -89,7 +91,7 @@ static void InitializeLibrary(void)
     UNUSED(tt);
 }
 
-#ifdef PERFSTUBS_USE_STATIC
+#ifdef PERFSTUBS_USE_STATIC_DISABLED
 
 #if defined(__clang__) && defined(__APPLE__)
 #define PS_WEAK_PRE
@@ -126,130 +128,107 @@ extern "C"
 }
 #endif
 
-int AssignFunctionPointers(void)
+namespace external
 {
-#ifdef PERFSTUBS_USE_STATIC
-    /* The initialization function is the only required one */
-    auto init_function = &perftool_init;
-    if (init_function == nullptr)
-    {
-        std::cout << "perftool_init not defined" << std::endl;
-        return PERFSTUBS_FAILURE;
-    }
-    MyPerfStubsInit.push_back(init_function);
-    if (&perftool_register_thread != nullptr) {
-        MyPerfStubsRegisterThread.push_back(&perftool_register_thread);
-    }
-    if (&perftool_exit != nullptr) {
-        MyPerfStubsExit.push_back(&perftool_exit);
-    }
-    if (&perftool_dump_data != nullptr) {
-        MyPerfStubsDumpData.push_back(&perftool_dump_data);
-    }
-    if (&perftool_timer_create != nullptr) {
-        MyPerfStubsTimerCreate.push_back(&perftool_timer_create);
-    }
-    if (&perftool_timer_start != nullptr) {
-        MyPerfStubsTimerStart.push_back(&perftool_timer_start);
-    }
-    if (&perftool_timer_stop != nullptr) {
-        MyPerfStubsTimerStop.push_back(&perftool_timer_stop);
-    }
-    if (&perftool_set_parameter != nullptr) {
-        MyPerfStubsSetParameter.push_back(&perftool_set_parameter);
-    }
-    if (&perftool_dynamic_phase_start != nullptr) {
-        MyPerfStubsDynamicPhaseStart.push_back(&perftool_dynamic_phase_start);
-    }
-    if (&perftool_dynamic_phase_stop != nullptr) {
-        MyPerfStubsDynamicPhaseStop.push_back(&perftool_dynamic_phase_stop);
-    }
-    if (&perftool_create_counter != nullptr) {
-        MyPerfStubsCreateCounter.push_back(&perftool_create_counter);
-    }
-    if (&perftool_sample_counter != nullptr) {
-        MyPerfStubsSampleCounter.push_back(&perftool_sample_counter);
-    }
-    if (&perftool_metadata != nullptr) {
-        MyPerfStubsMetaData.push_back(&perftool_metadata);
-    }
-    if (&perftool_get_timer_data != nullptr) {
-        MyPerfStubsGetTimerData.push_back(&perftool_get_timer_data);
-    }
-    if (&perftool_get_counter_data != nullptr) {
-        MyPerfStubsGetCounterData.push_back(&perftool_get_counter_data);
-    }
-    if (&perftool_get_metadata != nullptr) {
-        MyPerfStubsGetMetaData.push_back(&perftool_get_metadata);
-    }
-    if (&perftool_free_timer_data != nullptr) {
-        MyPerfStubsFreeTimerData.push_back(&perftool_free_timer_data);
-    }
-    if (&perftool_free_counter_data != nullptr) {
-        MyPerfStubsFreeCounterData.push_back(&perftool_free_counter_data);
-    }
-    if (&perftool_free_metadata != nullptr) {
-        MyPerfStubsFreeMetaData.push_back(&perftool_free_metadata);
-    }
-#else
-    auto tmp = (PerfStubsInitType)dlsym(RTLD_DEFAULT, "perftool_init");
+
+namespace PERFSTUBS_INTERNAL_NAMESPACE
+{
+
+int Timer::AssignFunctionPointers(void * handle, const char * initFunc)
+{
+    auto tmp = (PerfStubsInitType)dlsym(handle, initFunc);
     if (tmp == nullptr)
     {
         return PERFSTUBS_FAILURE;
     }
     MyPerfStubsInit.push_back(tmp);
     MyPerfStubsRegisterThread.push_back((PerfStubsRegisterThreadType)dlsym(
-        RTLD_DEFAULT, "perftool_register_thread"));
+        handle, "perftool_register_thread"));
     MyPerfStubsDumpData.push_back(
-        (PerfStubsDumpDataType)dlsym(RTLD_DEFAULT, "perftool_dump_data"));
+        (PerfStubsDumpDataType)dlsym(handle, "perftool_dump_data"));
     MyPerfStubsTimerCreate.push_back(
-        (PerfStubsTimerCreateType)dlsym(RTLD_DEFAULT,
+        (PerfStubsTimerCreateType)dlsym(handle,
         "perftool_timer_create"));
     MyPerfStubsTimerStart.push_back(
-        (PerfStubsTimerStartType)dlsym(RTLD_DEFAULT, "perftool_timer_start"));
+        (PerfStubsTimerStartType)dlsym(handle, "perftool_timer_start"));
     MyPerfStubsTimerStop.push_back(
-        (PerfStubsTimerStopType)dlsym(RTLD_DEFAULT, "perftool_timer_stop"));
+        (PerfStubsTimerStopType)dlsym(handle, "perftool_timer_stop"));
     MyPerfStubsSetParameter.push_back(
-        (PerfStubsSetParameterType)dlsym(RTLD_DEFAULT, "perftool_set_parameter"));
+        (PerfStubsSetParameterType)dlsym(handle, "perftool_set_parameter"));
     MyPerfStubsDynamicPhaseStart.push_back((PerfStubsDynamicPhaseStartType)dlsym(
-        RTLD_DEFAULT, "perftool_dynamic_phase_start"));
+        handle, "perftool_dynamic_phase_start"));
     MyPerfStubsDynamicPhaseStop.push_back((PerfStubsDynamicPhaseStopType)dlsym(
-        RTLD_DEFAULT, "perftool_dynamic_phase_stop"));
+        handle, "perftool_dynamic_phase_stop"));
     MyPerfStubsCreateCounter.push_back((PerfStubsCreateCounterType)dlsym(
-        RTLD_DEFAULT, "perftool_create_counter"));
+        handle, "perftool_create_counter"));
     MyPerfStubsSampleCounter.push_back((PerfStubsSampleCounterType)dlsym(
-        RTLD_DEFAULT, "perftool_sample_counter"));
+        handle, "perftool_sample_counter"));
     MyPerfStubsMetaData.push_back(
-        (PerfStubsMetaDataType)dlsym(RTLD_DEFAULT, "perftool_metadata"));
+        (PerfStubsMetaDataType)dlsym(handle, "perftool_metadata"));
     MyPerfStubsGetTimerData.push_back((PerfStubsGetTimerDataType)dlsym(
-        RTLD_DEFAULT, "perftool_get_timer_data"));
+        handle, "perftool_get_timer_data"));
     MyPerfStubsGetCounterData.push_back((PerfStubsGetCounterDataType)dlsym(
-        RTLD_DEFAULT, "perftool_get_counter_data"));
+        handle, "perftool_get_counter_data"));
     MyPerfStubsGetMetaData.push_back((PerfStubsGetMetaDataType)dlsym(
-        RTLD_DEFAULT, "perftool_get_metadata"));
+        handle, "perftool_get_metadata"));
     MyPerfStubsFreeTimerData.push_back((PerfStubsFreeTimerDataType)dlsym(
-        RTLD_DEFAULT, "perftool_free_timer_data"));
+        handle, "perftool_free_timer_data"));
     MyPerfStubsFreeCounterData.push_back((PerfStubsFreeCounterDataType)dlsym(
-        RTLD_DEFAULT, "perftool_free_counter_data"));
+        handle, "perftool_free_counter_data"));
     MyPerfStubsFreeMetaData.push_back((PerfStubsFreeMetaDataType)dlsym(
-        RTLD_DEFAULT, "perftool_free_metadata"));
-#endif
+        handle, "perftool_free_metadata"));
     return PERFSTUBS_SUCCESS;
 }
 
-int PerfStubsStubInitializeSimple(void)
+int Timer::Initialize(void)
 {
-    if (AssignFunctionPointers() == PERFSTUBS_FAILURE)
-    {
+    /* Check for a configuration file */
+    char * tmpstr = getenv("PERFSTUBS_CONFIG_FILE");
+    if (tmpstr != NULL) {
+        m_configFile = std::string(tmpstr);
+    } else {
+        m_configFile = std::string("perfstubs_config.json");
+    }
+    std::ifstream infile(m_configFile);
+    m_configFound = infile.good();
+    std::cout << "Config: " << m_configFile << ", found: " << m_configFound << std::endl;
+    if (m_configFound) {
+        /* Parse configuration file */
+        nlohmann::json j;
+        infile >> j;
+        for (auto t : j["tools"]) {
+            std::string libname = t["library"];
+            std::string initFunc = t["init function"];
+            void * handle = dlopen(libname.c_str(), RTLD_NOW | RTLD_GLOBAL);
+            if (handle != NULL) {
+                if (AssignFunctionPointers(handle, initFunc.c_str()) == PERFSTUBS_FAILURE)
+                {
 #if defined(DEBUG) || defined(_DEBUG)
-        // Can't write to std::cerr before main() is called...
-        // so fail silently in that case.
-        if (!static_constructor) {
-            std::cerr << "ERROR: Unable to initialize the perftool API"
-                      << std::endl;
-        }
+                    // Can't write to std::cerr before main() is called...
+                    // so fail silently in that case.
+                    if (!static_constructor) {
+                        std::cerr << "ERROR: Unable to initialize the perftool API"
+                                << std::endl;
+                    }
 #endif
-        return PERFSTUBS_FAILURE;
+                    return PERFSTUBS_FAILURE;
+                }
+            }
+        }
+    } else {
+        /* No config file, just check if symbols exist */
+        if (AssignFunctionPointers(RTLD_DEFAULT, "perftool_init") == PERFSTUBS_FAILURE)
+        {
+#if defined(DEBUG) || defined(_DEBUG)
+            // Can't write to std::cerr before main() is called...
+            // so fail silently in that case.
+            if (!static_constructor) {
+                std::cerr << "ERROR: Unable to initialize the perftool API"
+                        << std::endl;
+            }
+#endif
+            return PERFSTUBS_FAILURE;
+        }
     }
     /* Initialize the external tool */
     for (auto f : MyPerfStubsInit) {
@@ -257,12 +236,6 @@ int PerfStubsStubInitializeSimple(void)
     }
     return PERFSTUBS_SUCCESS;
 }
-
-namespace external
-{
-
-namespace PERFSTUBS_INTERNAL_NAMESPACE
-{
 
 std::string Timer::MakeTimerName(const char * file,
     const char * func, int line) {
@@ -275,9 +248,9 @@ std::string Timer::MakeTimerName(const char * file,
 thread_local bool Timer::m_ThreadSeen(false);
 
 // constructor
-Timer::Timer(void) : m_Initialized(false)
+Timer::Timer(void) : m_Initialized(false), m_configFound(false)
 {
-    if (PerfStubsStubInitializeSimple() == PERFSTUBS_SUCCESS)
+    if (Initialize() == PERFSTUBS_SUCCESS)
     {
         m_Initialized = true;
         // set the external flag
@@ -366,7 +339,7 @@ void Timer::Stop(const void *timer)
     int index = 0;
     for(auto f : MyPerfStubsTimerStop) {
         if (f != nullptr) {
-            f(objects[index++]);
+            f(objects[index]);
         }
         index++;
     }

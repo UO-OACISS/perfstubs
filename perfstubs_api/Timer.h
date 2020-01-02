@@ -106,6 +106,11 @@ private:
     // Prevent copies
     Timer(const Timer &old);
     const Timer &operator=(const Timer &old);
+    // Initialization routines
+    int Initialize(void);
+    int AssignFunctionPointers(void * handle, const char * initFunc);
+    std::string m_configFile;
+    bool m_configFound;
 };
 
 class ScopedTimer
