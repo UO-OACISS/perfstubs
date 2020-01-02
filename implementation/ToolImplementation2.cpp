@@ -42,20 +42,20 @@ extern "C"
 {
 
     // need a unique initialization function
-    void perftool_init_1(void) { /* cout << "Tool: " << __func__ << endl; */ }
+    void perftool_init_2(void) { /* cout << "Tool2: " << __func__ << endl; */ }
 
     // On some systems, can't write output during pre-initialization
-    void perftool_init(void) { perftool_init_1(); }
+    void perftool_init(void) { perftool_init_2(); }
 
     // On some systems, can't write output during pre-initialization
     void perftool_register_thread(void)
     {
-        /* cout << "Tool: " << __func__ << endl; */
+        /* cout << "Tool2: " << __func__ << endl; */
     }
 
-    void perftool_exit(void) { cout << "Tool: " << __func__ << endl; }
+    void perftool_exit(void) { cout << "Tool2: " << __func__ << endl; }
 
-    void perftool_dump_data(void) { cout << "Tool: " << __func__ << endl; }
+    void perftool_dump_data(void) { cout << "Tool2: " << __func__ << endl; }
 
     void * find_timer(const char * timer_name) {
         std::string name(timer_name);
@@ -71,47 +71,47 @@ extern "C"
 
     void * perftool_timer_create(const char * timer_name)
     {
-        cout << "Tool: " << __func__ << " " << timer_name << endl;
+        cout << "Tool2: " << __func__ << " " << timer_name << endl;
         return find_timer(timer_name);
     }
 
     void perftool_timer_start(const void *profiler)
     {
         MINE::profiler* p = (MINE::profiler*) profiler;
-        cout << "Tool: " << __func__ << " " << p->_name << endl;
+        cout << "Tool2: " << __func__ << " " << p->_name << endl;
         p->start();
     }
 
     void perftool_timer_stop(const void *profiler)
     {
         MINE::profiler* p = (MINE::profiler*) profiler;
-        cout << "Tool: " << __func__ << " " << p->_name << endl;
+        cout << "Tool2: " << __func__ << " " << p->_name << endl;
         p->stop();
     }
 
     void perftool_set_parameter(const char *parameter_name, int64_t parameter_value)
     {
-        cout << "Tool: " << __func__ << " " << parameter_name
+        cout << "Tool2: " << __func__ << " " << parameter_name
              << " " << parameter_value << endl;
     }
 
     void perftool_dynamic_phase_start(const char *phase_prefix,
                                       int iteration_index)
     {
-        cout << "Tool: " << __func__ << " " << phase_prefix << ", "
+        cout << "Tool2: " << __func__ << " " << phase_prefix << ", "
              << iteration_index << endl;
     }
 
     void perftool_dynamic_phase_stop(const char *phase_prefix,
                                      int iteration_index)
     {
-        cout << "Tool: " << __func__ << " " << phase_prefix << ", "
+        cout << "Tool2: " << __func__ << " " << phase_prefix << ", "
              << iteration_index << endl;
     }
 
     void* perftool_create_counter(const char *counter_name)
     {
-        cout << "Tool: " << __func__ << " " << counter_name << endl;
+        cout << "Tool2: " << __func__ << " " << counter_name << endl;
         std::string name(counter_name);
         std::lock_guard<std::mutex> guard(my_mutex);
         auto iter = counters.find(name);
@@ -126,18 +126,18 @@ extern "C"
     void perftool_sample_counter(const void *counter, double value)
     {
         MINE::counter* c = (MINE::counter*) counter;
-        cout << "Tool: " << __func__ << " " << c->_name << " = " << value
+        cout << "Tool2: " << __func__ << " " << c->_name << " = " << value
              << endl;
     }
 
     void perftool_metadata(const char *name, const char *value)
     {
-        cout << "Tool: " << __func__ << " " << name << " = " << value << endl;
+        cout << "Tool2: " << __func__ << " " << name << " = " << value << endl;
     }
 
     void perftool_get_timer_data(perftool_timer_data_t *timer_data)
     {
-        cout << "Tool: " << __func__ << endl;
+        cout << "Tool2: " << __func__ << endl;
         memset(timer_data, 0, sizeof(perftool_timer_data_t));
         timer_data->num_timers = 1;
         timer_data->num_threads = 1;
@@ -180,7 +180,7 @@ extern "C"
 
     void perftool_get_counter_data(perftool_counter_data_t *counter_data)
     {
-        cout << "Tool: " << __func__ << endl;
+        cout << "Tool2: " << __func__ << endl;
         memset(counter_data, 0, sizeof(perftool_counter_data_t));
         counter_data->num_counters = 1;
         counter_data->num_threads = 1;
@@ -239,7 +239,7 @@ extern "C"
 
     void perftool_get_metadata(perftool_metadata_t *metadata)
     {
-        cout << "Tool: " << __func__ << endl;
+        cout << "Tool2: " << __func__ << endl;
         memset(metadata, 0, sizeof(perftool_metadata_t));
         metadata->num_values = 1;
         metadata->names = (char **)(calloc(1, sizeof(char *)));
