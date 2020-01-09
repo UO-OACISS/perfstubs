@@ -6,7 +6,7 @@
 #include <unistd.h>
 #include <errno.h>
 #define PERFSTUBS_USE_TIMERS
-#include "perfstubs_api/Timer.h"
+#include "perfstubs_api/timer.h"
 
 #ifndef ID
 #define ID -1
@@ -95,7 +95,7 @@ int main(int argc, char* argv[])
     if (imax == 0) imax = 10000;
     set_thread_affinity();
 
-    PERFSTUBS_INIT();
+    PERFSTUBS_INITIALIZE();
     printf("Running %dx a MM on %d x %d\n", imax, s,s);
     double* a = malloc(s*s*sizeof(double));
     double* b = malloc(s*s*sizeof(double));
@@ -134,5 +134,6 @@ int main(int argc, char* argv[])
     printf("Estimated overhead per call: %.3f nanoseconds per PerfStubs call.\n",
            ((tdiff2 - tdiff) / ((double) inst_count)) * 1.0e9);
 
+    PERFSTUBS_FINALIZE();
 
 }

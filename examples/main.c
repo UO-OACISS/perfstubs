@@ -3,12 +3,12 @@
 // (See accompanying file LICENSE.txt)
 
 // A simple program that computes the square root of a number
-#define PERFSTUBS_USE_TIMERS
-#include "perfstubs_api/Timer.h"
 #include <math.h>
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
+#define PERFSTUBS_USE_TIMERS
+#include "perfstubs_api/timer.h"
 
 void *threaded_function(void *param)
 {
@@ -30,7 +30,7 @@ double compute(double value)
 
 int main(int argc, char *argv[])
 {
-    PERFSTUBS_INIT();
+    PERFSTUBS_INITIALIZE();
     PERFSTUBS_TIMER_START_FUNC(_timer);
 
     PERFSTUBS_TIMER_START(_arg_timer, "Argument Validation");
@@ -68,8 +68,8 @@ int main(int argc, char *argv[])
     /* output some dummy data */
 
 #ifdef PERFSTUBS_USE_TIMERS
-    perftool_timer_data_t timer_data;
-    psGetTimerData(&timer_data);
+    ps_tool_timer_data_t timer_data;
+    ps_get_timer_data_(&timer_data, 0);
     int index = 0;
     for (int i = 0; i < timer_data.num_timers; i++)
     {
@@ -89,11 +89,11 @@ int main(int argc, char *argv[])
             }
         }
     }
-    psFreeTimerData(&timer_data);
+    ps_free_timer_data_(&timer_data, 0);
 
     index = 0;
-    perftool_counter_data_t counter_data;
-    psGetCounterData(&counter_data);
+    ps_tool_counter_data_t counter_data;
+    ps_get_counter_data_(&counter_data, 0);
     for (int i = 0; i < counter_data.num_counters; i++)
     {
         for (int k = 0; k < counter_data.num_threads; k++)
@@ -119,15 +119,16 @@ int main(int argc, char *argv[])
             index = index + 1;
         }
     }
-    psFreeCounterData(&counter_data);
+    ps_free_counter_data_(&counter_data, 0);
 
-    perftool_metadata_t metadata;
-    psGetMetaData(&metadata);
+    ps_tool_metadata_t metadata;
+    ps_get_metadata_(&metadata, 0);
     for (int i = 0; i < metadata.num_values; i++)
     {
         printf("'%s' = '%s'\n", metadata.names[i], metadata.values[i]);
     }
-    psFreeMetaData(&metadata);
+    ps_free_metadata_(&metadata, 0);
 #endif
+    PERFSTUBS_FINALIZE();
     return 0;
 }

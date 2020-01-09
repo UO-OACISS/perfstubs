@@ -3,16 +3,16 @@
 // (See accompanying file LICENSE.txt)
 
 // A simple program that computes the square root of a number
-#define PERFSTUBS_USE_TIMERS
-#include "perfstubs_api/Timer.h"
 #include <iostream>
 #include <math.h>
 #include <stdlib.h>
 #include <thread>
+#define PERFSTUBS_USE_TIMERS
+#include "perfstubs_api/timer.h"
 
 int main(int argc, char *argv[])
 {
-    PERFSTUBS_INIT();
+    PERFSTUBS_INITIALIZE();
     PERFSTUBS_REGISTER_THREAD()
     PERFSTUBS_METADATA("meta", "data")
     PERFSTUBS_SCOPED_TIMER_FUNC();
@@ -34,5 +34,6 @@ int main(int argc, char *argv[])
 
     PERFSTUBS_SAMPLE_COUNTER("counter", 15.0)
     PERFSTUBS_DUMP_DATA();
+    PERFSTUBS_FINALIZE();
     return 0;
 }

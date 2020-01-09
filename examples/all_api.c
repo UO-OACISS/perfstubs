@@ -4,11 +4,11 @@
 
 // A simple program that computes the square root of a number
 #define PERFSTUBS_USE_TIMERS
-#include "perfstubs_api/Timer.h"
+#include "perfstubs_api/timer.h"
 
 int main(int argc, char *argv[])
 {
-    PERFSTUBS_INIT();
+    PERFSTUBS_INITIALIZE();
     PERFSTUBS_REGISTER_THREAD()
     PERFSTUBS_METADATA("meta", "data")
     PERFSTUBS_TIMER_START_FUNC(timer);
@@ -28,6 +28,7 @@ int main(int argc, char *argv[])
     PERFSTUBS_SAMPLE_COUNTER("counter", 15.0)
     PERFSTUBS_TIMER_STOP_FUNC(timer);
     PERFSTUBS_DUMP_DATA();
+    PERFSTUBS_FINALIZE();
 
     return 0;
 }

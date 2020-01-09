@@ -8,7 +8,9 @@ if (WIN32)
 endif (WIN32)
 
 if (NOT APPLE)
-    ENABLE_LANGUAGE(Fortran)
+    ENABLE_LANGUAGE(C CXX Fortran)
+else ()
+    ENABLE_LANGUAGE(C CXX)
 endif ()
 
 cmake_minimum_required (VERSION 3.8)
@@ -58,8 +60,8 @@ endif()
 # configure a header file to pass some of the CMake settings
 # to the source code
 configure_file (
-    "${PROJECT_SOURCE_DIR}/perfstubs_api/Config.h.in"
-    "${PROJECT_BINARY_DIR}/perfstubs_api/Config.h"
+    "${PROJECT_SOURCE_DIR}/perfstubs_api/config.h.in"
+    "${PROJECT_BINARY_DIR}/perfstubs_api/config.h"
     )
  
 # add the binary tree to the search path for include files
@@ -83,25 +85,17 @@ else (PERFSTUBS_USE_STATIC AND NOT APPLE)
 endif (PERFSTUBS_USE_STATIC AND NOT APPLE)
 set (EXTRA_LIBS ${EXTRA_LIBS} ${PTHREAD_LIB} m)
 
-add_library(perfstubs perfstubs_api/Timer.cpp)
-add_library(perfstubs_c perfstubs_api/Timer.c)
-add_library(perfstubs_dummy perfstubs_api/Dummy.c)
+add_library(perfstubs perfstubs_api/timer.c)
 
 # add the perfstubs library
 if (PERFSTUBS_USE_TIMERS)
-    if (PERFSTUBS_USE_STATIC)
-        set (TOOL_LIBS_C ${TOOL_LIBS} perfstubs_c)
-        set (TOOL_LIBS ${TOOL_LIBS} perfstubs)
-    else (PERFSTUBS_USE_STATIC)
-        set (TOOL_LIBS_C ${TOOL_LIBS} perfstubs_c dl)
-        set (TOOL_LIBS ${TOOL_LIBS} perfstubs dl)
-    endif (PERFSTUBS_USE_STATIC)
+    set (TOOL_LIBS ${TOOL_LIBS} perfstubs)
 endif (PERFSTUBS_USE_TIMERS)
 
 # add the default implementation?
 set (NO_IMPL_EXTRA_LIBS ${EXTRA_LIBS})
 if (PERFSTUBS_USE_DEFAULT_IMPLEMENTATION)
-    add_library(implementation implementation/ToolImplementation.cpp)
+    add_library(implementation implementation/tool1_implementation.cpp)
     if (BUILD_SHARED_LIBS)
         set (IMPL_LIB implementation)
     else (BUILD_SHARED_LIBS)
@@ -142,24 +136,21 @@ endif (NOT PERFSTUBS_USE_STATIC)
 add_executable(perfstubs_test_api_cpp examples/all_api.cpp)
 target_link_libraries (perfstubs_test_api_cpp ${TOOL_LIBS} ${EXTRA_LIBS})
 add_executable(perfstubs_test_api_c examples/all_api.c)
+set_target_properties(perfstubs_test_api_c PROPERTIES LINKER_LANGUAGE C)
 target_link_libraries (perfstubs_test_api_c ${TOOL_LIBS} ${EXTRA_LIBS})
-add_executable(perfstubs_test_api_c_only examples/all_api.c)
-target_link_libraries (perfstubs_test_api_c_only ${TOOL_LIBS_C} ${EXTRA_LIBS})
 add_executable(perfstubs_test_cpp examples/main.cpp)
 target_link_libraries (perfstubs_test_cpp ${TOOL_LIBS} ${EXTRA_LIBS})
 add_executable(perfstubs_test_c examples/main.c)
+set_target_properties(perfstubs_test_c PROPERTIES LINKER_LANGUAGE C)
 target_link_libraries (perfstubs_test_c ${TOOL_LIBS} ${EXTRA_LIBS})
 add_executable(perfstubs_test_overhead examples/overhead.c)
+set_target_properties(perfstubs_test_overhead PROPERTIES LINKER_LANGUAGE C)
+target_link_libraries (perfstubs_test_overhead ${TOOL_LIBS} ${NO_IMPL_EXTRA_LIBS})
 add_executable(perfstubs_test_overhead_cpp examples/overhead.cpp)
-if (PERFSTUBS_USE_STATIC)
-target_link_libraries (perfstubs_test_overhead ${TOOL_LIBS_C} ${NO_IMPL_EXTRA_LIBS} perfstubs_dummy)
-target_link_libraries (perfstubs_test_overhead_cpp ${TOOL_LIBS} ${NO_IMPL_EXTRA_LIBS} perfstubs_dummy)
-else (PERFSTUBS_USE_STATIC)
-target_link_libraries (perfstubs_test_overhead ${TOOL_LIBS_C} ${NO_IMPL_EXTRA_LIBS})
 target_link_libraries (perfstubs_test_overhead_cpp ${TOOL_LIBS} ${NO_IMPL_EXTRA_LIBS})
-endif (PERFSTUBS_USE_STATIC)
 if (NOT APPLE)
     add_executable(perfstubs_test_fort examples/main.F90)
+    set_target_properties(perfstubs_test_fort PROPERTIES LINKER_LANGUAGE Fortran)
     target_link_libraries (perfstubs_test_fort ${TOOL_LIBS} ${EXTRA_LIBS})
 endif ()
 
@@ -226,10 +217,10 @@ install (TARGETS perfstubs
     ARCHIVE DESTINATION lib
     COMPONENT library
 )
-install (FILES perfstubs_api/Timer.h DESTINATION include/perfstubs_api)
-install (FILES perfstubs_api/Timer_f.h DESTINATION include/perfstubs_api)
-install (FILES perfstubs_api/Tool.h DESTINATION include/perfstubs_api)
-install (FILES ${CMAKE_BINARY_DIR}/perfstubs_api/Config.h
+install (FILES perfstubs_api/timer.h DESTINATION include/perfstubs_api)
+install (FILES perfstubs_api/timer_f.h DESTINATION include/perfstubs_api)
+install (FILES perfstubs_api/tool.h DESTINATION include/perfstubs_api)
+install (FILES ${CMAKE_BINARY_DIR}/perfstubs_api/config.h
     DESTINATION include/perfstubs_api)
 install (FILES ${CMAKE_BINARY_DIR}/perfstubs.pc DESTINATION lib/pkgconfig)
 install (FILES ${CMAKE_BINARY_DIR}/perfstubs-config.cmake

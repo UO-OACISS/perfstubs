@@ -2,7 +2,7 @@
 // Distributed under the BSD Software License
 // (See accompanying file LICENSE.txt)
 
-#include "perfstubs_api/Tool.h"
+#include "perfstubs_api/tool.h"
 #include <iostream>
 #include <cstring>
 #include <string>
@@ -10,9 +10,14 @@
 #include <utility>
 #include <mutex>
 
+static void __attribute__((constructor)) initme(void);
+static void __attribute__((destructor)) finime(void);
+
+static int tool_id;
+
 using namespace std;
 
-std::mutex my_mutex;;
+std::mutex my_mutex;
 
 namespace external {
     namespace ps_implementation {
@@ -127,15 +132,15 @@ extern "C"
              << endl;
     }
 
-    void perftool_metadata(const char *name, const char *value)
+    void perftool_set_metadata(const char *name, const char *value)
     {
         cout << "Tool: " << __func__ << " " << name << " = " << value << endl;
     }
 
-    void perftool_get_timer_data(perftool_timer_data_t *timer_data)
+    void perftool_get_timer_data(ps_tool_timer_data_t *timer_data)
     {
         cout << "Tool: " << __func__ << endl;
-        memset(timer_data, 0, sizeof(perftool_timer_data_t));
+        memset(timer_data, 0, sizeof(ps_tool_timer_data_t));
         timer_data->num_timers = 1;
         timer_data->num_threads = 1;
         timer_data->num_metrics = 3;
@@ -152,7 +157,7 @@ extern "C"
         return;
     }
 
-    void perftool_free_timer_data(perftool_timer_data_t *timer_data)
+    void perftool_free_timer_data(ps_tool_timer_data_t *timer_data)
     {
         if (timer_data == nullptr)
         {
@@ -175,10 +180,10 @@ extern "C"
         }
     }
 
-    void perftool_get_counter_data(perftool_counter_data_t *counter_data)
+    void perftool_get_counter_data(ps_tool_counter_data_t *counter_data)
     {
         cout << "Tool: " << __func__ << endl;
-        memset(counter_data, 0, sizeof(perftool_counter_data_t));
+        memset(counter_data, 0, sizeof(ps_tool_counter_data_t));
         counter_data->num_counters = 1;
         counter_data->num_threads = 1;
         counter_data->counter_names = (char **)(calloc(1, sizeof(char *)));
@@ -196,7 +201,7 @@ extern "C"
         return;
     }
 
-    void perftool_free_counter_data(perftool_counter_data_t *counter_data)
+    void perftool_free_counter_data(ps_tool_counter_data_t *counter_data)
     {
         if (counter_data == nullptr)
         {
@@ -234,10 +239,10 @@ extern "C"
         }
     }
 
-    void perftool_get_metadata(perftool_metadata_t *metadata)
+    void perftool_get_metadata(ps_tool_metadata_t *metadata)
     {
         cout << "Tool: " << __func__ << endl;
-        memset(metadata, 0, sizeof(perftool_metadata_t));
+        memset(metadata, 0, sizeof(ps_tool_metadata_t));
         metadata->num_values = 1;
         metadata->names = (char **)(calloc(1, sizeof(char *)));
         metadata->values = (char **)(calloc(1, sizeof(char *)));
@@ -246,7 +251,7 @@ extern "C"
         return;
     }
 
-    void perftool_free_metadata(perftool_metadata_t *metadata)
+    void perftool_free_metadata(ps_tool_metadata_t *metadata)
     {
         if (metadata == nullptr)
         {
@@ -262,5 +267,45 @@ extern "C"
             free(metadata->values);
             metadata->values = nullptr;
         }
+    }
+}
+
+static void initme(void) {
+    ps_plugin_data_t data;
+    ps_register_t reg_function;
+    reg_function = &ps_register_tool;
+    if (reg_function != NULL) {
+        memset(&data, 0, sizeof(ps_plugin_data_t));
+        data.tool_name = strdup("tool one");
+        /* Logistical functions */
+        data.initialize = &perftool_init;
+        data.finalize = &perftool_exit;
+        data.register_thread = &perftool_register_thread;
+        data.dump_data = &perftool_dump_data;
+        /* Data entry functions */
+        data.timer_create = &perftool_timer_create;
+        data.timer_start = &perftool_timer_start;
+        data.timer_stop = &perftool_timer_stop;
+        data.set_parameter = &perftool_set_parameter;
+        data.dynamic_phase_start = &perftool_dynamic_phase_start;
+        data.dynamic_phase_stop = &perftool_dynamic_phase_stop;
+        data.create_counter = &perftool_create_counter;
+        data.sample_counter = &perftool_sample_counter;
+        data.set_metadata = &perftool_set_metadata;
+        /* Data Query Functions */
+        data.get_timer_data = &perftool_get_timer_data;
+        data.get_counter_data = &perftool_get_counter_data;
+        data.get_metadata = &perftool_get_metadata;
+        data.free_timer_data = &perftool_free_timer_data;
+        data.free_counter_data = &perftool_free_counter_data;
+        data.free_metadata = &perftool_free_metadata;
+    }
+}
+
+static void finime(void) {
+    ps_deregister_t dereg_function;
+    dereg_function = &ps_deregister_tool;
+    if (dereg_function != NULL) {
+        dereg_function(tool_id);
     }
 }
