@@ -89,7 +89,11 @@ add_library(perfstubs perfstubs_api/timer.c)
 
 # add the perfstubs library
 if (PERFSTUBS_USE_TIMERS)
+    if (BUILD_SHARED_LIBS)
     set (TOOL_LIBS ${TOOL_LIBS} perfstubs)
+    else()
+    set (TOOL_LIBS ${TOOL_LIBS} -Wl,--whole-archive perfstubs -Wl,--no-whole-archive)
+    endif()
 endif (PERFSTUBS_USE_TIMERS)
 
 # add the default implementation?
@@ -149,9 +153,11 @@ target_link_libraries (perfstubs_test_overhead ${TOOL_LIBS} ${NO_IMPL_EXTRA_LIBS
 add_executable(perfstubs_test_overhead_cpp examples/overhead.cpp)
 target_link_libraries (perfstubs_test_overhead_cpp ${TOOL_LIBS} ${NO_IMPL_EXTRA_LIBS})
 if (NOT APPLE)
-    add_executable(perfstubs_test_fort examples/main.F90)
-    set_target_properties(perfstubs_test_fort PROPERTIES LINKER_LANGUAGE Fortran)
-    target_link_libraries (perfstubs_test_fort ${TOOL_LIBS} ${EXTRA_LIBS})
+    if (NOT PERFSTUBS_USE_STATIC)
+        add_executable(perfstubs_test_fort examples/main.F90)
+        set_target_properties(perfstubs_test_fort PROPERTIES LINKER_LANGUAGE Fortran)
+        target_link_libraries (perfstubs_test_fort ${TOOL_LIBS} ${EXTRA_LIBS})
+    endif ()
 endif ()
 
 include(CTest)
@@ -159,7 +165,6 @@ include(CTest)
 # does the application run
 add_test (cpp_api_test perfstubs_test_api_cpp)
 add_test (c_api_test perfstubs_test_api_c)
-add_test (c_only_api_test perfstubs_test_api_c_only)
 add_test (cpp_test perfstubs_test_cpp 25)
 set_tests_properties (cpp_test PROPERTIES PASS_REGULAR_EXPRESSION
     "Tool: perftool_timer_start int main")
@@ -167,9 +172,11 @@ add_test (c_test perfstubs_test_c 25)
 set_tests_properties (c_test PROPERTIES PASS_REGULAR_EXPRESSION
     "Tool: perftool_timer_start .* main")
 if (NOT APPLE)
-    add_test (fort_test perfstubs_test_fort 25)
-    set_tests_properties (fort_test PROPERTIES PASS_REGULAR_EXPRESSION
-        "Tool: perftool_timer_start main")
+    if (NOT PERFSTUBS_USE_STATIC)
+        add_test (fort_test perfstubs_test_fort 25)
+        set_tests_properties (fort_test PROPERTIES PASS_REGULAR_EXPRESSION
+            "Tool: perftool_timer_create main")
+    endif ()
 endif ()
 # add_test (overhead_test perfstubs_test_overhead)
 # add_test (overhead_test_cpp perfstubs_test_overhead_cpp)
@@ -179,8 +186,6 @@ if (NOT PERFSTUBS_USE_STATIC AND NOT APPLE)
     set_tests_properties(cpp_api_test PROPERTIES
         ENVIRONMENT LD_PRELOAD=${CMAKE_BINARY_DIR}/libimplementation.so)
     set_tests_properties(c_api_test PROPERTIES
-        ENVIRONMENT LD_PRELOAD=${CMAKE_BINARY_DIR}/libimplementation.so)
-    set_tests_properties(c_only_api_test PROPERTIES
         ENVIRONMENT LD_PRELOAD=${CMAKE_BINARY_DIR}/libimplementation.so)
     set_tests_properties(cpp_test PROPERTIES
         ENVIRONMENT LD_PRELOAD=${CMAKE_BINARY_DIR}/libimplementation.so)

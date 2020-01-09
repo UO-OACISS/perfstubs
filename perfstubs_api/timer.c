@@ -114,7 +114,7 @@ char * ps_make_timer_name_(const char * file,
     /* The length of the line number as a string is floor(log10(abs(num))) */
     int string_length = (strlen(file) + strlen(func) + floor(log10(abs(line))) + 11);
     char * name = calloc(string_length, sizeof(char));
-    sprintf("%s [{%s} {%d,0}]", func, file, line);
+    sprintf(name, "%s [{%s} {%d,0}]", func, file, line);
     return (name);
 }
 
@@ -160,7 +160,7 @@ void* ps_timer_create_(const char *timer_name) {
 }
 
 void ps_timer_create_fortran_(void ** object, const char *timer_name) {
-    object = ps_timer_create_(timer_name);
+    *object = ps_timer_create_(timer_name);
 }
 
 void ps_timer_start_(const void *timer) {
@@ -210,7 +210,7 @@ void* ps_create_counter_(const char *name) {
 }
 
 void ps_create_counter_fortran_(void ** object, const char *name) {
-    object = ps_create_counter_(name);
+    *object = ps_create_counter_(name);
 }
 
 void ps_sample_counter_(const void *counter, const double value) {
@@ -236,26 +236,38 @@ void ps_dump_data_(void) {
 }
 
 void ps_get_timer_data_(ps_tool_timer_data_t *timer_data, int tool_id) {
-    get_timer_data_functions[tool_id](timer_data);
+    if (tool_id < num_tools_registered) {
+        get_timer_data_functions[tool_id](timer_data);
+    }
 }
 
 void ps_get_counter_data_(ps_tool_counter_data_t *counter_data, int tool_id) {
-    get_counter_data_functions[tool_id](counter_data);
+    if (tool_id < num_tools_registered) {
+        get_counter_data_functions[tool_id](counter_data);
+    }
 }
 
 void ps_get_metadata_(ps_tool_metadata_t *metadata, int tool_id) {
-    get_metadata_functions[tool_id](metadata);
+    if (tool_id < num_tools_registered) {
+        get_metadata_functions[tool_id](metadata);
+    }
 }
 
 void ps_free_timer_data_(ps_tool_timer_data_t *timer_data, int tool_id) {
-    free_timer_data_functions[tool_id](timer_data);
+    if (tool_id < num_tools_registered) {
+        free_timer_data_functions[tool_id](timer_data);
+    }
 }
 
 void ps_free_counter_data_(ps_tool_counter_data_t *counter_data, int tool_id) {
-    free_counter_data_functions[tool_id](counter_data);
+    if (tool_id < num_tools_registered) {
+        free_counter_data_functions[tool_id](counter_data);
+    }
 }
 
 void ps_free_metadata_(ps_tool_metadata_t *metadata, int tool_id) {
-    free_metadata_functions[tool_id](metadata);
+    if (tool_id < num_tools_registered) {
+        free_metadata_functions[tool_id](metadata);
+    }
 }
 

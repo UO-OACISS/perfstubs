@@ -69,6 +69,7 @@ int main(int argc, char *argv[])
 
 #ifdef PERFSTUBS_USE_TIMERS
     ps_tool_timer_data_t timer_data;
+    memset(&timer_data, 0, sizeof(ps_tool_timer_data_t));
     ps_get_timer_data_(&timer_data, 0);
     int index = 0;
     for (int i = 0; i < timer_data.num_timers; i++)
@@ -93,6 +94,7 @@ int main(int argc, char *argv[])
 
     index = 0;
     ps_tool_counter_data_t counter_data;
+    memset(&counter_data, 0, sizeof(ps_tool_counter_data_t));
     ps_get_counter_data_(&counter_data, 0);
     for (int i = 0; i < counter_data.num_counters; i++)
     {
@@ -122,6 +124,7 @@ int main(int argc, char *argv[])
     ps_free_counter_data_(&counter_data, 0);
 
     ps_tool_metadata_t metadata;
+    memset(&metadata, 0, sizeof(ps_tool_metadata_t));
     ps_get_metadata_(&metadata, 0);
     for (int i = 0; i < metadata.num_values; i++)
     {

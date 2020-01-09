@@ -39,15 +39,17 @@ do_build() {
 }
 
 buildtype=Debug
+linktype=dynamic
+staticflag=OFF
+do_build
+buildtype=Release
+do_build
+
+buildtype=Debug
 linktype=static
 staticflag=ON
 do_build
 buildtype=Release
 do_build
 
-buildtype=Debug
-linktype=dynamic
-staticflag=OFF
-do_build
-buildtype=Release
-do_build
+

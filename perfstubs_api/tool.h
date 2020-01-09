@@ -103,7 +103,15 @@ typedef struct ps_plugin_data {
 typedef int  (*ps_register_t)(ps_plugin_data_t *);
 typedef void (*ps_deregister_t)(int);
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern __attribute__((weak)) int  ps_register_tool(ps_plugin_data_t * tool);
 extern __attribute__((weak)) void ps_deregister_tool(int tool_id);
+
+#ifdef __cplusplus
+}
+#endif
 
 

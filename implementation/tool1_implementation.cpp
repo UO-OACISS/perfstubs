@@ -299,6 +299,7 @@ static void initme(void) {
         data.free_timer_data = &perftool_free_timer_data;
         data.free_counter_data = &perftool_free_counter_data;
         data.free_metadata = &perftool_free_metadata;
+        tool_id = reg_function(&data);
     }
 }
 
@@ -309,3 +310,9 @@ static void finime(void) {
         dereg_function(tool_id);
     }
 }
+
+__attribute__((visibility("default")))
+__attribute__((weak)) int ps_register_tool(ps_plugin_data_t * tool);
+
+__attribute__((visibility("default")))
+__attribute__((weak)) void ps_deregister_tool(int tool_id);

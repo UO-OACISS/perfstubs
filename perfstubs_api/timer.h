@@ -24,7 +24,7 @@
  * not just the function name.  If the compiler doesn't support it,
  * just use the function name. */
 
-#if defined(__GNUC__) && defined(__PRETTY_FUNCTION__)
+#if defined(__GNUC__)
 #define __PERFSTUBS_FUNCTION__ __PRETTY_FUNCTION__
 #else
 #define __PERFSTUBS_FUNCTION__ __func__
