@@ -2,14 +2,22 @@
 // Distributed under the BSD Software License
 // (See accompanying file LICENSE.txt)
 
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE // needed to define RTLD_DEFAULT
+#endif
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
-//#include <threads.h>
+#include <dlfcn.h>
 #define PERFSTUBS_USE_TIMERS
 #include "perfstubs_api/timer.h"
 
-#define MAX_TOOLS 10
+#define MAX_TOOLS 1
+
+/* Make sure that the Timer singleton is constructed when the
+ * library is loaded.  This will ensure (on linux, anyway) that
+ * we can assert that we have m_Initialized on the main thread. */
+//static void __attribute__((constructor)) initialize_library(void);
 
 /* Globals for the plugin API */
 
@@ -40,73 +48,111 @@ ps_free_timer_data_t free_timer_data_functions[MAX_TOOLS];
 ps_free_counter_data_t free_counter_data_functions[MAX_TOOLS];
 ps_free_metadata_t free_metadata_functions[MAX_TOOLS];
 
-int ps_register_tool(ps_plugin_data_t * tool) {
-    if (num_tools_registered > MAX_TOOLS) {
-        /* Handle error */
-        return -1;
+#ifdef PERFSTUBS_USE_STATIC
+
+#if defined(__clang__) && defined(__APPLE__)
+#define PS_WEAK_PRE
+#define PS_WEAK_POST __attribute__((weak_import))
+#define PS_WEAK_POST_NULL __attribute__((weak_import))
+#else
+#define PS_WEAK_PRE __attribute__((weak))
+#define PS_WEAK_POST
+#define PS_WEAK_POST_NULL
+#endif
+
+PS_WEAK_PRE void ps_tool_initialize(void) PS_WEAK_POST;
+PS_WEAK_PRE void ps_tool_register_thread(void) PS_WEAK_POST;
+PS_WEAK_PRE void ps_tool_finalize(void) PS_WEAK_POST;
+PS_WEAK_PRE void ps_tool_dump_data(void) PS_WEAK_POST;
+PS_WEAK_PRE void* ps_tool_timer_create(const char *) PS_WEAK_POST;
+PS_WEAK_PRE void ps_tool_timer_start(const void *) PS_WEAK_POST;
+PS_WEAK_PRE void ps_tool_timer_stop(const void *) PS_WEAK_POST;
+PS_WEAK_PRE void ps_tool_set_parameter(const char *, int64_t) PS_WEAK_POST;
+PS_WEAK_PRE void ps_tool_dynamic_phase_start(const char *, int) PS_WEAK_POST;
+PS_WEAK_PRE void ps_tool_dynamic_phase_stop(const char *, int) PS_WEAK_POST;
+PS_WEAK_PRE void* ps_tool_create_counter(const char *) PS_WEAK_POST;
+PS_WEAK_PRE void ps_tool_sample_counter(const void *, double) PS_WEAK_POST;
+PS_WEAK_PRE void ps_tool_set_metadata(const char *, const char *) PS_WEAK_POST;
+PS_WEAK_PRE void ps_tool_get_timer_data(ps_tool_timer_data_t *) PS_WEAK_POST;
+PS_WEAK_PRE void ps_tool_get_counter_data(ps_tool_counter_data_t *) PS_WEAK_POST;
+PS_WEAK_PRE void ps_tool_get_metadata(ps_tool_metadata_t *) PS_WEAK_POST;
+PS_WEAK_PRE void ps_tool_free_timer_data(ps_tool_timer_data_t *) PS_WEAK_POST;
+PS_WEAK_PRE void ps_tool_free_counter_data(ps_tool_counter_data_t *) PS_WEAK_POST;
+PS_WEAK_PRE void ps_tool_free_metadata(ps_tool_metadata_t *) PS_WEAK_POST;
+#endif
+
+void initialize_library() {
+#ifdef PERFSTUBS_USE_STATIC
+    /* The initialization function is the only required one */
+    initialize_functions[0] = &ps_tool_initialize;
+    if (initialize_functions[0] == NULL) {
+        return;
     }
-    /* Set the new tool id */
-    int tool_id = num_tools_registered;
-    /* Logistical functions */
-    initialize_functions[num_tools_registered] = tool->initialize;
-    finalize_functions[num_tools_registered] = tool->finalize;
-    register_thread_functions[num_tools_registered] = tool->register_thread;
-    dump_data_functions[num_tools_registered] = tool->dump_data;
-    /* Data entry functions */
-    timer_create_functions[num_tools_registered] = tool->timer_create;
-    timer_start_functions[num_tools_registered] = tool->timer_start;
-    timer_stop_functions[num_tools_registered] = tool->timer_stop;
-    set_parameter_functions[num_tools_registered] = tool->set_parameter;
-    dynamic_phase_start_functions[num_tools_registered] = tool->dynamic_phase_start;
-    dynamic_phase_stop_functions[num_tools_registered] = tool->dynamic_phase_stop;
-    create_counter_functions[num_tools_registered] = tool->create_counter;
-    sample_counter_functions[num_tools_registered] = tool->sample_counter;
-    set_metadata_functions[num_tools_registered] = tool->set_metadata;
-    /* Data Query Functions */
-    get_timer_data_functions[num_tools_registered] = tool->get_timer_data;
-    get_counter_data_functions[num_tools_registered] = tool->get_counter_data;
-    get_metadata_functions[num_tools_registered] = tool->get_metadata;
-    free_timer_data_functions[num_tools_registered] = tool->free_timer_data;
-    free_counter_data_functions[num_tools_registered] = tool->free_counter_data;
-    free_metadata_functions[num_tools_registered] = tool->free_metadata;
-    /* Let the API know that at least one tool exists */
+    register_thread_functions[0] = &ps_tool_register_thread;
+    finalize_functions[0] = &ps_tool_finalize;
+    dump_data_functions[0] = &ps_tool_dump_data;
+    timer_create_functions[0] = &ps_tool_timer_create;
+    timer_start_functions[0] = &ps_tool_timer_start;
+    timer_stop_functions[0] = &ps_tool_timer_stop;
+    set_parameter_functions[0] = &ps_tool_set_parameter;
+    dynamic_phase_start_functions[0] = &ps_tool_dynamic_phase_start;
+    dynamic_phase_stop_functions[0] = &ps_tool_dynamic_phase_stop;
+    create_counter_functions[0] = &ps_tool_create_counter;
+    sample_counter_functions[0] = &ps_tool_sample_counter;
+    set_metadata_functions[0] = &ps_tool_set_metadata;
+    get_timer_data_functions[0] = &ps_tool_get_timer_data;
+    get_counter_data_functions[0] = &ps_tool_get_counter_data;
+    get_metadata_functions[0] = &ps_tool_get_metadata;
+    free_timer_data_functions[0] = &ps_tool_free_timer_data;
+    free_counter_data_functions[0] = &ps_tool_free_counter_data;
+    free_metadata_functions[0] = &ps_tool_free_metadata;
+#else
+    initialize_functions[0] =
+        (ps_initialize_t)dlsym(RTLD_DEFAULT, "ps_tool_initialize");
+    if (initialize_functions[0] == NULL) {
+        return;
+    }
+    finalize_functions[0] =
+        (ps_finalize_t)dlsym(RTLD_DEFAULT, "ps_tool_finalize");
+    register_thread_functions[0] =
+        (ps_register_thread_t)dlsym(RTLD_DEFAULT, "ps_tool_register_thread");
+    dump_data_functions[0] =
+        (ps_dump_data_t)dlsym(RTLD_DEFAULT, "ps_tool_dump_data");
+    timer_create_functions[0] =
+        (ps_timer_create_t)dlsym(RTLD_DEFAULT,
+        "ps_tool_timer_create");
+    timer_start_functions[0] =
+        (ps_timer_start_t)dlsym(RTLD_DEFAULT, "ps_tool_timer_start");
+    timer_stop_functions[0] =
+        (ps_timer_stop_t)dlsym(RTLD_DEFAULT, "ps_tool_timer_stop");
+    set_parameter_functions[0] =
+        (ps_set_parameter_t)dlsym(RTLD_DEFAULT, "ps_tool_set_parameter");
+    dynamic_phase_start_functions[0] = (ps_dynamic_phase_start_t)dlsym(
+        RTLD_DEFAULT, "ps_tool_dynamic_phase_start");
+    dynamic_phase_stop_functions[0] = (ps_dynamic_phase_stop_t)dlsym(
+        RTLD_DEFAULT, "ps_tool_dynamic_phase_stop");
+    create_counter_functions[0] = (ps_create_counter_t)dlsym(
+        RTLD_DEFAULT, "ps_tool_create_counter");
+    sample_counter_functions[0] = (ps_sample_counter_t)dlsym(
+        RTLD_DEFAULT, "ps_tool_sample_counter");
+    set_metadata_functions[0] =
+        (ps_set_metadata_t)dlsym(RTLD_DEFAULT, "ps_tool_set_metadata");
+    get_timer_data_functions[0] = (ps_get_timer_data_t)dlsym(
+        RTLD_DEFAULT, "ps_tool_get_timer_data");
+    get_counter_data_functions[0] = (ps_get_counter_data_t)dlsym(
+        RTLD_DEFAULT, "ps_tool_get_counter_data");
+    get_metadata_functions[0] = (ps_get_metadata_t)dlsym(
+        RTLD_DEFAULT, "ps_tool_get_metadata");
+    free_timer_data_functions[0] = (ps_free_timer_data_t)dlsym(
+        RTLD_DEFAULT, "ps_tool_free_timer_data");
+    free_counter_data_functions[0] = (ps_free_counter_data_t)dlsym(
+        RTLD_DEFAULT, "ps_tool_free_counter_data");
+    free_metadata_functions[0] = (ps_free_metadata_t)dlsym(
+        RTLD_DEFAULT, "ps_tool_free_metadata");
+#endif
     perfstubs_initialized = 1;
-    /* Increment the number of tools and return the tool ID */
-    num_tools_registered = num_tools_registered + 1;
-    return (tool_id);
-}
-
-/* Long term - the tool should be removed from the array.  However,
- * the index of other tools (returned during registration) > tool_id
- * will then be off by 1.  The way to fix that is to provide some
- * mapping for things like deregistration and data requests.  But 
- * let's not spend too much time on that now.  For now, just disable
- * those function pointers, until we know there's a requirement to
- * dynamically enable/disable tools during an execution. */
-
-void ps_deregister_tool(int tool_id) {
-    /* Logistical functions */
-    initialize_functions[num_tools_registered] = NULL;
-    finalize_functions[num_tools_registered] = NULL;
-    register_thread_functions[num_tools_registered] = NULL;
-    dump_data_functions[num_tools_registered] = NULL;
-    /* Data entry functions */
-    timer_create_functions[num_tools_registered] = NULL;
-    timer_start_functions[num_tools_registered] = NULL;
-    timer_stop_functions[num_tools_registered] = NULL;
-    set_parameter_functions[num_tools_registered] = NULL;
-    dynamic_phase_start_functions[num_tools_registered] = NULL;
-    dynamic_phase_stop_functions[num_tools_registered] = NULL;
-    create_counter_functions[num_tools_registered] = NULL;
-    sample_counter_functions[num_tools_registered] = NULL;
-    set_metadata_functions[num_tools_registered] = NULL;
-    /* Data Query Functions */
-    get_timer_data_functions[num_tools_registered] = NULL;
-    get_counter_data_functions[num_tools_registered] = NULL;
-    get_metadata_functions[num_tools_registered] = NULL;
-    free_timer_data_functions[num_tools_registered] = NULL;
-    free_counter_data_functions[num_tools_registered] = NULL;
-    free_metadata_functions[num_tools_registered] = NULL;
+    /* Increment the number of tools */
+    num_tools_registered = 1;
 }
 
 char * ps_make_timer_name_(const char * file,
@@ -130,6 +176,7 @@ void ps_register_thread_internal(void) {
 /* Initialization */
 void ps_initialize_(void) {
     int i;
+    initialize_library();
     for (i = 0 ; i < num_tools_registered ; i++) {
         initialize_functions[i]();
     }

@@ -7,7 +7,7 @@
 #include <math.h>
 //#include <threads.h>
 #define PERFSTUBS_USE_TIMERS
-#include "perfstubs_api_n/timer.h"
+#include "perfstubs_api/timer.h"
 
 #define MAX_TOOLS 10
 

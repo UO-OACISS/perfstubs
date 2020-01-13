@@ -13,7 +13,7 @@
 using namespace std;
 
 namespace external {
-    namespace ps_implementation {
+    namespace ps_implementation2 {
         std::mutex my_mutex;
 
         class profiler {
@@ -61,7 +61,7 @@ namespace external {
     }
 }
 
-namespace MINE = external::ps_implementation;
+namespace MINE = external::ps_implementation2;
 
 /* Function pointers */
 
@@ -69,79 +69,79 @@ extern "C"
 {
 
     // On some systems, can't write output during pre-initialization
-    void ps_tool_initialize(void) { /* cout << "Tool: " << __func__ << endl; */ }
+    void ps_tool2_initialize(void) { /* cout << "Tool2: " << __func__ << endl; */ }
 
     // On some systems, can't write output during pre-initialization
-    void ps_tool_register_thread(void)
+    void ps_tool2_register_thread(void)
     {
-        /* cout << "Tool: " << __func__ << endl; */
+        /* cout << "Tool2: " << __func__ << endl; */
     }
 
-    void ps_tool_finalize(void) { cout << "Tool: " << __func__ << endl; }
+    void ps_tool2_finalize(void) { cout << "Tool2: " << __func__ << endl; }
 
-    void ps_tool_dump_data(void) { cout << "Tool: " << __func__ << endl; }
+    void ps_tool2_dump_data(void) { cout << "Tool2: " << __func__ << endl; }
 
-    void * ps_tool_timer_create(const char * timer_name)
+    void * ps_tool2_timer_create(const char * timer_name)
     {
-        cout << "Tool: " << __func__ << " " << timer_name << endl;
+        cout << "Tool2: " << __func__ << " " << timer_name << endl;
         return MINE::find_timer(timer_name);
     }
 
-    void ps_tool_timer_start(const void *profiler)
+    void ps_tool2_timer_start(const void *profiler)
     {
         MINE::profiler* p = (MINE::profiler*) profiler;
-        cout << "Tool: " << __func__ << " " << p->_name << endl;
+        cout << "Tool2: " << __func__ << " " << p->_name << endl;
         p->start();
     }
 
-    void ps_tool_timer_stop(const void *profiler)
+    void ps_tool2_timer_stop(const void *profiler)
     {
         MINE::profiler* p = (MINE::profiler*) profiler;
-        cout << "Tool: " << __func__ << " " << p->_name << endl;
+        cout << "Tool2: " << __func__ << " " << p->_name << endl;
         p->stop();
     }
 
-    void ps_tool_set_parameter(const char *parameter_name, int64_t parameter_value)
+    void ps_tool2_set_parameter(const char *parameter_name, int64_t parameter_value)
     {
-        cout << "Tool: " << __func__ << " " << parameter_name
+        cout << "Tool2: " << __func__ << " " << parameter_name
              << " " << parameter_value << endl;
     }
 
-    void ps_tool_dynamic_phase_start(const char *phase_prefix,
+    void ps_tool2_dynamic_phase_start(const char *phase_prefix,
                                       int iteration_index)
     {
-        cout << "Tool: " << __func__ << " " << phase_prefix << ", "
+        cout << "Tool2: " << __func__ << " " << phase_prefix << ", "
              << iteration_index << endl;
     }
 
-    void ps_tool_dynamic_phase_stop(const char *phase_prefix,
+    void ps_tool2_dynamic_phase_stop(const char *phase_prefix,
                                      int iteration_index)
     {
-        cout << "Tool: " << __func__ << " " << phase_prefix << ", "
+        cout << "Tool2: " << __func__ << " " << phase_prefix << ", "
              << iteration_index << endl;
     }
 
-    void* ps_tool_create_counter(const char *counter_name)
+    void* ps_tool2_create_counter(const char *counter_name)
     {
-        cout << "Tool: " << __func__ << " " << counter_name << endl;
+        cout << "Tool2: " << __func__ << " " << counter_name << endl;
         return MINE::find_counter(counter_name);
     }
 
-    void ps_tool_sample_counter(const void *counter, double value)
+    void ps_tool2_sample_counter(const void *counter, double value)
     {
         MINE::counter* c = (MINE::counter*) counter;
-        cout << "Tool: " << __func__ << " " << c->_name << " = " << value
+        cout << "Tool2: " << __func__ << " " << c->_name << " = " << value
              << endl;
     }
 
-    void ps_tool_set_metadata(const char *name, const char *value)
+    void ps_tool2_set_metadata(const char *name, const char *value)
     {
-        cout << "Tool: " << __func__ << " " << name << " = " << value << endl;
+        cout << "Tool2: " << __func__ << " " << name << " = " << value << endl;
     }
 
-    void ps_tool_get_timer_data(ps_tool_timer_data_t *timer_data)
+    void ps_tool2_get_timer_data(ps_tool_timer_data_t *timer_data)
     {
-        cout << "Tool: " << __func__ << endl;
+        cout << "Tool2: " << __func__ << endl;
         memset(timer_data, 0, sizeof(ps_tool_timer_data_t));
         timer_data->num_timers = 1;
         timer_data->num_threads = 1;
@@ -159,7 +159,7 @@ extern "C"
         return;
     }
 
-    void ps_tool_free_timer_data(ps_tool_timer_data_t *timer_data)
+    void ps_tool2_free_timer_data(ps_tool_timer_data_t *timer_data)
     {
         if (timer_data == nullptr)
         {
@@ -182,9 +182,9 @@ extern "C"
         }
     }
 
-    void ps_tool_get_counter_data(ps_tool_counter_data_t *counter_data)
+    void ps_tool2_get_counter_data(ps_tool_counter_data_t *counter_data)
     {
-        cout << "Tool: " << __func__ << endl;
+        cout << "Tool2: " << __func__ << endl;
         memset(counter_data, 0, sizeof(ps_tool_counter_data_t));
         counter_data->num_counters = 1;
         counter_data->num_threads = 1;
@@ -203,7 +203,7 @@ extern "C"
         return;
     }
 
-    void ps_tool_free_counter_data(ps_tool_counter_data_t *counter_data)
+    void ps_tool2_free_counter_data(ps_tool_counter_data_t *counter_data)
     {
         if (counter_data == nullptr)
         {
@@ -241,9 +241,9 @@ extern "C"
         }
     }
 
-    void ps_tool_get_metadata(ps_tool_metadata_t *metadata)
+    void ps_tool2_get_metadata(ps_tool_metadata_t *metadata)
     {
-        cout << "Tool: " << __func__ << endl;
+        cout << "Tool2: " << __func__ << endl;
         memset(metadata, 0, sizeof(ps_tool_metadata_t));
         metadata->num_values = 1;
         metadata->names = (char **)(calloc(1, sizeof(char *)));
@@ -253,7 +253,7 @@ extern "C"
         return;
     }
 
-    void ps_tool_free_metadata(ps_tool_metadata_t *metadata)
+    void ps_tool2_free_metadata(ps_tool_metadata_t *metadata)
     {
         if (metadata == nullptr)
         {
@@ -276,45 +276,45 @@ extern "C"
  * what each tool needs to implement in order to pre-register itself
  * with the plugin system. */
 
-static void __attribute__((constructor)) initme(void);
-static void __attribute__((destructor)) finime(void);
+static void __attribute__((constructor)) initme2(void);
+static void __attribute__((destructor)) finime2(void);
 
 static int tool_id;
 
-static void initme(void) {
+static void initme2(void) {
     ps_plugin_data_t data;
     ps_register_t reg_function;
     reg_function = &ps_register_tool;
     if (reg_function != NULL) {
         memset(&data, 0, sizeof(ps_plugin_data_t));
-        data.tool_name = strdup("tool one");
+        data.tool_name = strdup("tool two");
         /* Logistical functions */
-        data.initialize = &ps_tool_initialize;
-        data.finalize = &ps_tool_finalize;
-        data.register_thread = &ps_tool_register_thread;
-        data.dump_data = &ps_tool_dump_data;
+        data.initialize = &ps_tool2_initialize;
+        data.finalize = &ps_tool2_finalize;
+        data.register_thread = &ps_tool2_register_thread;
+        data.dump_data = &ps_tool2_dump_data;
         /* Data entry functions */
-        data.timer_create = &ps_tool_timer_create;
-        data.timer_start = &ps_tool_timer_start;
-        data.timer_stop = &ps_tool_timer_stop;
-        data.set_parameter = &ps_tool_set_parameter;
-        data.dynamic_phase_start = &ps_tool_dynamic_phase_start;
-        data.dynamic_phase_stop = &ps_tool_dynamic_phase_stop;
-        data.create_counter = &ps_tool_create_counter;
-        data.sample_counter = &ps_tool_sample_counter;
-        data.set_metadata = &ps_tool_set_metadata;
+        data.timer_create = &ps_tool2_timer_create;
+        data.timer_start = &ps_tool2_timer_start;
+        data.timer_stop = &ps_tool2_timer_stop;
+        data.set_parameter = &ps_tool2_set_parameter;
+        data.dynamic_phase_start = &ps_tool2_dynamic_phase_start;
+        data.dynamic_phase_stop = &ps_tool2_dynamic_phase_stop;
+        data.create_counter = &ps_tool2_create_counter;
+        data.sample_counter = &ps_tool2_sample_counter;
+        data.set_metadata = &ps_tool2_set_metadata;
         /* Data Query Functions */
-        data.get_timer_data = &ps_tool_get_timer_data;
-        data.get_counter_data = &ps_tool_get_counter_data;
-        data.get_metadata = &ps_tool_get_metadata;
-        data.free_timer_data = &ps_tool_free_timer_data;
-        data.free_counter_data = &ps_tool_free_counter_data;
-        data.free_metadata = &ps_tool_free_metadata;
+        data.get_timer_data = &ps_tool2_get_timer_data;
+        data.get_counter_data = &ps_tool2_get_counter_data;
+        data.get_metadata = &ps_tool2_get_metadata;
+        data.free_timer_data = &ps_tool2_free_timer_data;
+        data.free_counter_data = &ps_tool2_free_counter_data;
+        data.free_metadata = &ps_tool2_free_metadata;
         tool_id = reg_function(&data);
     }
 }
 
-static void finime(void) {
+static void finime2(void) {
     ps_deregister_t dereg_function;
     dereg_function = &ps_deregister_tool;
     if (dereg_function != NULL) {
