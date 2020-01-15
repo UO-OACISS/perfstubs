@@ -21,6 +21,7 @@ export CFLAGS="-Wall -Werror"
 export CXXFLAGS="-Wall -Werror"
 
 do_build() {
+    echo "Removing build_${linktype}_${buildtype} and install_${linktype}_${buildtype}"
     rm -rf ${workdir}/build_${linktype}_${buildtype} ${workdir}/install_${linktype}_${buildtype}
     mkdir ${workdir}/build_${linktype}_${buildtype}
     cd ${workdir}/build_${linktype}_${buildtype}

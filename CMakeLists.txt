@@ -113,6 +113,10 @@ set (NO_IMPL_EXTRA_LIBS ${EXTRA_LIBS})
 if (PERFSTUBS_USE_DEFAULT_IMPLEMENTATION)
     add_library(implementation implementation/tool1_implementation.cpp)
     add_library(implementation2 implementation/tool2_implementation.cpp)
+    if (APPLE)
+        target_link_options(implementation PUBLIC -undefined dynamic_lookup)
+        target_link_options(implementation2 PUBLIC -undefined dynamic_lookup)
+    endif (APPLE)
     if (BUILD_SHARED_LIBS)
         set (IMPL_LIB implementation)
         set (IMPL_LIB2 implementation implementation2)
@@ -192,6 +196,11 @@ target_link_libraries (perfstubs_test_overhead ${TOOL_LIBS} ${NO_IMPL_EXTRA_LIBS
 
 add_executable(perfstubs_test_overhead_cpp examples/overhead.cpp)
 target_link_libraries (perfstubs_test_overhead_cpp ${TOOL_LIBS} ${NO_IMPL_EXTRA_LIBS})
+
+if (APPLE)
+    target_link_options(perfstubs_test_overhead PUBLIC -undefined dynamic_lookup)
+    target_link_options(perfstubs_test_overhead_cpp PUBLIC -undefined dynamic_lookup)
+endif (APPLE)
 
 if (NOT APPLE)
     if (NOT PERFSTUBS_USE_STATIC)

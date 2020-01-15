@@ -13,7 +13,7 @@
 
 /* Globals for the plugin API */
 
-int perfstubs_initialized = 0;
+int perfstubs_initialized = PERFSTUBS_UNKNOWN;
 int num_tools_registered = 0;
 /* Keep track of whether the thread has been registered */
 __thread int thread_seen = 0;
@@ -42,6 +42,7 @@ ps_free_metadata_t free_metadata_functions[MAX_TOOLS];
 
 int ps_register_tool(ps_plugin_data_t * tool) {
     if (num_tools_registered > MAX_TOOLS) {
+        perfstubs_initialized = PERFSTUBS_FAILURE;
         /* Handle error */
         return -1;
     }
@@ -70,7 +71,7 @@ int ps_register_tool(ps_plugin_data_t * tool) {
     free_counter_data_functions[num_tools_registered] = tool->free_counter_data;
     free_metadata_functions[num_tools_registered] = tool->free_metadata;
     /* Let the API know that at least one tool exists */
-    perfstubs_initialized = 1;
+    perfstubs_initialized = PERFSTUBS_SUCCESS;
     /* Increment the number of tools and return the tool ID */
     num_tools_registered = num_tools_registered + 1;
     return (tool_id);

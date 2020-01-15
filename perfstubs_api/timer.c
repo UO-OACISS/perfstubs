@@ -21,7 +21,7 @@
 
 /* Globals for the plugin API */
 
-int perfstubs_initialized = 0;
+int perfstubs_initialized = PERFSTUBS_UNKNOWN;
 int num_tools_registered = 0;
 /* Keep track of whether the thread has been registered */
 __thread int thread_seen = 0;
@@ -110,6 +110,7 @@ void initialize_library() {
     initialize_functions[0] =
         (ps_initialize_t)dlsym(RTLD_DEFAULT, "ps_tool_initialize");
     if (initialize_functions[0] == NULL) {
+        perfstubs_initialized = PERFSTUBS_FAILURE;
         return;
     }
     finalize_functions[0] =
@@ -150,7 +151,7 @@ void initialize_library() {
     free_metadata_functions[0] = (ps_free_metadata_t)dlsym(
         RTLD_DEFAULT, "ps_tool_free_metadata");
 #endif
-    perfstubs_initialized = 1;
+    perfstubs_initialized = PERFSTUBS_SUCCESS;
     /* Increment the number of tools */
     num_tools_registered = 1;
 }
