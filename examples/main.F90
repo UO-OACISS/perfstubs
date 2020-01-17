@@ -23,10 +23,15 @@
         integer i
         integer profiler(2)
         save    profiler
+        integer counter(2)
+        save    counter
 
         PERFSTUBS_INITIALIZE()
         PERFSTUBS_TIMER_CREATE(profiler, 'main')
         PERFSTUBS_TIMER_START(profiler)
+        PERFSTUBS_CREATE_COUNTER(counter, 'test counter')
+        PERFSTUBS_SAMPLE_COUNTER(counter, 25.0)
+        PERFSTUBS_METADATA('foo', 'bar')
 
         print *, "test program"
 

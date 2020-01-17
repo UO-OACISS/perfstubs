@@ -17,9 +17,9 @@
 #define PERFSTUBS_TIMER_CREATE(_timer_object, _timer_name) \
     call ps_timer_create_fortran(_timer_object, _timer_name//CHAR(0))
 #define PERFSTUBS_TIMER_START(_timer_object) \
-    call ps_timer_start(_timer_object)
+    call ps_timer_start_fortran(_timer_object)
 #define PERFSTUBS_TIMER_STOP(_timer_object) \
-    call ps_timer_stop(_timer_object)
+    call ps_timer_stop_fortran(_timer_object)
 #define PERFSTUBS_SET_PARAMETER(_parameter_name, parameter_value) \
     call ps_set_parameter(_parameter_name//CHAR(0), parameter_value)
 #define PERFSTUBS_DYNAMIC_PHASE_START(_phase_prefix, _iteration_index) \
@@ -27,11 +27,11 @@
 #define PERFSTUBS_DYNAMIC_PHASE_STOP(_phase_prefix, _iteration_index) \
     call ps_dynamic_phase_stop(_phase_prefix//CHAR(0), _iteration_index)
 #define PERFSTUBS_CREATE_COUNTER(_counter_object, _name) \
-    call ps_create_counter(_counter_object, _name//CHAR(0))
+    call ps_create_counter_fortran(_counter_object, _name//CHAR(0))
 #define PERFSTUBS_SAMPLE_COUNTER(_counter_object, _value) \
-    call ps_sample_counter(_counter_object, _value)
+    call ps_sample_counter_fortran(_counter_object, _value)
 #define PERFSTUBS_METADATA(_name, _value) \
-    call ps_set_metadata(_name//CHAR(0), _value)
+    call ps_set_metadata(_name//CHAR(0), _value//CHAR(0))
 
 ! // defined(PERFSTUBS_USE_TIMERS)
 #else

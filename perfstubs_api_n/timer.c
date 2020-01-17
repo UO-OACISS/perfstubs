@@ -172,12 +172,20 @@ void ps_timer_start_(const void *timer) {
     }
 }
 
+void ps_timer_start_fortran_(const void **timer) {
+    ps_timer_start_(*timer);
+}
+
 void ps_timer_stop_(const void *timer) {
     void ** objects = (void**)(timer);
     int i;
     for (i = 0; i < num_tools_registered ; i++) {
         timer_stop_functions[i](objects[i]);
     }
+}
+
+void ps_timer_stop_fortran_(const void **timer) {
+    ps_timer_stop_(*timer);
 }
 
 void ps_set_parameter_(const char * parameter_name, int64_t parameter_value) {
@@ -220,6 +228,10 @@ void ps_sample_counter_(const void *counter, const double value) {
     for (i = 0; i < num_tools_registered ; i++) {
         sample_counter_functions[i](objects[i], value);
     }
+}
+
+void ps_sample_counter_fortran_(const void **counter, const double value) {
+    ps_sample_counter_(*counter, value);
 }
 
 void ps_set_metadata_(const char *name, const char *value) {

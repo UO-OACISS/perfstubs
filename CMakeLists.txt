@@ -262,11 +262,11 @@ if (NOT APPLE)
         add_test (fort_test perfstubs_test_fort 25)
         set_tests_properties (fort_test PROPERTIES PASS_REGULAR_EXPRESSION
             "Tool: ps_tool_timer_create main")
-        #add_test (fort_n_test perfstubs_test_n_fort 25)
-        #set_tests_properties (fort_n_test PROPERTIES PASS_REGULAR_EXPRESSION
-        #    "Tool: ps_tool_timer_create main")
-        #set_tests_properties (fort_n_test PROPERTIES PASS_REGULAR_EXPRESSION
-        #    "Tool2: ps_tool2_timer_create main")
+        add_test (fort_n_test perfstubs_test_n_fort 25)
+        set_tests_properties (fort_n_test PROPERTIES PASS_REGULAR_EXPRESSION
+            "Tool: ps_tool_timer_create main")
+        set_tests_properties (fort_n_test PROPERTIES PASS_REGULAR_EXPRESSION
+            "Tool2: ps_tool2_timer_create main")
     endif ()
 endif ()
 
