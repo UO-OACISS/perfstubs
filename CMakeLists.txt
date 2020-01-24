@@ -37,10 +37,10 @@ option (PERFSTUBS_USE_STATIC
 
 if (PERFSTUBS_USE_STATIC)
     set (BUILD_SHARED_LIBS OFF)
-    message(STATUS "Building shared object libraries and dynamic executables.")
+    message(STATUS "Building static libraries and (if possible) executables.")
 else (PERFSTUBS_USE_STATIC)
     set (BUILD_SHARED_LIBS ON)
-    message(STATUS "Building static libraries and (if possible) executables.")
+    message(STATUS "Building shared object libraries and dynamic executables.")
 endif (PERFSTUBS_USE_STATIC)
 
 # The version number.
