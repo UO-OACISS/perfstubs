@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
 
     PERFSTUBS_SAMPLE_COUNTER("counter", 15.0)
     PERFSTUBS_TIMER_STOP_FUNC(timer);
-    PERFSTUBS_DUMP_DATA();
+    //PERFSTUBS_DUMP_DATA();
     PERFSTUBS_FINALIZE();
 
     return 0;

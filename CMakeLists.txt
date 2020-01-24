@@ -15,6 +15,9 @@ else ()
     ENABLE_LANGUAGE(C CXX)
 endif ()
 
+# for the examples only
+set (CMAKE_CXX_STANDARD 11)
+
 project (perfstubs)
 
 # should we use our own math functions?
@@ -161,6 +164,9 @@ endif (NOT PERFSTUBS_USE_STATIC)
 add_executable(perfstubs_test_api_cpp examples/all_api.cpp)
 target_link_libraries (perfstubs_test_api_cpp ${TOOL_LIBS} ${EXTRA_LIBS})
 
+add_executable(perfstubs_test_api_cpp_no_tool examples/all_api.cpp)
+target_link_libraries (perfstubs_test_api_cpp_no_tool ${TOOL_LIBS} ${NO_IMPL_EXTRA_LIBS})
+
 add_executable(perfstubs_test_api_n_cpp examples/all_api.cpp)
 target_link_libraries (perfstubs_test_api_n_cpp ${TOOL_LIBS_N} ${EXTRA_LIBS2})
 target_compile_definitions(perfstubs_test_api_n_cpp PRIVATE -DPERFSTUBS_MULTIPLE_TOOL_SUPPORT)
@@ -168,6 +174,10 @@ target_compile_definitions(perfstubs_test_api_n_cpp PRIVATE -DPERFSTUBS_MULTIPLE
 add_executable(perfstubs_test_api_c examples/all_api.c)
 set_target_properties(perfstubs_test_api_c PROPERTIES LINKER_LANGUAGE C)
 target_link_libraries (perfstubs_test_api_c ${TOOL_LIBS} ${EXTRA_LIBS})
+
+add_executable(perfstubs_test_api_c_no_tool examples/all_api.c)
+set_target_properties(perfstubs_test_api_c_no_tool PROPERTIES LINKER_LANGUAGE C)
+target_link_libraries (perfstubs_test_api_c_no_tool ${TOOL_LIBS} ${NO_IMPL_EXTRA_LIBS})
 
 add_executable(perfstubs_test_api_n_c examples/all_api.c)
 set_target_properties(perfstubs_test_api_n_c PROPERTIES LINKER_LANGUAGE C)
@@ -197,21 +207,28 @@ target_link_libraries (perfstubs_test_overhead ${TOOL_LIBS} ${NO_IMPL_EXTRA_LIBS
 add_executable(perfstubs_test_overhead_cpp examples/overhead.cpp)
 target_link_libraries (perfstubs_test_overhead_cpp ${TOOL_LIBS} ${NO_IMPL_EXTRA_LIBS})
 
+add_executable(perfstubs_test_threads_cpp examples/threaded_example.cpp)
+target_link_libraries (perfstubs_test_threads_cpp ${TOOL_LIBS} ${EXTRA_LIBS})
+
+add_executable(perfstubs_test_threads_cpp_no_tool examples/threaded_example.cpp)
+target_link_libraries (perfstubs_test_threads_cpp_no_tool ${TOOL_LIBS} ${NO_IMPL_EXTRA_LIBS})
+
 if (APPLE)
     target_link_options(perfstubs_test_overhead PUBLIC -undefined dynamic_lookup)
     target_link_options(perfstubs_test_overhead_cpp PUBLIC -undefined dynamic_lookup)
 endif (APPLE)
 
 if (NOT APPLE)
-    if (NOT PERFSTUBS_USE_STATIC)
-        add_executable(perfstubs_test_fort examples/main.F90)
-        set_target_properties(perfstubs_test_fort PROPERTIES LINKER_LANGUAGE Fortran)
-        target_link_libraries (perfstubs_test_fort ${TOOL_LIBS} ${EXTRA_LIBS})
-        add_executable(perfstubs_test_n_fort examples/main.F90)
-        set_target_properties(perfstubs_test_n_fort PROPERTIES LINKER_LANGUAGE Fortran)
-        target_link_libraries (perfstubs_test_n_fort ${TOOL_LIBS_N} ${EXTRA_LIBS2})
-        target_compile_definitions(perfstubs_test_n_c PRIVATE -DPERFSTUBS_MULTIPLE_TOOL_SUPPORT)
-    endif ()
+    add_executable(perfstubs_test_fort examples/main.F90)
+    set_target_properties(perfstubs_test_fort PROPERTIES LINKER_LANGUAGE Fortran)
+    target_link_libraries (perfstubs_test_fort ${TOOL_LIBS} ${EXTRA_LIBS})
+    add_executable(perfstubs_test_fort_no_tool examples/main.F90)
+    set_target_properties(perfstubs_test_fort_no_tool PROPERTIES LINKER_LANGUAGE Fortran)
+    target_link_libraries (perfstubs_test_fort_no_tool ${TOOL_LIBS} ${NO_IMPL_EXTRA_LIBS})
+    add_executable(perfstubs_test_n_fort examples/main.F90)
+    set_target_properties(perfstubs_test_n_fort PROPERTIES LINKER_LANGUAGE Fortran)
+    target_link_libraries (perfstubs_test_n_fort ${TOOL_LIBS_N} ${EXTRA_LIBS2})
+    target_compile_definitions(perfstubs_test_n_c PRIVATE -DPERFSTUBS_MULTIPLE_TOOL_SUPPORT)
 endif ()
 
 include(CTest)
@@ -257,17 +274,23 @@ set_tests_properties (c_n_test PROPERTIES PASS_REGULAR_EXPRESSION
 set_tests_properties (c_n_test PROPERTIES PASS_REGULAR_EXPRESSION
     "Tool2: ps_tool2_timer_start .* main")
 
+add_test (test_threads_cpp perfstubs_test_threads_cpp)
+set_tests_properties (test_threads_cpp PROPERTIES PASS_REGULAR_EXPRESSION
+    "Found ps_tool_initialize")
+add_test (test_threads_cpp_no_tool perfstubs_test_threads_cpp_no_tool)
+add_test (test_api_cpp_no_tool perfstubs_test_api_cpp_no_tool)
+add_test (test_api_c_no_tool perfstubs_test_api_c_no_tool)
+
 if (NOT APPLE)
-    if (NOT PERFSTUBS_USE_STATIC)
-        add_test (fort_test perfstubs_test_fort 25)
-        set_tests_properties (fort_test PROPERTIES PASS_REGULAR_EXPRESSION
-            "Tool: ps_tool_timer_create main")
-        add_test (fort_n_test perfstubs_test_n_fort 25)
-        set_tests_properties (fort_n_test PROPERTIES PASS_REGULAR_EXPRESSION
-            "Tool: ps_tool_timer_create main")
-        set_tests_properties (fort_n_test PROPERTIES PASS_REGULAR_EXPRESSION
-            "Tool2: ps_tool2_timer_create main")
-    endif ()
+    add_test (fort_test perfstubs_test_fort 25)
+    set_tests_properties (fort_test PROPERTIES PASS_REGULAR_EXPRESSION
+        "Tool: ps_tool_timer_create main")
+    add_test (fort_n_test perfstubs_test_n_fort 25)
+    set_tests_properties (fort_n_test PROPERTIES PASS_REGULAR_EXPRESSION
+        "Tool: ps_tool_timer_create main")
+    set_tests_properties (fort_n_test PROPERTIES PASS_REGULAR_EXPRESSION
+        "Tool2: ps_tool2_timer_create main")
+    add_test (test_fort_cpp_no_tool perfstubs_test_fort_no_tool)
 endif ()
 
 # For dynamic testing, preload the "tool"

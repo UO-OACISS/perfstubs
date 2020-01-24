@@ -92,9 +92,9 @@ char* ps_make_timer_name_(const char * file, const char * func, int line);
 
 #define PERFSTUBS_FINALIZE() ps_finalize_();
 
-#define PERFSTUBS_DUMP_DATA() ps_dump_data_();
-
 #define PERFSTUBS_REGISTER_THREAD() ps_register_thread_();
+
+#define PERFSTUBS_DUMP_DATA() ps_dump_data_();
 
 #define PERFSTUBS_TIMER_START(_timer, _timer_name) \
     static void * _timer = NULL; \
@@ -148,9 +148,10 @@ char* ps_make_timer_name_(const char * file, const char * func, int line);
 
 #else // defined(PERFSTUBS_USE_TIMERS)
 
-#define PERFSTUBS_INIT()
-#define PERFSTUBS_DUMP_DATA()
+#define PERFSTUBS_INITIALIZE()
+#define PERFSTUBS_FINALIZE()
 #define PERFSTUBS_REGISTER_THREAD()
+#define PERFSTUBS_DUMP_DATA()
 #define PERFSTUBS_TIMER_START(_timer, _timer_name)
 #define PERFSTUBS_TIMER_STOP(_timer_name)
 #define PERFSTUBS_SET_PARAMETER(_parameter, _value)

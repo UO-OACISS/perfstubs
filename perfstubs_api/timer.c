@@ -88,6 +88,7 @@ void initialize_library() {
     if (initialize_functions[0] == NULL) {
         return;
     }
+    printf("Found ps_tool_initialize(), registering tool\n");
     register_thread_functions[0] = &ps_tool_register_thread;
     finalize_functions[0] = &ps_tool_finalize;
     dump_data_functions[0] = &ps_tool_dump_data;
@@ -113,6 +114,7 @@ void initialize_library() {
         perfstubs_initialized = PERFSTUBS_FAILURE;
         return;
     }
+    printf("Found ps_tool_initialize(), registering tool\n");
     finalize_functions[0] =
         (ps_finalize_t)dlsym(RTLD_DEFAULT, "ps_tool_finalize");
     register_thread_functions[0] =
@@ -181,8 +183,8 @@ void ps_initialize_(void) {
     for (i = 0 ; i < num_tools_registered ; i++) {
         initialize_functions[i]();
     }
-    /* Register the main thread */
-    ps_register_thread_internal();
+    /* No need to register the main thread */
+    thread_seen = 1;
 }
 
 void ps_finalize_(void) {

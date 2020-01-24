@@ -46,6 +46,7 @@ int ps_register_tool(ps_plugin_data_t * tool) {
         /* Handle error */
         return -1;
     }
+    printf("PerfStubs: registering tool %s\n", tool->tool_name);
     /* Set the new tool id */
     int tool_id = num_tools_registered;
     /* Logistical functions */
