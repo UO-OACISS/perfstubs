@@ -1,4 +1,4 @@
-# Copyright (c) 2019 University of Oregon
+# Copyright (c) 2019-2020 University of Oregon
 # Distributed under the BSD Software License
 # (See accompanying file LICENSE.txt)
 
@@ -9,10 +9,13 @@ if (WIN32)
     message(FATAL_ERROR "\nPerfStubs won't compile on Windows. Exiting.")
 endif (WIN32)
 
-if (NOT APPLE)
-    ENABLE_LANGUAGE(C CXX Fortran)
-else ()
+if (APPLE)
     ENABLE_LANGUAGE(C CXX)
+    message(STATUS "Disabling Fortran support (OSX detected, assume it's not there).")
+else ()
+    ENABLE_LANGUAGE(C CXX Fortran)
+    set(PS_HAVE_FORTRAN TRUE CACHE BOOLEAN "Have Fortran Compiler")
+    message(STATUS "Enabling Fortran support.")
 endif ()
 
 # for the examples only
@@ -34,8 +37,10 @@ option (PERFSTUBS_USE_STATIC
 
 if (PERFSTUBS_USE_STATIC)
     set (BUILD_SHARED_LIBS OFF)
+    message(STATUS "Building shared object libraries and dynamic executables.")
 else (PERFSTUBS_USE_STATIC)
     set (BUILD_SHARED_LIBS ON)
+    message(STATUS "Building static libraries and (if possible) executables.")
 endif (PERFSTUBS_USE_STATIC)
 
 # The version number.
@@ -47,7 +52,7 @@ set (CMAKE_CXX_STANDARD 11)
 set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Werror -pthread")
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -pthread")
 
-if (NOT APPLE)
+if (PS_HAVE_FORTRAN)
     set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -cpp")
     if(CMAKE_Fortran_COMPILER MATCHES "gfortran*")
         set(CMAKE_Fortran_FLAGS
@@ -216,9 +221,12 @@ target_link_libraries (perfstubs_test_threads_cpp_no_tool ${TOOL_LIBS} ${NO_IMPL
 if (APPLE)
     target_link_options(perfstubs_test_overhead PUBLIC -undefined dynamic_lookup)
     target_link_options(perfstubs_test_overhead_cpp PUBLIC -undefined dynamic_lookup)
+    target_link_options(perfstubs_test_api_cpp_no_tool PUBLIC -undefined dynamic_lookup)
+    target_link_options(perfstubs_test_api_c_no_tool PUBLIC -undefined dynamic_lookup)
+    target_link_options(perfstubs_test_threads_cpp_no_tool PUBLIC -undefined dynamic_lookup)
 endif (APPLE)
 
-if (NOT APPLE)
+if (PS_HAVE_FORTRAN)
     add_executable(perfstubs_test_fort examples/main.F90)
     set_target_properties(perfstubs_test_fort PROPERTIES LINKER_LANGUAGE Fortran)
     target_link_libraries (perfstubs_test_fort ${TOOL_LIBS} ${EXTRA_LIBS})
@@ -281,7 +289,7 @@ add_test (test_threads_cpp_no_tool perfstubs_test_threads_cpp_no_tool)
 add_test (test_api_cpp_no_tool perfstubs_test_api_cpp_no_tool)
 add_test (test_api_c_no_tool perfstubs_test_api_c_no_tool)
 
-if (NOT APPLE)
+if (PS_HAVE_FORTRAN)
     add_test (fort_test perfstubs_test_fort 25)
     set_tests_properties (fort_test PROPERTIES PASS_REGULAR_EXPRESSION
         "Tool: ps_tool_timer_create main")
@@ -292,20 +300,6 @@ if (NOT APPLE)
         "Tool2: ps_tool2_timer_create main")
     add_test (test_fort_cpp_no_tool perfstubs_test_fort_no_tool)
 endif ()
-
-# For dynamic testing, preload the "tool"
-if (NOT PERFSTUBS_USE_STATIC AND NOT APPLE)
-    set_tests_properties(cpp_api_test PROPERTIES
-        ENVIRONMENT LD_PRELOAD=${CMAKE_BINARY_DIR}/libimplementation.so)
-    set_tests_properties(c_api_test PROPERTIES
-        ENVIRONMENT LD_PRELOAD=${CMAKE_BINARY_DIR}/libimplementation.so)
-    set_tests_properties(cpp_test PROPERTIES
-        ENVIRONMENT LD_PRELOAD=${CMAKE_BINARY_DIR}/libimplementation.so)
-    set_tests_properties(c_test PROPERTIES
-        ENVIRONMENT LD_PRELOAD=${CMAKE_BINARY_DIR}/libimplementation.so)
-    set_tests_properties(fort_test PROPERTIES
-        ENVIRONMENT LD_PRELOAD=${CMAKE_BINARY_DIR}/libimplementation.so)
-endif (NOT PERFSTUBS_USE_STATIC AND NOT APPLE)
 
 # build a pkg-config file
 set(DEST_DIR "${CMAKE_INSTALL_PREFIX}")

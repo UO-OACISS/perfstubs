@@ -26,6 +26,7 @@ do_build() {
     mkdir ${workdir}/build_${linktype}_${buildtype}
     cd ${workdir}/build_${linktype}_${buildtype}
 
+    set -x
     cmake \
     -DCMAKE_C_COMPILER=`which gcc` \
     -DCMAKE_CXX_COMPILER=`which g++` \
@@ -34,6 +35,7 @@ do_build() {
     -DCMAKE_INSTALL_PREFIX=${workdir}/install_${linktype}_${buildtype} \
     -DPERFSTUBS_USE_STATIC=${staticflag} \
     ..
+    set +x
     make -j
     make test
     make install
