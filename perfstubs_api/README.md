@@ -24,7 +24,7 @@ This is a generic design and implementation for other libraries and tools.
 - [x] Add CMake support for linking in measurement libraries when static
   linking.
 
-- [ ] Investigate API call to trigger writing of performance data to the ADIOS2
+- [x] Investigate API call to trigger writing of performance data to the ADIOS2
   archive (performance data stored with the science data).
 
 ## Overview
@@ -65,27 +65,27 @@ generate it based on source code location data.
 Option 1, explicit timer name:
 
 ```C
-#include "perfstubs_api/Timer.h"
+#include "perfstubs_api/timer.h"
 
 void function_to_time(void) {
-    PERFSTUBS_START("interesting loop");
+    PERFSTUBS_TIMER_START("interesting loop");
     ...
-    PERFSTUBS_STOP("interesting loop");
+    PERFSTUBS_TIMER_STOP("interesting loop");
 }
 ```
 
 Option 2, generated timer name:
 
 ```C
-#include "perfstubs_api/Timer.h"
+#include "perfstubs_api/timer.h"
 
 void function_to_time(void) {
     /* Will generate something like:
      * "function_to_time [{filename.c} {123,0}]"
      */
-    PERFSTUBS_START_FUNC();
+    PERFSTUBS_TIMER_START_FUNC();
     ...
-    PERFSTUBS_STOP_FUNC();
+    PERFSTUBS_TIMER_STOP_FUNC();
 }
 ```
 
@@ -110,7 +110,7 @@ PERFSTUBS_METADATA("ADIOS Method", "POSIX");
 The C++ API adds additional scoped timers for convenience:
 
 ```C++
-#include "perfstubs_api/Timer.h"
+#include "perfstubs_api/timer.h"
 
 void function_to_time(void) {
     /* Will generate something like:
@@ -135,9 +135,16 @@ dynamically or statically.  Dynamic applications can be observed with an
 external tool such as TAU by using the ```tau_exec``` program wrapper:
 
 ```bash
-mpirun -np 4 tau_exec -T mpi,papi,pthread,cupti -ebs -cupti -io ./executable
+mpirun -np 4 tau_exec -T mpi,papi,pthread ./executable
 ```
 
 The example above will use a TAU configuration with PAPI, MPI and Pthread
-support, and will enable event based sampling (-ebs), CUDA (-cupti) and POSIX
-I/O measurement (-io).
+support.
+
+## How to integrate into your project
+
+### Option 1: build/install perfstubs as a library
+Just like it sounds, you would build the library and link to it at link time.  This would be useful if multiple libraries in the executable are using instrumentation, so that there aren't multiple implementations (although that should work fine, there would just be code duplication).
+
+### Option 2: Add timer.c and timer.h (and optionally timer_f.h for Fortran support) to your source code
+This is probably the easiest solution.  Include header paths might have to be modified inside the source files if you don't want to have `perfstubs_api` in your include directory tree.  The line: `#include perfstubs_api/config.h` can be removed from `perfstubs_api/timer.h` unless you have a project need for it.
