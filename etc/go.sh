@@ -32,6 +32,7 @@ do_build() {
     -DCMAKE_CXX_COMPILER=`which g++` \
     ${FORTRAN_COMPILER} \
     -DCMAKE_BUILD_TYPE=${buildtype} \
+    -DPERFSTUBS_SANITIZE=${sanitize} \
     -DCMAKE_INSTALL_PREFIX=${workdir}/install_${linktype}_${buildtype} \
     -DPERFSTUBS_USE_STATIC=${staticflag} \
     ..
@@ -42,17 +43,21 @@ do_build() {
 }
 
 buildtype=Debug
+sanitize=ON
 linktype=dynamic
 staticflag=OFF
 do_build
 buildtype=Release
+sanitize=OFF
 do_build
 
 buildtype=Debug
+sanitize=ON
 linktype=static
 staticflag=ON
 do_build
 buildtype=Release
+sanitize=OFF
 do_build
 
 

@@ -72,15 +72,15 @@ int main(int argc, char *argv[])
     memset(&timer_data, 0, sizeof(ps_tool_timer_data_t));
     ps_get_timer_data_(&timer_data, 0);
     int index = 0;
-    for (int i = 0; i < timer_data.num_timers; i++)
+    for (uint32_t i = 0; i < timer_data.num_timers; i++)
     {
-        for (int k = 0; k < timer_data.num_threads; k++)
+        for (uint32_t k = 0; k < timer_data.num_threads; k++)
         {
             /* The first metric is num_calls, if 0 then don't print this one */
             if (timer_data.values[index] == 0.0) {
                 index = index + timer_data.num_metrics;
             } else {
-                for (int j = 0; j < timer_data.num_metrics; j++)
+                for (uint32_t j = 0; j < timer_data.num_metrics; j++)
                 {
                     printf("'%s' '%s' %d = %f\n", timer_data.timer_names[i],
                         timer_data.metric_names[j], k,
@@ -96,9 +96,9 @@ int main(int argc, char *argv[])
     ps_tool_counter_data_t counter_data;
     memset(&counter_data, 0, sizeof(ps_tool_counter_data_t));
     ps_get_counter_data_(&counter_data, 0);
-    for (int i = 0; i < counter_data.num_counters; i++)
+    for (uint32_t i = 0; i < counter_data.num_counters; i++)
     {
-        for (int k = 0; k < counter_data.num_threads; k++)
+        for (uint32_t k = 0; k < counter_data.num_threads; k++)
         {
             /* The first metric is num_calls, if 0 then don't print this one */
             if (counter_data.num_samples[index] > 0.0) {
@@ -126,7 +126,7 @@ int main(int argc, char *argv[])
     ps_tool_metadata_t metadata;
     memset(&metadata, 0, sizeof(ps_tool_metadata_t));
     ps_get_metadata_(&metadata, 0);
-    for (int i = 0; i < metadata.num_values; i++)
+    for (uint32_t i = 0; i < metadata.num_values; i++)
     {
         printf("'%s' = '%s'\n", metadata.names[i], metadata.values[i]);
     }

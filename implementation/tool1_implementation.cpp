@@ -87,14 +87,14 @@ extern "C"
         return MINE::find_timer(timer_name);
     }
 
-    void ps_tool_timer_start(const void *profiler)
+    void ps_tool_timer_start(void *profiler)
     {
-        MINE::profiler* p = (MINE::profiler*) profiler;
+        MINE::profiler * p = (MINE::profiler *) profiler;
         cout << "Tool: " << __func__ << " " << p->_name << endl;
         p->start();
     }
 
-    void ps_tool_timer_stop(const void *profiler)
+    void ps_tool_timer_stop(void *profiler)
     {
         MINE::profiler* p = (MINE::profiler*) profiler;
         cout << "Tool: " << __func__ << " " << p->_name << endl;
@@ -142,7 +142,7 @@ extern "C"
         return MINE::find_counter(counter_name);
     }
 
-    void ps_tool_sample_counter(const void *counter, double value)
+    void ps_tool_sample_counter(void *counter, double value)
     {
         MINE::counter* c = (MINE::counter*) counter;
         cout << "Tool: " << __func__ << " " << c->_name << " = " << value

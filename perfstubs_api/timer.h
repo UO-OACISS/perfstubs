@@ -55,10 +55,10 @@ void  ps_register_thread_(void);
 void  ps_dump_data_(void);
 void* ps_timer_create_(const char *timer_name);
 void  ps_timer_create_fortran_(void ** object, const char *timer_name);
-void  ps_timer_start_(const void *timer);
-void  ps_timer_start_fortran_(const void **timer);
-void  ps_timer_stop_(const void *timer);
-void  ps_timer_stop_fortran_(const void **timer);
+void  ps_timer_start_(void *timer);
+void  ps_timer_start_fortran_(void **timer);
+void  ps_timer_stop_(void *timer);
+void  ps_timer_stop_fortran_(void **timer);
 void  ps_start_string_(const char *timer_name);
 void  ps_stop_string_(const char *timer_name);
 void  ps_stop_current_(void);
@@ -67,8 +67,8 @@ void  ps_dynamic_phase_start_(const char *phasePrefix, int iterationIndex);
 void  ps_dynamic_phase_stop_(const char *phasePrefix, int iterationIndex);
 void* ps_create_counter_(const char *name);
 void  ps_create_counter_fortran_(void ** object, const char *name);
-void  ps_sample_counter_(const void *counter, const double value);
-void  ps_sample_counter_fortran_(const void **counter, const double value);
+void  ps_sample_counter_(void *counter, const double value);
+void  ps_sample_counter_fortran_(void **counter, const double value);
 void  ps_set_metadata_(const char *name, const char *value);
 
 /* data query API */
@@ -214,10 +214,10 @@ namespace PERFSTUBS_INTERNAL_NAMESPACE
 class ScopedTimer
 {
 private:
-    const void * m_timer;
+    void * m_timer;
 
 public:
-    ScopedTimer(const void * timer) : m_timer(timer)
+    ScopedTimer(void * timer) : m_timer(timer)
     {
         if (perfstubs_initialized == PERFSTUBS_SUCCESS) ps_timer_start_(m_timer);
     }

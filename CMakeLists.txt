@@ -35,6 +35,71 @@ option (PERFSTUBS_USE_DEFAULT_IMPLEMENTATION
 option (PERFSTUBS_USE_STATIC
     "Use static linking" OFF)
 
+# SET SANITIZE OPTIONS, IF DESIRED
+
+# defaults
+set(PERFSTUBS_SANITIZE_OPTIONS "")
+
+# memory, other
+if (DEFINED PERFSTUBS_SANITIZE AND PERFSTUBS_SANITIZE)
+  set(PERFSTUBS_SANITIZE_OPTIONS "-fsanitize=address -fsanitize=undefined ")
+endif (DEFINED PERFSTUBS_SANITIZE AND PERFSTUBS_SANITIZE)
+
+# race conditions
+if (DEFINED PERFSTUBS_SANITIZE_THREAD AND PERFSTUBS_SANITIZE_THREAD)
+  set(PERFSTUBS_SANITIZE_OPTIONS "-fsanitize=thread ")
+endif (DEFINED PERFSTUBS_SANITIZE_THREAD AND PERFSTUBS_SANITIZE_THREAD)
+
+# set debug options
+
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR
+    "${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
+  set(CMAKE_CXX_FLAGS_RELEASE "-Ofast -march=native -DNDEBUG -Wno-deprecated")
+  set(CMAKE_C_FLAGS_RELEASE "-Ofast -march=native -DNDEBUG -Wno-deprecated")
+  # using Clang
+  set(CXX_PEDANTIC_COMPILER_WARNINGS "-Werror -Wsometimes-uninitialized -fdiagnostics-show-option -Wall -Wcast-align -Wcast-qual -Werror=format -Werror=missing-braces -Werror=parentheses -Werror=reorder -Werror=return-type -Werror=sequence-point -Werror=sign-compare -Werror=uninitialized -Werror=vla -Wextra -Wformat=2 -Winit-self -Wno-attributes -Wno-cast-align -Wno-delete-non-virtual-dtor -Wno-format-nonliteral -Wno-ignored-qualifiers -Wno-sign-promo -Wno-strict-aliasing -Wno-unused-parameter -Wno-unused-variable -Wno-unused-local-typedefs -Wno-unused-parameter ")
+  set(C_PEDANTIC_COMPILER_WARNINGS "-Werror -Wsometimes-uninitialized -fdiagnostics-show-option -Wall -Wcast-align -Wcast-qual -Werror=format -Werror=missing-braces -Werror=parentheses -Werror=reorder -Werror=return-type -Werror=sequence-point -Werror=sign-compare -Werror=uninitialized -Werror=vla -Wextra -Wformat=2 -Winit-self -Wno-attributes -Wno-cast-align -Wno-format-nonliteral -Wno-ignored-qualifiers -Wno-strict-aliasing -Wno-unused-parameter -Wno-unused-variable -Wno-unused-local-typedefs -Wno-unused-parameter ")
+  set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 ${CXX_PEDANTIC_COMPILER_WARNINGS} ${PERFSTUBS_SANITIZE_OPTIONS} -DPERFSTUBS_ERROR_HANDLING")
+  set(CMAKE_C_FLAGS_DEBUG "-g -O0 ${C_PEDANTIC_COMPILER_WARNINGS} ${PERFSTUBS_SANITIZE_OPTIONS} -DPERFSTUBS_ERROR_HANDLING")
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+  # using GCC
+  if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.9)
+     message(FATAL_ERROR "GCC version must be at least 4.9!")
+  endif()
+
+  set(CXX_PEDANTIC_COMPILER_WARNINGS "-fdiagnostics-show-option -Wall -Wmaybe-uninitialized -Wcast-align -Wcast-qual -Wdouble-promotion -Werror=format -Werror=missing-braces -Werror=parentheses -Werror=reorder -Werror=return-type -Werror=sequence-point -Werror=sign-compare -Werror=trampolines -Werror=uninitialized -Werror=vla -Wextra -Wformat=2 -Winit-self -Wno-attributes -Wno-cast-align -Wno-delete-non-virtual-dtor -Wno-format-nonliteral -Wno-ignored-qualifiers -Wno-sign-promo -Wno-strict-aliasing -Wno-sync-nand -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-local-typedefs -Wno-unused-parameter ")
+  set(C_PEDANTIC_COMPILER_WARNINGS "-fdiagnostics-show-option -Wall -Wmaybe-uninitialized -Wcast-align -Wcast-qual -Wdouble-promotion -Werror=format -Werror=missing-braces -Werror=parentheses -Werror=reorder -Werror=return-type -Werror=sequence-point -Werror=sign-compare -Werror=trampolines -Werror=uninitialized -Werror=vla -Wextra -Wformat=2 -Winit-self -Wno-attributes -Wno-cast-align -Wno-format-nonliteral -Wno-ignored-qualifiers -Wno-strict-aliasing -Wno-sync-nand -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-local-typedefs -Wno-unused-parameter ")
+  set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 ${CXX_PEDANTIC_COMPILER_WARNINGS} ${PERFSTUBS_SANITIZE_OPTIONS} -DPERFSTUBS_ERROR_HANDLING")
+  set(CMAKE_C_FLAGS_DEBUG "-g -O0 ${C_PEDANTIC_COMPILER_WARNINGS} ${PERFSTUBS_SANITIZE_OPTIONS} -DPERFSTUBS_ERROR_HANDLING")
+  # -march=native is broken on sandybridge architectures.
+  execute_process(COMMAND lscpu COMMAND grep Model: OUTPUT_VARIABLE CPUMODEL_STRING)
+  string(REPLACE " " ";" CPUMODEL_LIST ${CPUMODEL_STRING})
+  list(LENGTH CPUMODEL_LIST CPUMODEL_LENGTH)
+  math(EXPR CPUMODEL_LENGTH "${CPUMODEL_LENGTH} - 1")
+  list(GET CPUMODEL_LIST ${CPUMODEL_LENGTH} CPUMODEL)
+  # message(STATUS "CPU Model: ${CPUMODEL}")
+  if(CPUMODEL EQUAL 63)
+    message(STATUS "Detected Sandybridge CPU - using special optimization flags")
+    SET(CMAKE_CXX_FLAGS_RELEASE "-Ofast -march=corei7-avx -mtune=corei7-avx -mno-avx -mno-aes -flto -DNDEBUG -Wno-deprecated")
+    SET(CMAKE_C_FLAGS_RELEASE "-Ofast -march=corei7-avx -mtune=corei7-avx -mno-avx -mno-aes -flto -DNDEBUG -Wno-deprecated")
+  else()
+    SET(CMAKE_CXX_FLAGS_RELEASE "-Ofast -march=native -flto -DNDEBUG -Wno-deprecated")
+    SET(CMAKE_C_FLAGS_RELEASE "-Ofast -march=native -flto -DNDEBUG -Wno-deprecated")
+  endif()
+  set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS} -flto")
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
+  # using Intel C++
+  set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 ")
+  set(CMAKE_C_FLAGS_DEBUG "-g -O0 ")
+  set(CMAKE_CXX_FLAGS_RELEASE "-Ofast -march=native -ipo -DNDEBUG -Wno-deprecated")
+  set(CMAKE_C_FLAGS_RELEASE "-Ofast -march=native -ipo -DNDEBUG -Wno-deprecated")
+  set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS} -ipo")
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+  # using Visual Studio C++
+else()
+  message(FATAL_ERROR "unknown compiler ${CMAKE_CXX_COMPILER_ID}")
+endif()
+
 if (PERFSTUBS_USE_STATIC)
     set (BUILD_SHARED_LIBS OFF)
     message(STATUS "Building static libraries and (if possible) executables.")

@@ -123,7 +123,7 @@ void ps_deregister_tool(int tool_id) {
 char * ps_make_timer_name_(const char * file,
     const char * func, int line) {
     /* The length of the line number as a string is floor(log10(abs(num))) */
-    int string_length = (strlen(file) + strlen(func) + floor(log10(abs(line))) + 11);
+    int string_length = (strlen(file) + strlen(func) + floor(log10(abs(line))) + 12);
     char * name = calloc(string_length, sizeof(char));
     sprintf(name, "%s [{%s} {%d,0}]", func, file, line);
     return (name);
@@ -174,27 +174,27 @@ void ps_timer_create_fortran_(void ** object, const char *timer_name) {
     *object = ps_timer_create_(timer_name);
 }
 
-void ps_timer_start_(const void *timer) {
-    void ** objects = (void**)(timer);
+void ps_timer_start_(void *timer) {
+    void ** objects = (void **)timer;
     int i;
     for (i = 0; i < num_tools_registered ; i++) {
         timer_start_functions[i](objects[i]);
     }
 }
 
-void ps_timer_start_fortran_(const void **timer) {
+void ps_timer_start_fortran_(void **timer) {
     ps_timer_start_(*timer);
 }
 
-void ps_timer_stop_(const void *timer) {
-    void ** objects = (void**)(timer);
+void ps_timer_stop_(void *timer) {
+    void ** objects = (void **)timer;
     int i;
     for (i = 0; i < num_tools_registered ; i++) {
         timer_stop_functions[i](objects[i]);
     }
 }
 
-void ps_timer_stop_fortran_(const void **timer) {
+void ps_timer_stop_fortran_(void **timer) {
     ps_timer_stop_(*timer);
 }
 
@@ -253,15 +253,15 @@ void ps_create_counter_fortran_(void ** object, const char *name) {
     *object = ps_create_counter_(name);
 }
 
-void ps_sample_counter_(const void *counter, const double value) {
-    void ** objects = (void**)(counter);
+void ps_sample_counter_(void *counter, const double value) {
+    void ** objects = (void **)counter;
     int i;
     for (i = 0; i < num_tools_registered ; i++) {
         sample_counter_functions[i](objects[i], value);
     }
 }
 
-void ps_sample_counter_fortran_(const void **counter, const double value) {
+void ps_sample_counter_fortran_(void **counter, const double value) {
     ps_sample_counter_(*counter, value);
 }
 

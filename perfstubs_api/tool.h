@@ -53,13 +53,13 @@ typedef void  (*ps_stop_string_t)(const char *);
 typedef void  (*ps_stop_current_t)(void);
 /* Data entry functions */
 typedef void* (*ps_timer_create_t)(const char *);
-typedef void  (*ps_timer_start_t)(const void *);
-typedef void  (*ps_timer_stop_t)(const void *);
+typedef void  (*ps_timer_start_t)(void *);
+typedef void  (*ps_timer_stop_t)(void *);
 typedef void  (*ps_set_parameter_t)(const char *, int64_t);
 typedef void  (*ps_dynamic_phase_start_t)(const char *, int);
 typedef void  (*ps_dynamic_phase_stop_t)(const char *, int);
 typedef void* (*ps_create_counter_t)(const char *);
-typedef void  (*ps_sample_counter_t)(const void *, double);
+typedef void  (*ps_sample_counter_t)(void *, double);
 typedef void  (*ps_set_metadata_t)(const char *, const char *);
 /* Data Query Functions */
 typedef void  (*ps_get_timer_data_t)(ps_tool_timer_data_t *);

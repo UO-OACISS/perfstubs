@@ -68,8 +68,8 @@ PS_WEAK_PRE void ps_tool_register_thread(void) PS_WEAK_POST;
 PS_WEAK_PRE void ps_tool_finalize(void) PS_WEAK_POST;
 PS_WEAK_PRE void ps_tool_dump_data(void) PS_WEAK_POST;
 PS_WEAK_PRE void* ps_tool_timer_create(const char *) PS_WEAK_POST;
-PS_WEAK_PRE void ps_tool_timer_start(const void *) PS_WEAK_POST;
-PS_WEAK_PRE void ps_tool_timer_stop(const void *) PS_WEAK_POST;
+PS_WEAK_PRE void ps_tool_timer_start(void *) PS_WEAK_POST;
+PS_WEAK_PRE void ps_tool_timer_stop(void *) PS_WEAK_POST;
 PS_WEAK_PRE void ps_tool_start_string(const char *) PS_WEAK_POST;
 PS_WEAK_PRE void ps_tool_stop_string(const char *) PS_WEAK_POST;
 PS_WEAK_PRE void ps_tool_stop_current(void) PS_WEAK_POST;
@@ -77,7 +77,7 @@ PS_WEAK_PRE void ps_tool_set_parameter(const char *, int64_t) PS_WEAK_POST;
 PS_WEAK_PRE void ps_tool_dynamic_phase_start(const char *, int) PS_WEAK_POST;
 PS_WEAK_PRE void ps_tool_dynamic_phase_stop(const char *, int) PS_WEAK_POST;
 PS_WEAK_PRE void* ps_tool_create_counter(const char *) PS_WEAK_POST;
-PS_WEAK_PRE void ps_tool_sample_counter(const void *, double) PS_WEAK_POST;
+PS_WEAK_PRE void ps_tool_sample_counter(void *, double) PS_WEAK_POST;
 PS_WEAK_PRE void ps_tool_set_metadata(const char *, const char *) PS_WEAK_POST;
 PS_WEAK_PRE void ps_tool_get_timer_data(ps_tool_timer_data_t *) PS_WEAK_POST;
 PS_WEAK_PRE void ps_tool_get_counter_data(ps_tool_counter_data_t *) PS_WEAK_POST;
@@ -176,7 +176,7 @@ void initialize_library() {
 char * ps_make_timer_name_(const char * file,
     const char * func, int line) {
     /* The length of the line number as a string is floor(log10(abs(num))) */
-    int string_length = (strlen(file) + strlen(func) + floor(log10(abs(line))) + 11);
+    int string_length = (strlen(file) + strlen(func) + floor(log10(abs(line))) + 12);
     char * name = calloc(string_length, sizeof(char));
     sprintf(name, "%s [{%s} {%d,0}]", func, file, line);
     return (name);
@@ -216,10 +216,10 @@ void ps_register_thread_(void) {
 }
 
 void* ps_timer_create_(const char *timer_name) {
-    void ** objects = (void**)calloc(num_tools_registered, sizeof(void*));
+    void ** objects = (void **)calloc(num_tools_registered, sizeof(void*));
     int i;
     for (i = 0 ; i < num_tools_registered ; i++) {
-        objects[i] = (void*)timer_create_functions[i](timer_name);
+        objects[i] = (void *)timer_create_functions[i](timer_name);
     }
     return (void*)(objects);
 }
@@ -228,27 +228,27 @@ void ps_timer_create_fortran_(void ** object, const char *timer_name) {
     *object = ps_timer_create_(timer_name);
 }
 
-void ps_timer_start_(const void *timer) {
-    void ** objects = (void**)(timer);
+void ps_timer_start_(void *timer) {
+    void ** objects = (void **)timer;
     int i;
     for (i = 0; i < num_tools_registered ; i++) {
         timer_start_functions[i](objects[i]);
     }
 }
 
-void ps_timer_start_fortran_(const void **timer) {
+void ps_timer_start_fortran_(void **timer) {
     ps_timer_start_(*timer);
 }
 
-void ps_timer_stop_(const void *timer) {
-    void ** objects = (void**)(timer);
+void ps_timer_stop_(void *timer) {
+    void ** objects = (void **)timer;
     int i;
     for (i = 0; i < num_tools_registered ; i++) {
         timer_stop_functions[i](objects[i]);
     }
 }
 
-void ps_timer_stop_fortran_(const void **timer) {
+void ps_timer_stop_fortran_(void **timer) {
     ps_timer_stop_(*timer);
 }
 
@@ -295,7 +295,7 @@ void ps_dynamic_phase_stop_(const char *phase_prefix, int iteration_index) {
 }
 
 void* ps_create_counter_(const char *name) {
-    void ** objects = (void**)calloc(num_tools_registered, sizeof(void*));
+    void ** objects = (void **)calloc(num_tools_registered, sizeof(void*));
     int i;
     for (i = 0 ; i < num_tools_registered ; i++) {
         objects[i] = (void*)create_counter_functions[i](name);
@@ -307,15 +307,15 @@ void ps_create_counter_fortran_(void ** object, const char *name) {
     *object = ps_create_counter_(name);
 }
 
-void ps_sample_counter_(const void *counter, const double value) {
-    void ** objects = (void**)(counter);
+void ps_sample_counter_(void *counter, const double value) {
+    void ** objects = (void **)counter;
     int i;
     for (i = 0; i < num_tools_registered ; i++) {
         sample_counter_functions[i](objects[i], value);
     }
 }
 
-void ps_sample_counter_fortran_(const void **counter, const double value) {
+void ps_sample_counter_fortran_(void **counter, const double value) {
     ps_sample_counter_(*counter, value);
 }
 
