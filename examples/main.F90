@@ -19,6 +19,16 @@
         PERFSTUBS_TIMER_STOP(profiler)
       end
 
+      subroutine HELLOWORLD2(iVal)
+        integer iVal
+        integer profiler(2)
+        save    profiler
+
+        PERFSTUBS_START_STRING('HELLOWORLD2')
+        print *, "Iteration = ", iVal
+        PERFSTUBS_STOP_CURRENT()
+      end
+
       program main
         integer i
         integer profiler(2)

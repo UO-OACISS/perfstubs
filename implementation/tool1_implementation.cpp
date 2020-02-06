@@ -101,6 +101,16 @@ extern "C"
         p->stop();
     }
 
+    void ps_tool_start_string(const char * timer_name)
+    {
+        cout << "Tool: " << __func__ << " " << timer_name << endl;
+    }
+
+    void ps_tool_stop_current(void)
+    {
+        cout << "Tool: " << __func__ << " " << endl;
+    }
+
     void ps_tool_set_parameter(const char *parameter_name, int64_t parameter_value)
     {
         cout << "Tool: " << __func__ << " " << parameter_name
