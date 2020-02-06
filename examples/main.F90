@@ -21,12 +21,18 @@
 
       subroutine HELLOWORLD2(iVal)
         integer iVal
-        integer profiler(2)
-        save    profiler
 
         PERFSTUBS_START_STRING('HELLOWORLD2')
         print *, "Iteration = ", iVal
         PERFSTUBS_STOP_CURRENT()
+      end
+
+      subroutine HELLOWORLD3(iVal)
+        integer iVal
+
+        PERFSTUBS_START_STRING('HELLOWORLD3')
+        print *, "Iteration = ", iVal
+        PERFSTUBS_STOP_STRING('HELLOWORLD3')
       end
 
       program main
@@ -46,7 +52,10 @@
         print *, "test program"
 
         do 10, i = 1, 10
-        call HELLOWORLD(i)
+            call HELLOWORLD(i)
+            call HELLOWORLD2(i)
+            call HELLOWORLD3(i)
+        enddo
 10      continue
         PERFSTUBS_TIMER_STOP(profiler)
         PERFSTUBS_DUMP_DATA()

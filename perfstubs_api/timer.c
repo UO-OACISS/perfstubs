@@ -36,6 +36,7 @@ ps_timer_create_t timer_create_functions[MAX_TOOLS];
 ps_timer_start_t timer_start_functions[MAX_TOOLS];
 ps_timer_stop_t timer_stop_functions[MAX_TOOLS];
 ps_start_string_t start_string_functions[MAX_TOOLS];
+ps_stop_string_t stop_string_functions[MAX_TOOLS];
 ps_stop_current_t stop_current_functions[MAX_TOOLS];
 ps_set_parameter_t set_parameter_functions[MAX_TOOLS];
 ps_dynamic_phase_start_t dynamic_phase_start_functions[MAX_TOOLS];
@@ -70,6 +71,7 @@ PS_WEAK_PRE void* ps_tool_timer_create(const char *) PS_WEAK_POST;
 PS_WEAK_PRE void ps_tool_timer_start(const void *) PS_WEAK_POST;
 PS_WEAK_PRE void ps_tool_timer_stop(const void *) PS_WEAK_POST;
 PS_WEAK_PRE void ps_tool_start_string(const char *) PS_WEAK_POST;
+PS_WEAK_PRE void ps_tool_stop_string(const char *) PS_WEAK_POST;
 PS_WEAK_PRE void ps_tool_stop_current(void) PS_WEAK_POST;
 PS_WEAK_PRE void ps_tool_set_parameter(const char *, int64_t) PS_WEAK_POST;
 PS_WEAK_PRE void ps_tool_dynamic_phase_start(const char *, int) PS_WEAK_POST;
@@ -100,6 +102,7 @@ void initialize_library() {
     timer_start_functions[0] = &ps_tool_timer_start;
     timer_stop_functions[0] = &ps_tool_timer_stop;
     start_string_functions[0] = &ps_tool_start_string;
+    stop_string_functions[0] = &ps_tool_stop_string;
     stop_current_functions[0] = &ps_tool_stop_current;
     set_parameter_functions[0] = &ps_tool_set_parameter;
     dynamic_phase_start_functions[0] = &ps_tool_dynamic_phase_start;
@@ -136,6 +139,8 @@ void initialize_library() {
         (ps_timer_stop_t)dlsym(RTLD_DEFAULT, "ps_tool_timer_stop");
     start_string_functions[0] =
         (ps_start_string_t)dlsym(RTLD_DEFAULT, "ps_tool_start_string");
+    stop_string_functions[0] =
+        (ps_stop_string_t)dlsym(RTLD_DEFAULT, "ps_tool_stop_string");
     stop_current_functions[0] =
         (ps_stop_current_t)dlsym(RTLD_DEFAULT, "ps_tool_stop_current");
     set_parameter_functions[0] =
@@ -251,6 +256,13 @@ void ps_start_string_(const char *timer_name) {
     int i;
     for (i = 0 ; i < num_tools_registered ; i++) {
         start_string_functions[i](timer_name);
+    }
+}
+
+void ps_stop_string_(const char *timer_name) {
+    int i;
+    for (i = 0 ; i < num_tools_registered ; i++) {
+        stop_string_functions[i](timer_name);
     }
 }
 

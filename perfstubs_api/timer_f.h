@@ -22,6 +22,8 @@
     call ps_timer_stop_fortran(_timer_object)
 #define PERFSTUBS_START_STRING(_timer_name) \
     call ps_start_string(_timer_name//CHAR(0))
+#define PERFSTUBS_STOP_STRING(_timer_name) \
+    call ps_stop_string(_timer_name//CHAR(0))
 #define PERFSTUBS_STOP_CURRENT() \
     call ps_timer_stop_current()
 #define PERFSTUBS_SET_PARAMETER(_parameter_name, parameter_value) \
@@ -46,6 +48,9 @@
 #define PERFSTUBS_TIMER_CREATE(_timer_object, _timer_name)
 #define PERFSTUBS_TIMER_START(_timer_object)
 #define PERFSTUBS_TIMER_STOP(_timer_object)
+#define PERFSTUBS_START_STRING(_timer_name)
+#define PERFSTUBS_STOP_STRING(_timer_name)
+#define PERFSTUBS_STOP_CURRENT()
 #define PERFSTUBS_SET_PARAMETER(_parameter_name, _parameter_value)
 #define PERFSTUBS_DYNAMIC_PHASE_START(_phase_prefix, _iteration_index)
 #define PERFSTUBS_DYNAMIC_PHASE_STOP(_phase_prefix, _iteration_index)

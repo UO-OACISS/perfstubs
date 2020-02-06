@@ -106,6 +106,11 @@ extern "C"
         cout << "Tool2: " << __func__ << " " << timer_name << endl;
     }
 
+    void ps_tool2_stop_string(const char * timer_name)
+    {
+        cout << "Tool2: " << __func__ << " " << timer_name << endl;
+    }
+
     void ps_tool2_stop_current(void)
     {
         cout << "Tool2: " << __func__ << " " << endl;
@@ -307,6 +312,9 @@ static void initme2(void) {
         data.timer_create = &ps_tool2_timer_create;
         data.timer_start = &ps_tool2_timer_start;
         data.timer_stop = &ps_tool2_timer_stop;
+        data.start_string = &ps_tool2_start_string;
+        data.stop_string = &ps_tool2_stop_string;
+        data.stop_current = &ps_tool2_stop_current;
         data.set_parameter = &ps_tool2_set_parameter;
         data.dynamic_phase_start = &ps_tool2_dynamic_phase_start;
         data.dynamic_phase_stop = &ps_tool2_dynamic_phase_stop;

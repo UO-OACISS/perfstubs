@@ -106,6 +106,11 @@ extern "C"
         cout << "Tool: " << __func__ << " " << timer_name << endl;
     }
 
+    void ps_tool_stop_string(const char * timer_name)
+    {
+        cout << "Tool: " << __func__ << " " << timer_name << endl;
+    }
+
     void ps_tool_stop_current(void)
     {
         cout << "Tool: " << __func__ << " " << endl;
@@ -303,6 +308,9 @@ static void initme(void) {
         data.finalize = &ps_tool_finalize;
         data.register_thread = &ps_tool_register_thread;
         data.dump_data = &ps_tool_dump_data;
+        data.start_string = &ps_tool_start_string;
+        data.stop_string = &ps_tool_stop_string;
+        data.stop_current = &ps_tool_stop_current;
         /* Data entry functions */
         data.timer_create = &ps_tool_timer_create;
         data.timer_start = &ps_tool_timer_start;

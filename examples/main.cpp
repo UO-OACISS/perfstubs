@@ -25,6 +25,22 @@ double compute(double value)
     return sqrt(value);
 }
 
+double compute2(double value)
+{
+    PERFSTUBS_START_STRING(__func__);
+    double tmp = sqrt(value);
+    PERFSTUBS_STOP_CURRENT();
+    return tmp;
+}
+
+double compute3(double value)
+{
+    PERFSTUBS_START_STRING(__func__);
+    double tmp = sqrt(value);
+    PERFSTUBS_STOP_STRING(__func__);
+    return tmp;
+}
+
 int main(int argc, char *argv[])
 {
     PERFSTUBS_INITIALIZE();
@@ -50,6 +66,8 @@ int main(int argc, char *argv[])
     {
         PERFSTUBS_DYNAMIC_PHASE_START("Loop", i);
         outputValue = compute(inputValue);
+        outputValue = compute2(inputValue);
+        outputValue = compute3(inputValue);
         PERFSTUBS_DYNAMIC_PHASE_STOP("Loop", i);
     }
 

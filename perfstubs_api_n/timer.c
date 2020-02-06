@@ -27,6 +27,9 @@ ps_dump_data_t dump_data_functions[MAX_TOOLS];
 ps_timer_create_t timer_create_functions[MAX_TOOLS];
 ps_timer_start_t timer_start_functions[MAX_TOOLS];
 ps_timer_stop_t timer_stop_functions[MAX_TOOLS];
+ps_start_string_t start_string_functions[MAX_TOOLS];
+ps_stop_string_t stop_string_functions[MAX_TOOLS];
+ps_stop_current_t stop_current_functions[MAX_TOOLS];
 ps_set_parameter_t set_parameter_functions[MAX_TOOLS];
 ps_dynamic_phase_start_t dynamic_phase_start_functions[MAX_TOOLS];
 ps_dynamic_phase_stop_t dynamic_phase_stop_functions[MAX_TOOLS];
@@ -58,6 +61,9 @@ int ps_register_tool(ps_plugin_data_t * tool) {
     timer_create_functions[num_tools_registered] = tool->timer_create;
     timer_start_functions[num_tools_registered] = tool->timer_start;
     timer_stop_functions[num_tools_registered] = tool->timer_stop;
+    start_string_functions[num_tools_registered] = tool->start_string;
+    stop_string_functions[num_tools_registered] = tool->stop_string;
+    stop_current_functions[num_tools_registered] = tool->stop_current;
     set_parameter_functions[num_tools_registered] = tool->set_parameter;
     dynamic_phase_start_functions[num_tools_registered] = tool->dynamic_phase_start;
     dynamic_phase_stop_functions[num_tools_registered] = tool->dynamic_phase_stop;
@@ -88,27 +94,30 @@ int ps_register_tool(ps_plugin_data_t * tool) {
 
 void ps_deregister_tool(int tool_id) {
     /* Logistical functions */
-    initialize_functions[num_tools_registered] = NULL;
-    finalize_functions[num_tools_registered] = NULL;
-    register_thread_functions[num_tools_registered] = NULL;
-    dump_data_functions[num_tools_registered] = NULL;
+    initialize_functions[tool_id] = NULL;
+    finalize_functions[tool_id] = NULL;
+    register_thread_functions[tool_id] = NULL;
+    dump_data_functions[tool_id] = NULL;
     /* Data entry functions */
-    timer_create_functions[num_tools_registered] = NULL;
-    timer_start_functions[num_tools_registered] = NULL;
-    timer_stop_functions[num_tools_registered] = NULL;
-    set_parameter_functions[num_tools_registered] = NULL;
-    dynamic_phase_start_functions[num_tools_registered] = NULL;
-    dynamic_phase_stop_functions[num_tools_registered] = NULL;
-    create_counter_functions[num_tools_registered] = NULL;
-    sample_counter_functions[num_tools_registered] = NULL;
-    set_metadata_functions[num_tools_registered] = NULL;
+    timer_create_functions[tool_id] = NULL;
+    timer_start_functions[tool_id] = NULL;
+    timer_stop_functions[tool_id] = NULL;
+    start_string_functions[tool_id] = NULL;
+    stop_string_functions[tool_id] = NULL;
+    stop_current_functions[tool_id] = NULL;
+    set_parameter_functions[tool_id] = NULL;
+    dynamic_phase_start_functions[tool_id] = NULL;
+    dynamic_phase_stop_functions[tool_id] = NULL;
+    create_counter_functions[tool_id] = NULL;
+    sample_counter_functions[tool_id] = NULL;
+    set_metadata_functions[tool_id] = NULL;
     /* Data Query Functions */
-    get_timer_data_functions[num_tools_registered] = NULL;
-    get_counter_data_functions[num_tools_registered] = NULL;
-    get_metadata_functions[num_tools_registered] = NULL;
-    free_timer_data_functions[num_tools_registered] = NULL;
-    free_counter_data_functions[num_tools_registered] = NULL;
-    free_metadata_functions[num_tools_registered] = NULL;
+    get_timer_data_functions[tool_id] = NULL;
+    get_counter_data_functions[tool_id] = NULL;
+    get_metadata_functions[tool_id] = NULL;
+    free_timer_data_functions[tool_id] = NULL;
+    free_counter_data_functions[tool_id] = NULL;
+    free_metadata_functions[tool_id] = NULL;
 }
 
 char * ps_make_timer_name_(const char * file,
@@ -187,6 +196,27 @@ void ps_timer_stop_(const void *timer) {
 
 void ps_timer_stop_fortran_(const void **timer) {
     ps_timer_stop_(*timer);
+}
+
+void ps_start_string_(const char *timer_name) {
+    int i;
+    for (i = 0 ; i < num_tools_registered ; i++) {
+        start_string_functions[i](timer_name);
+    }
+}
+
+void ps_stop_string_(const char *timer_name) {
+    int i;
+    for (i = 0 ; i < num_tools_registered ; i++) {
+        stop_string_functions[i](timer_name);
+    }
+}
+
+void ps_stop_current_(void) {
+    int i;
+    for (i = 0 ; i < num_tools_registered ; i++) {
+        stop_current_functions[i]();
+    }
 }
 
 void ps_set_parameter_(const char * parameter_name, int64_t parameter_value) {

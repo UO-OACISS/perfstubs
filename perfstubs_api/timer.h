@@ -59,6 +59,9 @@ void  ps_timer_start_(const void *timer);
 void  ps_timer_start_fortran_(const void **timer);
 void  ps_timer_stop_(const void *timer);
 void  ps_timer_stop_fortran_(const void **timer);
+void  ps_start_string_(const char *timer_name);
+void  ps_stop_string_(const char *timer_name);
+void  ps_stop_current_(void);
 void  ps_set_parameter_(const char *parameter_name, int64_t parameter_value);
 void  ps_dynamic_phase_start_(const char *phasePrefix, int iterationIndex);
 void  ps_dynamic_phase_stop_(const char *phasePrefix, int iterationIndex);
@@ -108,6 +111,19 @@ char* ps_make_timer_name_(const char * file, const char * func, int line);
 #define PERFSTUBS_TIMER_STOP(_timer) \
     if (perfstubs_initialized == PERFSTUBS_SUCCESS) ps_timer_stop_(_timer); \
 
+#define PERFSTUBS_START_STRING(_timer_name) \
+    if (perfstubs_initialized == PERFSTUBS_SUCCESS) { \
+        ps_start_string_(_timer_name); \
+    };
+
+#define PERFSTUBS_STOP_STRING(_timer_name) \
+    if (perfstubs_initialized == PERFSTUBS_SUCCESS) { \
+        ps_stop_string_(_timer_name); \
+    };
+
+#define PERFSTUBS_STOP_CURRENT() \
+    if (perfstubs_initialized == PERFSTUBS_SUCCESS) ps_stop_current_(); \
+
 #define PERFSTUBS_SET_PARAMETER(_parameter, _value) \
     if (perfstubs_initialized == PERFSTUBS_SUCCESS) ps_set_parameter_(_parameter, _value);
 
@@ -154,6 +170,9 @@ char* ps_make_timer_name_(const char * file, const char * func, int line);
 #define PERFSTUBS_DUMP_DATA()
 #define PERFSTUBS_TIMER_START(_timer, _timer_name)
 #define PERFSTUBS_TIMER_STOP(_timer_name)
+#define PERFSTUBS_START_STRING(_timer_name)
+#define PERFSTUBS_STOP_STRING(_timer_name)
+#define PERFSTUBS_STOP_CURRENT()
 #define PERFSTUBS_SET_PARAMETER(_parameter, _value)
 #define PERFSTUBS_DYNAMIC_PHASE_START(_phase_prefix, _iteration_index)
 #define PERFSTUBS_DYNAMIC_PHASE_STOP(_phase_prefix, _iteration_index)

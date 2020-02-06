@@ -49,6 +49,7 @@ typedef void  (*ps_register_thread_t)(void);
 typedef void  (*ps_dump_data_t)(void);
 /* Simple functions */
 typedef void  (*ps_start_string_t)(const char *);
+typedef void  (*ps_stop_string_t)(const char *);
 typedef void  (*ps_stop_current_t)(void);
 /* Data entry functions */
 typedef void* (*ps_timer_create_t)(const char *);
@@ -81,6 +82,7 @@ typedef struct ps_plugin_data {
     ps_dump_data_t dump_data;
     /* Simple API */
     ps_start_string_t start_string;
+    ps_stop_string_t stop_string;
     ps_stop_current_t stop_current;
     /* Data entry functions */
     ps_timer_create_t timer_create;
