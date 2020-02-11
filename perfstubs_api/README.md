@@ -81,7 +81,7 @@ Option 2, generated timer name:
 
 void function_to_time(void) {
     /* Will generate something like:
-     * "function_to_time [{filename.c} {123,0}]"
+     * "void function_to_time(void) [{filename.c} {123,0}]"
      */
     PERFSTUBS_TIMER_START_FUNC();
     ...
@@ -114,7 +114,7 @@ The C++ API adds additional scoped timers for convenience:
 
 void function_to_time(void) {
     /* Will generate something like:
-     * "function_to_time [{filename.cpp} {123,0}]"
+     * "void function_to_time(void) [{filename.cpp} {123,0}]"
      */
     PERFSTUBS_SCOPED_TIMER_FUNC();
     ...
@@ -146,5 +146,5 @@ support.
 ### Option 1: build/install perfstubs as a library
 Just like it sounds, you would build the library and link to it at link time.  This would be useful if multiple libraries in the executable are using instrumentation, so that there aren't multiple implementations (although that should work fine, there would just be code duplication).
 
-### Option 2: Add timer.c and timer.h (and optionally timer_f.h for Fortran support) to your source code
+### Option 2: Add timer.c, tool.h and timer.h (and optionally timer_f.h for Fortran support) to your source code
 This is probably the easiest solution.  Include header paths might have to be modified inside the source files if you don't want to have `perfstubs_api` in your include directory tree.  The line: `#include perfstubs_api/config.h` can be removed from `perfstubs_api/timer.h` unless you have a project need for it.
