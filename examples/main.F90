@@ -55,7 +55,6 @@
             call HELLOWORLD(i)
             call HELLOWORLD2(i)
             call HELLOWORLD3(i)
-        enddo
 10      continue
         PERFSTUBS_TIMER_STOP(profiler)
         PERFSTUBS_DUMP_DATA()
