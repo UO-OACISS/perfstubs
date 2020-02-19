@@ -133,7 +133,22 @@ configure_file (
     "${PROJECT_SOURCE_DIR}/perfstubs_api/config.h.in"
     "${PROJECT_BINARY_DIR}/perfstubs_api/config.h"
     )
- 
+configure_file (
+    "${PROJECT_SOURCE_DIR}/perfstubs_api/timer.h"
+    "${PROJECT_BINARY_DIR}/perfstubs_api/timer.h"
+    )
+configure_file (
+    "${PROJECT_SOURCE_DIR}/perfstubs_api/timer_f.h"
+    "${PROJECT_BINARY_DIR}/perfstubs_api/timer_f.h"
+    )
+configure_file (
+    "${PROJECT_SOURCE_DIR}/perfstubs_api/tool.h"
+    "${PROJECT_BINARY_DIR}/perfstubs_api/tool.h"
+    )
+# We copy all the headers in case this project is built as a git submodule.
+set(PERFSTUBS_INCLUDE_DIR ${PROJECT_BINARY_DIR} CACHE STRING "PerfStubs header location")
+set(PERFSTUBS_LIBRARY_DIR ${PROJECT_BINARY_DIR} CACHE STRING "PerfStubs library location")
+
 # add the binary tree to the search path for include files
 # so that we will find Config.h
 include_directories("${PROJECT_BINARY_DIR}")
