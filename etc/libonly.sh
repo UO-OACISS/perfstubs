@@ -35,11 +35,9 @@ do_build() {
     -DPERFSTUBS_SANITIZE=${sanitize} \
     -DCMAKE_INSTALL_PREFIX=${workdir}/install_${linktype}_${buildtype} \
     -DPERFSTUBS_USE_STATIC=${staticflag} \
-    -DPERFSTUBS_LIBRARY_ONLY=FALSE \
     ..
     set +x
     make -j
-    make test
     make install
 }
 

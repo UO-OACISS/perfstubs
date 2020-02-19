@@ -35,6 +35,10 @@ option (PERFSTUBS_USE_DEFAULT_IMPLEMENTATION
 option (PERFSTUBS_USE_STATIC
     "Use static linking" OFF)
 
+# should we build just the library?
+option (PERFSTUBS_LIBRARY_ONLY
+    "Build only libperfstsubs" ON)
+
 # SET SANITIZE OPTIONS, IF DESIRED
 
 # defaults
@@ -54,8 +58,8 @@ endif (DEFINED PERFSTUBS_SANITIZE_THREAD AND PERFSTUBS_SANITIZE_THREAD)
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR
     "${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
-  set(CMAKE_CXX_FLAGS_RELEASE "-Ofast -march=native -DNDEBUG -Wno-deprecated")
-  set(CMAKE_C_FLAGS_RELEASE "-Ofast -march=native -DNDEBUG -Wno-deprecated")
+  set(CMAKE_CXX_FLAGS_RELEASE "-Ofast -DNDEBUG -Wno-deprecated")
+  set(CMAKE_C_FLAGS_RELEASE "-Ofast -DNDEBUG -Wno-deprecated")
   # using Clang
   set(CXX_PEDANTIC_COMPILER_WARNINGS "-Werror -Wsometimes-uninitialized -fdiagnostics-show-option -Wall -Wcast-align -Wcast-qual -Werror=format -Werror=missing-braces -Werror=parentheses -Werror=reorder -Werror=return-type -Werror=sequence-point -Werror=sign-compare -Werror=uninitialized -Werror=vla -Wextra -Wformat=2 -Winit-self -Wno-attributes -Wno-cast-align -Wno-delete-non-virtual-dtor -Wno-format-nonliteral -Wno-ignored-qualifiers -Wno-sign-promo -Wno-strict-aliasing -Wno-unused-parameter -Wno-unused-variable -Wno-unused-local-typedefs -Wno-unused-parameter ")
   set(C_PEDANTIC_COMPILER_WARNINGS "-Werror -Wsometimes-uninitialized -fdiagnostics-show-option -Wall -Wcast-align -Wcast-qual -Werror=format -Werror=missing-braces -Werror=parentheses -Werror=reorder -Werror=return-type -Werror=sequence-point -Werror=sign-compare -Werror=uninitialized -Werror=vla -Wextra -Wformat=2 -Winit-self -Wno-attributes -Wno-cast-align -Wno-format-nonliteral -Wno-ignored-qualifiers -Wno-strict-aliasing -Wno-unused-parameter -Wno-unused-variable -Wno-unused-local-typedefs -Wno-unused-parameter ")
@@ -63,8 +67,8 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR
   set(CMAKE_C_FLAGS_DEBUG "-g -O0 ${C_PEDANTIC_COMPILER_WARNINGS} ${PERFSTUBS_SANITIZE_OPTIONS} -DPERFSTUBS_ERROR_HANDLING")
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   # using GCC
-  if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.9)
-     message(FATAL_ERROR "GCC version must be at least 4.9!")
+  if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.8)
+     message(FATAL_ERROR "GCC version must be at least 4.8!")
   endif()
 
   set(CXX_PEDANTIC_COMPILER_WARNINGS "-fdiagnostics-show-option -Wall -Wmaybe-uninitialized -Wcast-align -Wcast-qual -Wdouble-promotion -Werror=format -Werror=missing-braces -Werror=parentheses -Werror=reorder -Werror=return-type -Werror=sequence-point -Werror=sign-compare -Werror=trampolines -Werror=uninitialized -Werror=vla -Wextra -Wformat=2 -Winit-self -Wno-attributes -Wno-cast-align -Wno-delete-non-virtual-dtor -Wno-format-nonliteral -Wno-ignored-qualifiers -Wno-sign-promo -Wno-strict-aliasing -Wno-sync-nand -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-local-typedefs -Wno-unused-parameter ")
@@ -77,22 +81,14 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   list(LENGTH CPUMODEL_LIST CPUMODEL_LENGTH)
   math(EXPR CPUMODEL_LENGTH "${CPUMODEL_LENGTH} - 1")
   list(GET CPUMODEL_LIST ${CPUMODEL_LENGTH} CPUMODEL)
-  # message(STATUS "CPU Model: ${CPUMODEL}")
-  if(CPUMODEL EQUAL 63)
-    message(STATUS "Detected Sandybridge CPU - using special optimization flags")
-    SET(CMAKE_CXX_FLAGS_RELEASE "-Ofast -march=corei7-avx -mtune=corei7-avx -mno-avx -mno-aes -flto -DNDEBUG -Wno-deprecated")
-    SET(CMAKE_C_FLAGS_RELEASE "-Ofast -march=corei7-avx -mtune=corei7-avx -mno-avx -mno-aes -flto -DNDEBUG -Wno-deprecated")
-  else()
-    SET(CMAKE_CXX_FLAGS_RELEASE "-Ofast -march=native -flto -DNDEBUG -Wno-deprecated")
-    SET(CMAKE_C_FLAGS_RELEASE "-Ofast -march=native -flto -DNDEBUG -Wno-deprecated")
-  endif()
+  message(STATUS "CPU Model: ${CPUMODEL}")
   set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS} -flto")
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
   # using Intel C++
   set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 ")
   set(CMAKE_C_FLAGS_DEBUG "-g -O0 ")
-  set(CMAKE_CXX_FLAGS_RELEASE "-Ofast -march=native -ipo -DNDEBUG -Wno-deprecated")
-  set(CMAKE_C_FLAGS_RELEASE "-Ofast -march=native -ipo -DNDEBUG -Wno-deprecated")
+  set(CMAKE_CXX_FLAGS_RELEASE "-Ofast -ipo -DNDEBUG -Wno-deprecated")
+  set(CMAKE_C_FLAGS_RELEASE "-Ofast -ipo -DNDEBUG -Wno-deprecated")
   set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS} -ipo")
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   # using Visual Studio C++
@@ -181,32 +177,34 @@ if (PERFSTUBS_USE_TIMERS)
     endif()
 endif (PERFSTUBS_USE_TIMERS)
 
-# add the default implementation?
-set (NO_IMPL_EXTRA_LIBS ${EXTRA_LIBS})
-if (PERFSTUBS_USE_DEFAULT_IMPLEMENTATION)
-    add_library(implementation implementation/tool1_implementation.cpp)
-    add_library(implementation2 implementation/tool2_implementation.cpp)
-    if (APPLE)
-        target_link_options(implementation PUBLIC -undefined dynamic_lookup)
-        target_link_options(implementation2 PUBLIC -undefined dynamic_lookup)
-    endif (APPLE)
-    if (BUILD_SHARED_LIBS)
-        set (IMPL_LIB implementation)
-        set (IMPL_LIB2 implementation implementation2)
-    else (BUILD_SHARED_LIBS)
+if(NOT PERFSTUBS_LIBRARY_ONLY)
+    # add the default implementation?
+    set (NO_IMPL_EXTRA_LIBS ${EXTRA_LIBS})
+    if (PERFSTUBS_USE_DEFAULT_IMPLEMENTATION)
+        add_library(implementation implementation/tool1_implementation.cpp)
+        add_library(implementation2 implementation/tool2_implementation.cpp)
         if (APPLE)
-            set (IMPL_LIB -Wl,-all_load implementation)
-            set (IMPL_LIB2 -Wl,-all_load implementation implementation2)
-        else (APPLE)
-            # This only seems to work for static linking on Linux.  Boooo...
-            # That's ok, we preload the library when testing, see below.
-            set (IMPL_LIB -Wl,--whole-archive implementation -Wl,--no-whole-archive)
-            set (IMPL_LIB2 -Wl,--whole-archive implementation implementation2 -Wl,--no-whole-archive)
+            target_link_options(implementation PUBLIC -undefined dynamic_lookup)
+            target_link_options(implementation2 PUBLIC -undefined dynamic_lookup)
         endif (APPLE)
-    endif (BUILD_SHARED_LIBS)
-    set (EXTRA_LIBS ${EXTRA_LIBS} ${IMPL_LIB})
-    set (EXTRA_LIBS2 ${EXTRA_LIBS2} ${IMPL_LIB2})
-endif (PERFSTUBS_USE_DEFAULT_IMPLEMENTATION)
+        if (BUILD_SHARED_LIBS)
+            set (IMPL_LIB implementation)
+            set (IMPL_LIB2 implementation implementation2)
+        else (BUILD_SHARED_LIBS)
+            if (APPLE)
+                set (IMPL_LIB -Wl,-all_load implementation)
+                set (IMPL_LIB2 -Wl,-all_load implementation implementation2)
+            else (APPLE)
+                # This only seems to work for static linking on Linux.  Boooo...
+                # That's ok, we preload the library when testing, see below.
+                set (IMPL_LIB -Wl,--whole-archive implementation -Wl,--no-whole-archive)
+                set (IMPL_LIB2 -Wl,--whole-archive implementation implementation2 -Wl,--no-whole-archive)
+            endif (APPLE)
+        endif (BUILD_SHARED_LIBS)
+        set (EXTRA_LIBS ${EXTRA_LIBS} ${IMPL_LIB})
+        set (EXTRA_LIBS2 ${EXTRA_LIBS2} ${IMPL_LIB2})
+    endif (PERFSTUBS_USE_DEFAULT_IMPLEMENTATION)
+endif(NOT PERFSTUBS_LIBRARY_ONLY)
 
 if (PERFSTUBS_USE_STATIC AND NOT APPLE)
     SET(CMAKE_EXE_LINKER_FLAGS "-static")
@@ -230,6 +228,7 @@ if (NOT PERFSTUBS_USE_STATIC)
     ENDIF("${isSystemDir}" STREQUAL "-1")
 endif (NOT PERFSTUBS_USE_STATIC)
 
+if(NOT PERFSTUBS_LIBRARY_ONLY)
 # add the executables
 add_executable(perfstubs_test_api_cpp examples/all_api.cpp)
 target_link_libraries (perfstubs_test_api_cpp ${TOOL_LIBS} ${EXTRA_LIBS})
@@ -365,6 +364,8 @@ if (PS_HAVE_FORTRAN)
         "Tool2: ps_tool2_timer_create main")
     add_test (test_fort_cpp_no_tool perfstubs_test_fort_no_tool)
 endif ()
+
+endif(NOT PERFSTUBS_LIBRARY_ONLY)
 
 # build a pkg-config file
 set(DEST_DIR "${CMAKE_INSTALL_PREFIX}")
