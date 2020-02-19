@@ -32,11 +32,11 @@ do_build() {
     -DCMAKE_CXX_COMPILER=`which g++` \
     ${FORTRAN_COMPILER} \
     -DCMAKE_BUILD_TYPE=${buildtype} \
-    -DPERFSTUBS_SANITIZE=${sanitize} \
     -DCMAKE_INSTALL_PREFIX=${workdir}/install_${linktype}_${buildtype} \
     -DPERFSTUBS_USE_STATIC=${staticflag} \
     -DPERFSTUBS_LIBRARY_ONLY=FALSE \
     ..
+    #-DPERFSTUBS_SANITIZE=${sanitize} \
     set +x
     make -j
     make test

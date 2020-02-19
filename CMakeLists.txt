@@ -14,7 +14,7 @@ if (APPLE)
     message(STATUS "Disabling Fortran support (OSX detected, assume it's not there).")
 else ()
     ENABLE_LANGUAGE(C CXX Fortran)
-    set(PS_HAVE_FORTRAN TRUE CACHE BOOLEAN "Have Fortran Compiler")
+    set(PS_HAVE_FORTRAN ON CACHE BOOLEAN "Have Fortran Compiler")
     message(STATUS "Enabling Fortran support.")
 endif ()
 
