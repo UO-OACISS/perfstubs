@@ -54,48 +54,6 @@ if (DEFINED PERFSTUBS_SANITIZE_THREAD AND PERFSTUBS_SANITIZE_THREAD)
   set(PERFSTUBS_SANITIZE_OPTIONS "-fsanitize=thread ")
 endif (DEFINED PERFSTUBS_SANITIZE_THREAD AND PERFSTUBS_SANITIZE_THREAD)
 
-# set debug options
-
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR
-    "${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
-  set(CMAKE_CXX_FLAGS_RELEASE "-Ofast -DNDEBUG -Wno-deprecated")
-  set(CMAKE_C_FLAGS_RELEASE "-Ofast -DNDEBUG -Wno-deprecated")
-  # using Clang
-  set(CXX_PEDANTIC_COMPILER_WARNINGS "-Werror -Wsometimes-uninitialized -fdiagnostics-show-option -Wall -Wcast-align -Wcast-qual -Werror=format -Werror=missing-braces -Werror=parentheses -Werror=reorder -Werror=return-type -Werror=sequence-point -Werror=sign-compare -Werror=uninitialized -Werror=vla -Wextra -Wformat=2 -Winit-self -Wno-attributes -Wno-cast-align -Wno-delete-non-virtual-dtor -Wno-format-nonliteral -Wno-ignored-qualifiers -Wno-sign-promo -Wno-strict-aliasing -Wno-unused-parameter -Wno-unused-variable -Wno-unused-local-typedefs -Wno-unused-parameter ")
-  set(C_PEDANTIC_COMPILER_WARNINGS "-Werror -Wsometimes-uninitialized -fdiagnostics-show-option -Wall -Wcast-align -Wcast-qual -Werror=format -Werror=missing-braces -Werror=parentheses -Werror=reorder -Werror=return-type -Werror=sequence-point -Werror=sign-compare -Werror=uninitialized -Werror=vla -Wextra -Wformat=2 -Winit-self -Wno-attributes -Wno-cast-align -Wno-format-nonliteral -Wno-ignored-qualifiers -Wno-strict-aliasing -Wno-unused-parameter -Wno-unused-variable -Wno-unused-local-typedefs -Wno-unused-parameter ")
-  set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 ${CXX_PEDANTIC_COMPILER_WARNINGS} ${PERFSTUBS_SANITIZE_OPTIONS} -DPERFSTUBS_ERROR_HANDLING")
-  set(CMAKE_C_FLAGS_DEBUG "-g -O0 ${C_PEDANTIC_COMPILER_WARNINGS} ${PERFSTUBS_SANITIZE_OPTIONS} -DPERFSTUBS_ERROR_HANDLING")
-elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-  # using GCC
-  if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.8)
-     message(FATAL_ERROR "GCC version must be at least 4.8!")
-  endif()
-
-  set(CXX_PEDANTIC_COMPILER_WARNINGS "-fdiagnostics-show-option -Wall -Wmaybe-uninitialized -Wcast-align -Wcast-qual -Wdouble-promotion -Werror=format -Werror=missing-braces -Werror=parentheses -Werror=reorder -Werror=return-type -Werror=sequence-point -Werror=sign-compare -Werror=trampolines -Werror=uninitialized -Werror=vla -Wextra -Wformat=2 -Winit-self -Wno-attributes -Wno-cast-align -Wno-delete-non-virtual-dtor -Wno-format-nonliteral -Wno-ignored-qualifiers -Wno-sign-promo -Wno-strict-aliasing -Wno-sync-nand -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-local-typedefs -Wno-unused-parameter ")
-  set(C_PEDANTIC_COMPILER_WARNINGS "-fdiagnostics-show-option -Wall -Wmaybe-uninitialized -Wcast-align -Wcast-qual -Wdouble-promotion -Werror=format -Werror=missing-braces -Werror=parentheses -Werror=reorder -Werror=return-type -Werror=sequence-point -Werror=sign-compare -Werror=trampolines -Werror=uninitialized -Werror=vla -Wextra -Wformat=2 -Winit-self -Wno-attributes -Wno-cast-align -Wno-format-nonliteral -Wno-ignored-qualifiers -Wno-strict-aliasing -Wno-sync-nand -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-local-typedefs -Wno-unused-parameter ")
-  set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 ${CXX_PEDANTIC_COMPILER_WARNINGS} ${PERFSTUBS_SANITIZE_OPTIONS} -DPERFSTUBS_ERROR_HANDLING")
-  set(CMAKE_C_FLAGS_DEBUG "-g -O0 ${C_PEDANTIC_COMPILER_WARNINGS} ${PERFSTUBS_SANITIZE_OPTIONS} -DPERFSTUBS_ERROR_HANDLING")
-  # -march=native is broken on sandybridge architectures.
-  execute_process(COMMAND lscpu COMMAND grep Model: OUTPUT_VARIABLE CPUMODEL_STRING)
-  string(REPLACE " " ";" CPUMODEL_LIST ${CPUMODEL_STRING})
-  list(LENGTH CPUMODEL_LIST CPUMODEL_LENGTH)
-  math(EXPR CPUMODEL_LENGTH "${CPUMODEL_LENGTH} - 1")
-  list(GET CPUMODEL_LIST ${CPUMODEL_LENGTH} CPUMODEL)
-  message(STATUS "CPU Model: ${CPUMODEL}")
-  set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS} -flto")
-elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
-  # using Intel C++
-  set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 ")
-  set(CMAKE_C_FLAGS_DEBUG "-g -O0 ")
-  set(CMAKE_CXX_FLAGS_RELEASE "-Ofast -ipo -DNDEBUG -Wno-deprecated")
-  set(CMAKE_C_FLAGS_RELEASE "-Ofast -ipo -DNDEBUG -Wno-deprecated")
-  set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS} -ipo")
-elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-  # using Visual Studio C++
-else()
-  message(FATAL_ERROR "unknown compiler ${CMAKE_CXX_COMPILER_ID}")
-endif()
-
 if (PERFSTUBS_USE_STATIC)
     set (BUILD_SHARED_LIBS OFF)
     message(STATUS "Building static libraries and (if possible) executables.")
@@ -150,8 +108,27 @@ endif (PERFSTUBS_USE_STATIC AND NOT APPLE)
 set (EXTRA_LIBS ${EXTRA_LIBS} ${PTHREAD_LIB} m)
 set (EXTRA_LIBS2 ${EXTRA_LIBS2} ${PTHREAD_LIB} m)
 
-add_library(perfstubs perfstubs_api/timer.c)
-add_library(perfstubs_n perfstubs_api_n/timer.c)
+if (BUILD_SHARED_LIBS)
+    add_library(perfstubs perfstubs_api/timer.c)
+    add_library(perfstubs_n perfstubs_api_n/timer.c)
+    target_link_libraries(perfstubs INTERFACE dl m)
+    target_link_libraries(perfstubs_n INTERFACE m)
+else()
+    add_library(perfstubs perfstubs_api/timer.c)
+    add_library(perfstubs_n perfstubs_api_n/timer.c)
+    # "Think different"
+    if (APPLE)
+        get_property(perfstubs_location TARGET perfstubs PROPERTY LOCATION)     
+        get_property(perfstubs_n_location TARGET perfstubs_n PROPERTY LOCATION)     
+        target_link_libraries(perfstubs -Wl,-all_load ${perfstubs_location})
+        target_link_libraries(perfstubs_n -Wl,-all_load ${perfstubs_n_location})
+    else()
+        #get_property(perfstubs_location TARGET perfstubs PROPERTY LOCATION)     
+        #get_property(perfstubs_n_location TARGET perfstubs_n PROPERTY LOCATION)     
+        #set_property(TARGET perfstubs PROPERTY INTERFACE_LINK_LIBRARIES -Wl,--whole-archive,-lperfstubs,-Wl,--no-whole-archive) 
+        #set_property(TARGET perfstubs_n PROPERTY INTERFACE_LINK_LIBRARIES -Wl,--whole-archive,-lperfstubs_n,-Wl,--no-whole-archive) 
+    endif()
+endif()
 
 target_include_directories(perfstubs PUBLIC
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
@@ -164,24 +141,6 @@ target_include_directories(perfstubs_n PUBLIC
   $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>
   $<INSTALL_INTERFACE:include>
 )
-
-# add the perfstubs library
-if (PERFSTUBS_USE_TIMERS)
-    if (BUILD_SHARED_LIBS)
-    set (TOOL_LIBS ${TOOL_LIBS} perfstubs dl)
-    set (TOOL_LIBS_N ${TOOL_LIBS_N} perfstubs_n)
-    else()
-        if (APPLE)
-            set (TOOL_LIBS ${TOOL_LIBS} -Wl,-all_load perfstubs)
-            set (TOOL_LIBS_N ${TOOL_LIBS_N} -Wl,-all_load perfstubs_n)
-        else()
-            set (TOOL_LIBS ${TOOL_LIBS}
-                -Wl,--whole-archive perfstubs -Wl,--no-whole-archive)
-            set (TOOL_LIBS_N ${TOOL_LIBS_N}
-                -Wl,--whole-archive perfstubs_n -Wl,--no-whole-archive)
-        endif()
-    endif()
-endif (PERFSTUBS_USE_TIMERS)
 
 if(NOT PERFSTUBS_LIBRARY_ONLY)
     # add the default implementation?
@@ -247,56 +206,56 @@ endif (NOT PERFSTUBS_USE_STATIC)
 if(NOT PERFSTUBS_LIBRARY_ONLY)
 # add the executables
 add_executable(perfstubs_test_api_cpp examples/all_api.cpp)
-target_link_libraries (perfstubs_test_api_cpp ${TOOL_LIBS} ${EXTRA_LIBS})
+target_link_libraries (perfstubs_test_api_cpp perfstubs ${EXTRA_LIBS})
 
 add_executable(perfstubs_test_api_cpp_no_tool examples/all_api.cpp)
-target_link_libraries (perfstubs_test_api_cpp_no_tool ${TOOL_LIBS} ${NO_IMPL_EXTRA_LIBS})
+target_link_libraries (perfstubs_test_api_cpp_no_tool perfstubs ${NO_IMPL_EXTRA_LIBS})
 
 add_executable(perfstubs_test_api_n_cpp examples/all_api.cpp)
-target_link_libraries (perfstubs_test_api_n_cpp ${TOOL_LIBS_N} ${EXTRA_LIBS2})
+target_link_libraries (perfstubs_test_api_n_cpp perfstubs_n ${EXTRA_LIBS2})
 target_compile_definitions(perfstubs_test_api_n_cpp PRIVATE -DPERFSTUBS_MULTIPLE_TOOL_SUPPORT)
 
 add_executable(perfstubs_test_api_c examples/all_api.c)
 set_target_properties(perfstubs_test_api_c PROPERTIES LINKER_LANGUAGE C)
-target_link_libraries (perfstubs_test_api_c ${TOOL_LIBS} ${EXTRA_LIBS})
+target_link_libraries (perfstubs_test_api_c perfstubs ${EXTRA_LIBS})
 
 add_executable(perfstubs_test_api_c_no_tool examples/all_api.c)
 set_target_properties(perfstubs_test_api_c_no_tool PROPERTIES LINKER_LANGUAGE C)
-target_link_libraries (perfstubs_test_api_c_no_tool ${TOOL_LIBS} ${NO_IMPL_EXTRA_LIBS})
+target_link_libraries (perfstubs_test_api_c_no_tool perfstubs ${NO_IMPL_EXTRA_LIBS})
 
 add_executable(perfstubs_test_api_n_c examples/all_api.c)
 set_target_properties(perfstubs_test_api_n_c PROPERTIES LINKER_LANGUAGE C)
-target_link_libraries (perfstubs_test_api_n_c ${TOOL_LIBS_N} ${EXTRA_LIBS2})
+target_link_libraries (perfstubs_test_api_n_c perfstubs_n ${EXTRA_LIBS2})
 target_compile_definitions(perfstubs_test_api_n_c PRIVATE -DPERFSTUBS_MULTIPLE_TOOL_SUPPORT)
 
 add_executable(perfstubs_test_cpp examples/main.cpp)
-target_link_libraries (perfstubs_test_cpp ${TOOL_LIBS} ${EXTRA_LIBS})
+target_link_libraries (perfstubs_test_cpp perfstubs ${EXTRA_LIBS})
 
 add_executable(perfstubs_test_n_cpp examples/main.cpp)
-target_link_libraries (perfstubs_test_n_cpp ${TOOL_LIBS_N} ${EXTRA_LIBS2})
+target_link_libraries (perfstubs_test_n_cpp perfstubs_n ${EXTRA_LIBS2})
 target_compile_definitions(perfstubs_test_n_cpp PRIVATE -DPERFSTUBS_MULTIPLE_TOOL_SUPPORT)
 
 add_executable(perfstubs_test_c examples/main.c)
 set_target_properties(perfstubs_test_c PROPERTIES LINKER_LANGUAGE C)
-target_link_libraries (perfstubs_test_c ${TOOL_LIBS} ${EXTRA_LIBS})
+target_link_libraries (perfstubs_test_c perfstubs ${EXTRA_LIBS})
 
 add_executable(perfstubs_test_n_c examples/main.c)
 set_target_properties(perfstubs_test_n_c PROPERTIES LINKER_LANGUAGE C)
-target_link_libraries (perfstubs_test_n_c ${TOOL_LIBS_N} ${EXTRA_LIBS2})
+target_link_libraries (perfstubs_test_n_c perfstubs_n ${EXTRA_LIBS2})
 target_compile_definitions(perfstubs_test_n_c PRIVATE -DPERFSTUBS_MULTIPLE_TOOL_SUPPORT)
 
 add_executable(perfstubs_test_overhead examples/overhead.c)
 set_target_properties(perfstubs_test_overhead PROPERTIES LINKER_LANGUAGE C)
-target_link_libraries (perfstubs_test_overhead ${TOOL_LIBS} ${NO_IMPL_EXTRA_LIBS})
+target_link_libraries (perfstubs_test_overhead perfstubs ${NO_IMPL_EXTRA_LIBS})
 
 add_executable(perfstubs_test_overhead_cpp examples/overhead.cpp)
-target_link_libraries (perfstubs_test_overhead_cpp ${TOOL_LIBS} ${NO_IMPL_EXTRA_LIBS})
+target_link_libraries (perfstubs_test_overhead_cpp perfstubs ${NO_IMPL_EXTRA_LIBS})
 
 add_executable(perfstubs_test_threads_cpp examples/threaded_example.cpp)
-target_link_libraries (perfstubs_test_threads_cpp ${TOOL_LIBS} ${EXTRA_LIBS})
+target_link_libraries (perfstubs_test_threads_cpp perfstubs ${EXTRA_LIBS})
 
 add_executable(perfstubs_test_threads_cpp_no_tool examples/threaded_example.cpp)
-target_link_libraries (perfstubs_test_threads_cpp_no_tool ${TOOL_LIBS} ${NO_IMPL_EXTRA_LIBS})
+target_link_libraries (perfstubs_test_threads_cpp_no_tool perfstubs ${NO_IMPL_EXTRA_LIBS})
 
 if (APPLE)
     target_link_options(perfstubs_test_overhead PUBLIC -undefined dynamic_lookup)
@@ -309,13 +268,13 @@ endif (APPLE)
 if (PS_HAVE_FORTRAN)
     add_executable(perfstubs_test_fort examples/main.F90)
     set_target_properties(perfstubs_test_fort PROPERTIES LINKER_LANGUAGE Fortran)
-    target_link_libraries (perfstubs_test_fort ${TOOL_LIBS} ${EXTRA_LIBS})
+    target_link_libraries (perfstubs_test_fort perfstubs ${EXTRA_LIBS})
     add_executable(perfstubs_test_fort_no_tool examples/main.F90)
     set_target_properties(perfstubs_test_fort_no_tool PROPERTIES LINKER_LANGUAGE Fortran)
-    target_link_libraries (perfstubs_test_fort_no_tool ${TOOL_LIBS} ${NO_IMPL_EXTRA_LIBS})
+    target_link_libraries (perfstubs_test_fort_no_tool perfstubs ${NO_IMPL_EXTRA_LIBS})
     add_executable(perfstubs_test_n_fort examples/main.F90)
     set_target_properties(perfstubs_test_n_fort PROPERTIES LINKER_LANGUAGE Fortran)
-    target_link_libraries (perfstubs_test_n_fort ${TOOL_LIBS_N} ${EXTRA_LIBS2})
+    target_link_libraries (perfstubs_test_n_fort perfstubs_n ${EXTRA_LIBS2})
     target_compile_definitions(perfstubs_test_n_c PRIVATE -DPERFSTUBS_MULTIPLE_TOOL_SUPPORT)
 endif ()
 

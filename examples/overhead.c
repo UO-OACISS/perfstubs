@@ -59,9 +59,10 @@ double wtime()
 // returns number of instrumentations triggered
 int mm(int s, double* a, double* b, double* c)
 {
-    for(int i = 0; i < s; i++) {
-        for(int j = 0; j < s; j++) {
-            for(int k = 0; k < s; k++)
+    int i,j,k;
+    for(i = 0; i < s; i++) {
+        for(j = 0; j < s; j++) {
+            for(k = 0; k < s; k++)
                 a[i*s+j] += b[i*s+k] * c[k*s+j];
         }
     }
@@ -72,11 +73,12 @@ int mm(int s, double* a, double* b, double* c)
 int mm_inst(int s, double* a, double* b, double* c)
 {
     PERFSTUBS_TIMER_START_FUNC(_timer);
-    for(int i = 0; i < s; i++) {
-        for(int j = 0; j < s; j++) {
+    int i,j,k;
+    for(i = 0; i < s; i++) {
+        for(j = 0; j < s; j++) {
             //INST("tag", j);
             PERFSTUBS_TIMER_START(_timer, "tag");
-            for(int k = 0; k < s; k++)
+            for(k = 0; k < s; k++)
                 a[i*s+j] += b[i*s+k] * c[k*s+j];
             PERFSTUBS_TIMER_STOP(_timer);
         }
@@ -100,13 +102,15 @@ int main(int argc, char* argv[])
     double* a = malloc(s*s*sizeof(double));
     double* b = malloc(s*s*sizeof(double));
     double* c = malloc(s*s*sizeof(double));
-    for(int i = 0; i < s; i++)
-        for(int j = 0; j < s; j++)
+    int i,j;
+    for(i = 0; i < s; i++)
+        for(j = 0; j < s; j++)
             a[i*s+j] = b[i*s+j] = c[i*s+j] = 1.0;
 
     double t1 = wtime();
     long inst_count = 0;
-    for(int iter = 0; iter < imax; iter++)
+    int iter;
+    for(iter = 0; iter < imax; iter++)
         inst_count += mm(s, a, b, c);
     double tdiff = wtime() - t1;
 
@@ -115,7 +119,7 @@ int main(int argc, char* argv[])
 
     t1 = wtime();
     inst_count = 0;
-    for(int iter = 0; iter < imax; iter++)
+    for(iter = 0; iter < imax; iter++)
         inst_count += mm(s, a, b, c);
     tdiff = wtime() - t1;
 
@@ -124,7 +128,7 @@ int main(int argc, char* argv[])
 
     t1 = wtime();
     inst_count = 0;
-    for(int iter = 0; iter < imax; iter++)
+    for(iter = 0; iter < imax; iter++)
         inst_count += mm_inst(s, a, b, c);
     double tdiff2 = wtime() - t1;
 
@@ -135,5 +139,5 @@ int main(int argc, char* argv[])
            ((tdiff2 - tdiff) / ((double) inst_count)) * 1.0e9);
 
     PERFSTUBS_FINALIZE();
-
+    return 0;
 }

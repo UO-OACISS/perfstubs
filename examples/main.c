@@ -52,11 +52,12 @@ int main(int argc, char *argv[])
     PERFSTUBS_SAMPLE_COUNTER("input", inputValue);
 
     double outputValue;
-    for (int i = 0; i < 5; i++)
+    int idx;
+    for (idx = 0; idx < 5; idx++)
     {
-        PERFSTUBS_DYNAMIC_PHASE_START("Loop", i);
+        PERFSTUBS_DYNAMIC_PHASE_START("Loop", idx);
         outputValue = compute(inputValue);
-        PERFSTUBS_DYNAMIC_PHASE_STOP("Loop", i);
+        PERFSTUBS_DYNAMIC_PHASE_STOP("Loop", idx);
     }
 
     pthread_join(example_thread, NULL);
@@ -72,15 +73,16 @@ int main(int argc, char *argv[])
     memset(&timer_data, 0, sizeof(ps_tool_timer_data_t));
     ps_get_timer_data_(&timer_data, 0);
     int index = 0;
-    for (uint32_t i = 0; i < timer_data.num_timers; i++)
+    uint32_t i,j,k;
+    for (i = 0; i < timer_data.num_timers; i++)
     {
-        for (uint32_t k = 0; k < timer_data.num_threads; k++)
+        for (k = 0; k < timer_data.num_threads; k++)
         {
             /* The first metric is num_calls, if 0 then don't print this one */
             if (timer_data.values[index] == 0.0) {
                 index = index + timer_data.num_metrics;
             } else {
-                for (uint32_t j = 0; j < timer_data.num_metrics; j++)
+                for (j = 0; j < timer_data.num_metrics; j++)
                 {
                     printf("'%s' '%s' %d = %f\n", timer_data.timer_names[i],
                         timer_data.metric_names[j], k,
@@ -96,9 +98,9 @@ int main(int argc, char *argv[])
     ps_tool_counter_data_t counter_data;
     memset(&counter_data, 0, sizeof(ps_tool_counter_data_t));
     ps_get_counter_data_(&counter_data, 0);
-    for (uint32_t i = 0; i < counter_data.num_counters; i++)
+    for (i = 0; i < counter_data.num_counters; i++)
     {
-        for (uint32_t k = 0; k < counter_data.num_threads; k++)
+        for (k = 0; k < counter_data.num_threads; k++)
         {
             /* The first metric is num_calls, if 0 then don't print this one */
             if (counter_data.num_samples[index] > 0.0) {
@@ -126,7 +128,7 @@ int main(int argc, char *argv[])
     ps_tool_metadata_t metadata;
     memset(&metadata, 0, sizeof(ps_tool_metadata_t));
     ps_get_metadata_(&metadata, 0);
-    for (uint32_t i = 0; i < metadata.num_values; i++)
+    for (i = 0; i < metadata.num_values; i++)
     {
         printf("'%s' = '%s'\n", metadata.names[i], metadata.values[i]);
     }

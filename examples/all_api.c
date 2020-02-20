@@ -17,7 +17,8 @@ int main(int argc, char *argv[])
     // starts
     PERFSTUBS_TIMER_START(timer2, "timer")
 
-    for (int i = 0 ; i < 5; i++) {
+    int i;
+    for (i = 0 ; i < 5; i++) {
         PERFSTUBS_DYNAMIC_PHASE_START("iter", i)
         PERFSTUBS_DYNAMIC_PHASE_STOP("iter", i)
     }
