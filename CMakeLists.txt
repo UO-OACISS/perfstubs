@@ -131,7 +131,7 @@ endif()
 # to the source code
 configure_file (
     "${PROJECT_SOURCE_DIR}/perfstubs_api/config.h.in"
-    "${PROJECT_BINARY_DIR}/perfstubs_api/config.h"
+    "${PROJECT_SOURCE_DIR}/perfstubs_api/config.h"
     )
 
 # Deal with CMP0042 warnings from CMake
@@ -418,8 +418,7 @@ install (TARGETS perfstubs perfstubs_n
 install (FILES perfstubs_api/timer.h DESTINATION include/perfstubs_api)
 install (FILES perfstubs_api/timer_f.h DESTINATION include/perfstubs_api)
 install (FILES perfstubs_api/tool.h DESTINATION include/perfstubs_api)
-install (FILES ${CMAKE_BINARY_DIR}/perfstubs_api/config.h
-    DESTINATION include/perfstubs_api)
+install (FILES perfstubs_api/config.h DESTINATION include/perfstubs_api)
 install (FILES ${CMAKE_BINARY_DIR}/perfstubs.pc DESTINATION lib/pkgconfig)
 install (FILES ${CMAKE_BINARY_DIR}/perfstubs-config.cmake
     DESTINATION lib/cmake)
