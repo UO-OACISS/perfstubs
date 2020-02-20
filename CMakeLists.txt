@@ -131,7 +131,7 @@ endif()
 # to the source code
 configure_file (
     "${PROJECT_SOURCE_DIR}/perfstubs_api/config.h.in"
-    "${PROJECT_SOURCE_DIR}/perfstubs_api/config.h"
+    "${PROJECT_BINARY_DIR}/perfstubs_api/config.h"
     )
 
 # Deal with CMP0042 warnings from CMake
@@ -155,11 +155,13 @@ add_library(perfstubs_n perfstubs_api_n/timer.c)
 
 target_include_directories(perfstubs PUBLIC
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
+  $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>
   $<INSTALL_INTERFACE:include>
 )
 
 target_include_directories(perfstubs_n PUBLIC
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
+  $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>
   $<INSTALL_INTERFACE:include>
 )
 
@@ -189,10 +191,12 @@ if(NOT PERFSTUBS_LIBRARY_ONLY)
         add_library(implementation2 implementation/tool2_implementation.cpp)
         target_include_directories(implementation PRIVATE
           $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
+          $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>
           $<INSTALL_INTERFACE:include>
         )
         target_include_directories(implementation2 PRIVATE
           $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
+          $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>
           $<INSTALL_INTERFACE:include>
         )
         if (APPLE)
@@ -418,7 +422,7 @@ install (TARGETS perfstubs perfstubs_n
 install (FILES perfstubs_api/timer.h DESTINATION include/perfstubs_api)
 install (FILES perfstubs_api/timer_f.h DESTINATION include/perfstubs_api)
 install (FILES perfstubs_api/tool.h DESTINATION include/perfstubs_api)
-install (FILES perfstubs_api/config.h DESTINATION include/perfstubs_api)
+install (FILES ${CMAKE_BINARY_DIR}/perfstubs_api/config.h DESTINATION include/perfstubs_api)
 install (FILES ${CMAKE_BINARY_DIR}/perfstubs.pc DESTINATION lib/pkgconfig)
 install (FILES ${CMAKE_BINARY_DIR}/perfstubs-config.cmake
     DESTINATION lib/cmake)
