@@ -133,27 +133,6 @@ configure_file (
     "${PROJECT_SOURCE_DIR}/perfstubs_api/config.h.in"
     "${PROJECT_BINARY_DIR}/perfstubs_api/config.h"
     )
-configure_file (
-    "${PROJECT_SOURCE_DIR}/perfstubs_api/timer.h"
-    "${PROJECT_BINARY_DIR}/perfstubs_api/timer.h"
-    )
-configure_file (
-    "${PROJECT_SOURCE_DIR}/perfstubs_api/timer_f.h"
-    "${PROJECT_BINARY_DIR}/perfstubs_api/timer_f.h"
-    )
-configure_file (
-    "${PROJECT_SOURCE_DIR}/perfstubs_api/tool.h"
-    "${PROJECT_BINARY_DIR}/perfstubs_api/tool.h"
-    )
-# We copy all the headers in case this project is built as a git submodule.
-set(PERFSTUBS_INCLUDE_DIR ${PROJECT_BINARY_DIR} CACHE STRING "PerfStubs header location")
-set(PERFSTUBS_LIBRARY_DIR ${PROJECT_BINARY_DIR} CACHE STRING "PerfStubs library location")
-
-# add the binary tree to the search path for include files
-# so that we will find Config.h
-include_directories("${PROJECT_BINARY_DIR}")
-# Also add the source tree for all targets
-include_directories ("${PROJECT_SOURCE_DIR}")
 
 # Deal with CMP0042 warnings from CMake
 if (APPLE)
@@ -173,6 +152,16 @@ set (EXTRA_LIBS2 ${EXTRA_LIBS2} ${PTHREAD_LIB} m)
 
 add_library(perfstubs perfstubs_api/timer.c)
 add_library(perfstubs_n perfstubs_api_n/timer.c)
+
+target_include_directories(perfstubs PUBLIC
+  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
+  $<INSTALL_INTERFACE:include>
+)
+
+target_include_directories(perfstubs_n PUBLIC
+  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
+  $<INSTALL_INTERFACE:include>
+)
 
 # add the perfstubs library
 if (PERFSTUBS_USE_TIMERS)
@@ -198,6 +187,14 @@ if(NOT PERFSTUBS_LIBRARY_ONLY)
     if (PERFSTUBS_USE_DEFAULT_IMPLEMENTATION)
         add_library(implementation implementation/tool1_implementation.cpp)
         add_library(implementation2 implementation/tool2_implementation.cpp)
+        target_include_directories(implementation PRIVATE
+          $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
+          $<INSTALL_INTERFACE:include>
+        )
+        target_include_directories(implementation2 PRIVATE
+          $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
+          $<INSTALL_INTERFACE:include>
+        )
         if (APPLE)
             target_link_options(implementation PUBLIC -undefined dynamic_lookup)
             target_link_options(implementation2 PUBLIC -undefined dynamic_lookup)
