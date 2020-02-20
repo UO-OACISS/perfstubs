@@ -42,7 +42,8 @@
 ! // defined(PERFSTUBS_USE_TIMERS)
 #else
 
-#define PERFSTUBS_INIT()
+#define PERFSTUBS_INITIALIZE()
+#define PERFSTUBS_FINALIZE()
 #define PERFSTUBS_DUMP_DATA()
 #define PERFSTUBS_REGISTER_THREAD()
 #define PERFSTUBS_TIMER_CREATE(_timer_object, _timer_name)
@@ -54,8 +55,6 @@
 #define PERFSTUBS_SET_PARAMETER(_parameter_name, _parameter_value)
 #define PERFSTUBS_DYNAMIC_PHASE_START(_phase_prefix, _iteration_index)
 #define PERFSTUBS_DYNAMIC_PHASE_STOP(_phase_prefix, _iteration_index)
-#define PERFSTUBS_TIMER_START_FUNC()
-#define PERFSTUBS_TIMER_STOP_FUNC()
 #define PERFSTUBS_CREATE_COUNTER(_counter_object, _name)
 #define PERFSTUBS_SAMPLE_COUNTER(_counter_object, _value)
 #define PERFSTUBS_METADATA(_name, _value)
