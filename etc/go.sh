@@ -31,7 +31,7 @@ do_build() {
     -DCMAKE_BUILD_TYPE=${buildtype} \
     -DCMAKE_INSTALL_PREFIX=${workdir}/install_${linktype}_${buildtype} \
     -DPERFSTUBS_USE_STATIC=${staticflag} \
-    -DPERFSTUBS_LIBRARY_ONLY=FALSE \
+    -DPERFSTUBS_BUILD_EXAMPLES=TRUE \
     ..
     #-DPERFSTUBS_SANITIZE=${sanitize} \
     set +x

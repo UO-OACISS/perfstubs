@@ -36,8 +36,8 @@ option (PERFSTUBS_USE_STATIC
     "Use static linking" OFF)
 
 # should we build just the library?
-option (PERFSTUBS_LIBRARY_ONLY
-    "Build only libperfstsubs" ON)
+option (PERFSTUBS_BUILD_EXAMPLES
+    "Build libperfstsubs examples" OFF)
 
 # SET SANITIZE OPTIONS, IF DESIRED
 
@@ -95,91 +95,62 @@ configure_file (
 # Deal with CMP0042 warnings from CMake
 if (APPLE)
     set(CMAKE_MACOSX_RPATH ON)
+    set(PS_HAVE_FORTRAN ON CACHE BOOL "Have Fortran Compiler")
 endif (APPLE)
+
+# We have to force the static linker to load all symbols, otherwise
+# the function pointers won't have definitions, and things "won't work"
+set (PS_STATIC_WHOLE_PREFIX "" CACHE STRING "Static linker library prefix flag")
+set (PS_STATIC_WHOLE_POSTFIX "" CACHE STRING "Static linker library postfix flag")
+if (PERFSTUBS_USE_STATIC)
+    if (APPLE) # "Think different!"
+        set (PS_STATIC_WHOLE_PREFIX -Wl,-all_load)
+        set (PS_STATIC_WHOLE_POSTFIX "")
+    else (APPLE)
+        set (PS_STATIC_WHOLE_PREFIX -Wl,--whole-archive)
+        set (PS_STATIC_WHOLE_POSTFIX -Wl,--no-whole-archive)
+    endif (APPLE)
+endif (PERFSTUBS_USE_STATIC)
 
 # Pthread is garbage when linking static - not all symbols are included,
 # in particular std::thread.detach() and std::thread.join().
 # It's a pthread problem, not a gcc or libc problem.
 if (PERFSTUBS_USE_STATIC AND NOT APPLE)
-    set (PTHREAD_LIB -Wl,--whole-archive pthread -Wl,--no-whole-archive)
+    set (PTHREAD_LIB ${PS_STATIC_WHOLE_PREFIX} pthread ${PS_STATIC_WHOLE_POSTFIX})
 else (PERFSTUBS_USE_STATIC AND NOT APPLE)
     set (PTHREAD_LIB pthread)
 endif (PERFSTUBS_USE_STATIC AND NOT APPLE)
-set (EXTRA_LIBS ${EXTRA_LIBS} ${PTHREAD_LIB} m)
-set (EXTRA_LIBS2 ${EXTRA_LIBS2} ${PTHREAD_LIB} m)
+
+add_library(perfstubs perfstubs_api/timer.c)
+add_library(perfstubs_n perfstubs_api_n/timer.c)
+target_link_libraries(perfstubs_n INTERFACE m)
 
 if (BUILD_SHARED_LIBS)
-    add_library(perfstubs perfstubs_api/timer.c)
-    add_library(perfstubs_n perfstubs_api_n/timer.c)
     target_link_libraries(perfstubs INTERFACE dl m)
-    target_link_libraries(perfstubs_n INTERFACE m)
 else()
-    add_library(perfstubs perfstubs_api/timer.c)
-    add_library(perfstubs_n perfstubs_api_n/timer.c)
-    # "Think different"
-    if (APPLE)
-        get_property(perfstubs_location TARGET perfstubs PROPERTY LOCATION)     
-        get_property(perfstubs_n_location TARGET perfstubs_n PROPERTY LOCATION)     
-        target_link_libraries(perfstubs -Wl,-all_load ${perfstubs_location})
-        target_link_libraries(perfstubs_n -Wl,-all_load ${perfstubs_n_location})
-    else()
-        #get_property(perfstubs_location TARGET perfstubs PROPERTY LOCATION)     
-        #get_property(perfstubs_n_location TARGET perfstubs_n PROPERTY LOCATION)     
-        #set_property(TARGET perfstubs PROPERTY INTERFACE_LINK_LIBRARIES -Wl,--whole-archive,-lperfstubs,-Wl,--no-whole-archive) 
-        #set_property(TARGET perfstubs_n PROPERTY INTERFACE_LINK_LIBRARIES -Wl,--whole-archive,-lperfstubs_n,-Wl,--no-whole-archive) 
-    endif()
+    target_link_libraries(perfstubs INTERFACE m)
 endif()
 
-target_include_directories(perfstubs PUBLIC
+    target_include_directories(perfstubs PRIVATE
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>
+    )
+    target_include_directories(perfstubs_n PRIVATE
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>
+    )
+
+target_include_directories(perfstubs INTERFACE
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
   $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>
   $<INSTALL_INTERFACE:include>
 )
 
-target_include_directories(perfstubs_n PUBLIC
+target_include_directories(perfstubs_n INTERFACE
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
   $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>
   $<INSTALL_INTERFACE:include>
 )
-
-if(NOT PERFSTUBS_LIBRARY_ONLY)
-    # add the default implementation?
-    set (NO_IMPL_EXTRA_LIBS ${EXTRA_LIBS})
-    if (PERFSTUBS_USE_DEFAULT_IMPLEMENTATION)
-        add_library(implementation implementation/tool1_implementation.cpp)
-        add_library(implementation2 implementation/tool2_implementation.cpp)
-        target_include_directories(implementation PRIVATE
-          $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
-          $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>
-          $<INSTALL_INTERFACE:include>
-        )
-        target_include_directories(implementation2 PRIVATE
-          $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
-          $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>
-          $<INSTALL_INTERFACE:include>
-        )
-        if (APPLE)
-            target_link_options(implementation PUBLIC -undefined dynamic_lookup)
-            target_link_options(implementation2 PUBLIC -undefined dynamic_lookup)
-        endif (APPLE)
-        if (BUILD_SHARED_LIBS)
-            set (IMPL_LIB implementation)
-            set (IMPL_LIB2 implementation implementation2)
-        else (BUILD_SHARED_LIBS)
-            if (APPLE)
-                set (IMPL_LIB -Wl,-all_load implementation)
-                set (IMPL_LIB2 -Wl,-all_load implementation implementation2)
-            else (APPLE)
-                # This only seems to work for static linking on Linux.  Boooo...
-                # That's ok, we preload the library when testing, see below.
-                set (IMPL_LIB -Wl,--whole-archive implementation -Wl,--no-whole-archive)
-                set (IMPL_LIB2 -Wl,--whole-archive implementation implementation2 -Wl,--no-whole-archive)
-            endif (APPLE)
-        endif (BUILD_SHARED_LIBS)
-        set (EXTRA_LIBS ${EXTRA_LIBS} ${IMPL_LIB})
-        set (EXTRA_LIBS2 ${EXTRA_LIBS2} ${IMPL_LIB2})
-    endif (PERFSTUBS_USE_DEFAULT_IMPLEMENTATION)
-endif(NOT PERFSTUBS_LIBRARY_ONLY)
 
 if (PERFSTUBS_USE_STATIC AND NOT APPLE)
     SET(CMAKE_EXE_LINKER_FLAGS "-static")
@@ -203,152 +174,21 @@ if (NOT PERFSTUBS_USE_STATIC)
     ENDIF("${isSystemDir}" STREQUAL "-1")
 endif (NOT PERFSTUBS_USE_STATIC)
 
-if(NOT PERFSTUBS_LIBRARY_ONLY)
-# add the executables
-add_executable(perfstubs_test_api_cpp examples/all_api.cpp)
-target_link_libraries (perfstubs_test_api_cpp perfstubs ${EXTRA_LIBS})
-
-add_executable(perfstubs_test_api_cpp_no_tool examples/all_api.cpp)
-target_link_libraries (perfstubs_test_api_cpp_no_tool perfstubs ${NO_IMPL_EXTRA_LIBS})
-
-add_executable(perfstubs_test_api_n_cpp examples/all_api.cpp)
-target_link_libraries (perfstubs_test_api_n_cpp perfstubs_n ${EXTRA_LIBS2})
-target_compile_definitions(perfstubs_test_api_n_cpp PRIVATE -DPERFSTUBS_MULTIPLE_TOOL_SUPPORT)
-
-add_executable(perfstubs_test_api_c examples/all_api.c)
-set_target_properties(perfstubs_test_api_c PROPERTIES LINKER_LANGUAGE C)
-target_link_libraries (perfstubs_test_api_c perfstubs ${EXTRA_LIBS})
-
-add_executable(perfstubs_test_api_c_no_tool examples/all_api.c)
-set_target_properties(perfstubs_test_api_c_no_tool PROPERTIES LINKER_LANGUAGE C)
-target_link_libraries (perfstubs_test_api_c_no_tool perfstubs ${NO_IMPL_EXTRA_LIBS})
-
-add_executable(perfstubs_test_api_n_c examples/all_api.c)
-set_target_properties(perfstubs_test_api_n_c PROPERTIES LINKER_LANGUAGE C)
-target_link_libraries (perfstubs_test_api_n_c perfstubs_n ${EXTRA_LIBS2})
-target_compile_definitions(perfstubs_test_api_n_c PRIVATE -DPERFSTUBS_MULTIPLE_TOOL_SUPPORT)
-
-add_executable(perfstubs_test_cpp examples/main.cpp)
-target_link_libraries (perfstubs_test_cpp perfstubs ${EXTRA_LIBS})
-
-add_executable(perfstubs_test_n_cpp examples/main.cpp)
-target_link_libraries (perfstubs_test_n_cpp perfstubs_n ${EXTRA_LIBS2})
-target_compile_definitions(perfstubs_test_n_cpp PRIVATE -DPERFSTUBS_MULTIPLE_TOOL_SUPPORT)
-
-add_executable(perfstubs_test_c examples/main.c)
-set_target_properties(perfstubs_test_c PROPERTIES LINKER_LANGUAGE C)
-target_link_libraries (perfstubs_test_c perfstubs ${EXTRA_LIBS})
-
-add_executable(perfstubs_test_n_c examples/main.c)
-set_target_properties(perfstubs_test_n_c PROPERTIES LINKER_LANGUAGE C)
-target_link_libraries (perfstubs_test_n_c perfstubs_n ${EXTRA_LIBS2})
-target_compile_definitions(perfstubs_test_n_c PRIVATE -DPERFSTUBS_MULTIPLE_TOOL_SUPPORT)
-
-add_executable(perfstubs_test_overhead examples/overhead.c)
-set_target_properties(perfstubs_test_overhead PROPERTIES LINKER_LANGUAGE C)
-target_link_libraries (perfstubs_test_overhead perfstubs ${NO_IMPL_EXTRA_LIBS})
-
-add_executable(perfstubs_test_overhead_cpp examples/overhead.cpp)
-target_link_libraries (perfstubs_test_overhead_cpp perfstubs ${NO_IMPL_EXTRA_LIBS})
-
-add_executable(perfstubs_test_threads_cpp examples/threaded_example.cpp)
-target_link_libraries (perfstubs_test_threads_cpp perfstubs ${EXTRA_LIBS})
-
-add_executable(perfstubs_test_threads_cpp_no_tool examples/threaded_example.cpp)
-target_link_libraries (perfstubs_test_threads_cpp_no_tool perfstubs ${NO_IMPL_EXTRA_LIBS})
-
-if (APPLE)
-    target_link_options(perfstubs_test_overhead PUBLIC -undefined dynamic_lookup)
-    target_link_options(perfstubs_test_overhead_cpp PUBLIC -undefined dynamic_lookup)
-    target_link_options(perfstubs_test_api_cpp_no_tool PUBLIC -undefined dynamic_lookup)
-    target_link_options(perfstubs_test_api_c_no_tool PUBLIC -undefined dynamic_lookup)
-    target_link_options(perfstubs_test_threads_cpp_no_tool PUBLIC -undefined dynamic_lookup)
-endif (APPLE)
-
-if (PS_HAVE_FORTRAN)
-    add_executable(perfstubs_test_fort examples/main.F90)
-    set_target_properties(perfstubs_test_fort PROPERTIES LINKER_LANGUAGE Fortran)
-    target_link_libraries (perfstubs_test_fort perfstubs ${EXTRA_LIBS})
-    add_executable(perfstubs_test_fort_no_tool examples/main.F90)
-    set_target_properties(perfstubs_test_fort_no_tool PROPERTIES LINKER_LANGUAGE Fortran)
-    target_link_libraries (perfstubs_test_fort_no_tool perfstubs ${NO_IMPL_EXTRA_LIBS})
-    add_executable(perfstubs_test_n_fort examples/main.F90)
-    set_target_properties(perfstubs_test_n_fort PROPERTIES LINKER_LANGUAGE Fortran)
-    target_link_libraries (perfstubs_test_n_fort perfstubs_n ${EXTRA_LIBS2})
-    target_compile_definitions(perfstubs_test_n_c PRIVATE -DPERFSTUBS_MULTIPLE_TOOL_SUPPORT)
-endif ()
-
-include(CTest)
-
-# does the application run
-add_test (cpp_api_test perfstubs_test_api_cpp)
-set_tests_properties (cpp_api_test PROPERTIES PASS_REGULAR_EXPRESSION
-    "Tool: ps_tool_set_metadata meta = data")
-
-add_test (cpp_api_n_test perfstubs_test_api_n_cpp)
-set_tests_properties (cpp_api_n_test PROPERTIES PASS_REGULAR_EXPRESSION
-    "Tool: ps_tool_set_metadata meta = data")
-set_tests_properties (cpp_api_n_test PROPERTIES PASS_REGULAR_EXPRESSION
-    "Tool2: ps_tool2_set_metadata meta = data")
-
-add_test (c_api_test perfstubs_test_api_c)
-set_tests_properties (c_api_test PROPERTIES PASS_REGULAR_EXPRESSION
-    "Tool: ps_tool_set_metadata meta = data")
-
-add_test (c_api_n_test perfstubs_test_api_n_c)
-set_tests_properties (c_api_n_test PROPERTIES PASS_REGULAR_EXPRESSION
-    "Tool: ps_tool_set_metadata meta = data")
-set_tests_properties (c_api_n_test PROPERTIES PASS_REGULAR_EXPRESSION
-    "Tool2: ps_tool2_set_metadata meta = data")
-
-add_test (cpp_test perfstubs_test_cpp 25)
-set_tests_properties (cpp_test PROPERTIES PASS_REGULAR_EXPRESSION
-    "Tool: ps_tool_timer_start int main")
-
-add_test (cpp_n_test perfstubs_test_n_cpp 25)
-set_tests_properties (cpp_n_test PROPERTIES PASS_REGULAR_EXPRESSION
-    "Tool: ps_tool_timer_start int main")
-set_tests_properties (cpp_n_test PROPERTIES PASS_REGULAR_EXPRESSION
-    "Tool2: ps_tool2_timer_start int main")
-
-add_test (c_test perfstubs_test_c 25)
-set_tests_properties (c_test PROPERTIES PASS_REGULAR_EXPRESSION
-    "Tool: ps_tool_timer_start .* main")
-
-add_test (c_n_test perfstubs_test_n_c 25)
-set_tests_properties (c_n_test PROPERTIES PASS_REGULAR_EXPRESSION
-    "Tool: ps_tool_timer_start .* main")
-set_tests_properties (c_n_test PROPERTIES PASS_REGULAR_EXPRESSION
-    "Tool2: ps_tool2_timer_start .* main")
-
-add_test (test_threads_cpp perfstubs_test_threads_cpp)
-set_tests_properties (test_threads_cpp PROPERTIES PASS_REGULAR_EXPRESSION
-    "Found ps_tool_initialize")
-add_test (test_threads_cpp_no_tool perfstubs_test_threads_cpp_no_tool)
-add_test (test_api_cpp_no_tool perfstubs_test_api_cpp_no_tool)
-add_test (test_api_c_no_tool perfstubs_test_api_c_no_tool)
-
-if (PS_HAVE_FORTRAN)
-    add_test (fort_test perfstubs_test_fort 25)
-    set_tests_properties (fort_test PROPERTIES PASS_REGULAR_EXPRESSION
-        "Tool: ps_tool_timer_create main")
-    add_test (fort_n_test perfstubs_test_n_fort 25)
-    set_tests_properties (fort_n_test PROPERTIES PASS_REGULAR_EXPRESSION
-        "Tool: ps_tool_timer_create main")
-    set_tests_properties (fort_n_test PROPERTIES PASS_REGULAR_EXPRESSION
-        "Tool2: ps_tool2_timer_create main")
-    add_test (test_fort_cpp_no_tool perfstubs_test_fort_no_tool)
-endif ()
-
-endif(NOT PERFSTUBS_LIBRARY_ONLY)
+if(PERFSTUBS_BUILD_EXAMPLES)
+    include(CTest)
+    add_subdirectory(implementation)
+    set (IMPL_LIB ${PS_STATIC_WHOLE_PREFIX} implementation ${PS_STATIC_WHOLE_POSTFIX})
+    set (IMPL2_LIB ${PS_STATIC_WHOLE_PREFIX} implementation2 ${PS_STATIC_WHOLE_POSTFIX})
+    add_subdirectory(examples)
+endif(PERFSTUBS_BUILD_EXAMPLES)
 
 # build a pkg-config file
 set(DEST_DIR "${CMAKE_INSTALL_PREFIX}")
-foreach(LIB ${TOOL_LIBS})
+foreach(LIB perfstubs dl m)
     set(PRIVATE_LIBS "${PRIVATE_LIBS} -l${LIB}")
 endforeach()
 CONFIGURE_FILE("etc/perfstubs.pc.in" "${PROJECT_BINARY_DIR}/perfstubs.pc" @ONLY)
-foreach(LIB ${TOOL_LIBS_N})
+foreach(LIB perfstubs_n m)
     set(PRIVATE_LIBS "${PRIVATE_LIBS} -l${LIB}")
 endforeach()
 CONFIGURE_FILE("etc/perfstubs_n.pc.in" "${PROJECT_BINARY_DIR}/perfstubs_n.pc" @ONLY)
@@ -361,12 +201,12 @@ export(TARGETS perfstubs
 # (this registers the build-tree with a global CMake-registry)
 export(PACKAGE PerfStubs)
 
-foreach(LIB ${TOOL_LIBS})
+foreach(LIB perfstubs dl m)
     set(PRIVATE_CMAKE_LIBS "${PRIVATE_CMAKE_LIBS} ${LIB}")
 endforeach()
 CONFIGURE_FILE("etc/perfstubs-config.cmake.in"
     "${PROJECT_BINARY_DIR}/perfstubs-config.cmake" @ONLY)
-foreach(LIB ${TOOL_LIBS_N})
+foreach(LIB perfstubs_n m)
     set(PRIVATE_CMAKE_LIBS "${PRIVATE_CMAKE_LIBS} ${LIB}")
 endforeach()
 CONFIGURE_FILE("etc/perfstubs_n-config.cmake.in"
