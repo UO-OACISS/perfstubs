@@ -29,11 +29,13 @@ do_build() {
     -DCMAKE_CXX_COMPILER=`which g++` \
     ${FORTRAN_COMPILER} \
     -DCMAKE_BUILD_TYPE=${buildtype} \
+    -DCMAKE_INSTALL_PREFIX=${workdir}/install_${linktype}_${buildtype} \
     -DPERFSTUBS_SANITIZE=${sanitize} \
     -DPERFSTUBS_USE_STATIC=${staticflag} \
     ..
     set +x
     make -j
+    make install
 }
 
 buildtype=Debug
