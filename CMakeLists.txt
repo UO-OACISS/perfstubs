@@ -11,6 +11,7 @@ endif (WIN32)
 
 if (APPLE)
     ENABLE_LANGUAGE(C CXX)
+    set(PS_HAVE_FORTRAN OFF CACHE BOOL "Have Fortran Compiler")
     message(STATUS "Disabling Fortran support (OSX detected, assume it's not there).")
 else ()
     ENABLE_LANGUAGE(C CXX Fortran)
