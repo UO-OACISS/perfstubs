@@ -3,22 +3,26 @@
 # the CMake build configuration instead.
 
 # To use:  run "make" or "make PREFIX=<installation_prefix>"
+# Optional: also set CC, CFLAGS, and/or LDFLAGS
+# The resulting libraries will have a link/run time dependency on 
+# libm.a/.so (-lm) and the libperfstubs.so will have a link/run time
+# dependency on libdl.so (-ldl).
 
 ifeq ($(PREFIX),)
   PWD = $(shell pwd)
-  PREFIX = $(PWD)/gmake_build
+  PREFIX = $(PWD)/ps_build
 endif
+CC       ?= gcc
+CFLAGS   ?= -O3 -Wall -Werror -Wextra
+LDFLAGS  ?= -O3 -Wall -Werror -Wextra
 
 LIBSTATIC     = $(PREFIX)/lib/libperfstubs.a
 LIBSHARED     = $(PREFIX)/lib/libperfstubs.so
-CC       = gcc
-
-CFLAGS   = -O3 -Wall -Wextra -Wstrict-aliasing -I$(PREFIX)/include
-
+INCLUDES = -I$(PREFIX)/include
 SRC      = perfstubs_api/timer.c
 STATICOBJ = $(PREFIX)/obj/timer_static.o
 SHAREDOBJ = $(PREFIX)/obj/timer_dynamic.o
-CONFIG   = $(PREFIX)/config.h
+CONFIG   = $(PREFIX)/include/perfstubs_api/config.h
 
 default: all
 
@@ -32,22 +36,22 @@ $(PREFIX):
 
 $(CONFIG): $(PREFIX)
 	$(shell mkdir -p $(PREFIX)/include/perfstubs_api)
-	$(shell cp perfstubs_api/config.h.default $(PREFIX)/include/perfstubs_api/config.h)
+	$(shell cp perfstubs_api/config.h.default $(CONFIG))
 	$(shell cp perfstubs_api/*.h $(PREFIX)/include/perfstubs_api/.)
 
 $(STATICOBJ): $(CONFIG)
-	$(CC) -o $(STATICOBJ) -c $(SRC) $(CFLAGS) -DPERFSTUBS_USE_STATIC
+	$(CC) -o $(STATICOBJ) -c $(SRC) $(CFLAGS) $(INCLUDES) -DPERFSTUBS_USE_STATIC
 
 $(SHAREDOBJ): $(CONFIG)
-	$(CC) -o $(SHAREDOBJ) -c $(SRC) $(CFLAGS) -fPIC
+	$(CC) -o $(SHAREDOBJ) -c $(SRC) $(CFLAGS) $(INCLUDES) -fPIC
 
 $(LIBSTATIC): $(STATICOBJ)
 	ar -rc $(LIBSTATIC) $(STATICOBJ)
 
 $(LIBSHARED): $(SHAREDOBJ)
-	$(CC) -o $(LIBSHARED) $(SHAREDOBJ) -shared
+	$(CC) -o $(LIBSHARED) $(SHAREDOBJ) -shared $(LDFLAGS)
 
 .PHONY: clean
 
 clean:
-	rm -rf $(STATICOBJ) $(SHAREDOBJ) $(LIBSTATIC) $(LIBSHARED)
+	rm -rf $(PREFIX)
