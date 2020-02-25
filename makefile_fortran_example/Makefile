@@ -1,12 +1,13 @@
 F90?=gfortran
 CC?=gcc
 CXX?=g++
-PREFIX?=../ps_build
-SRCS = ../examples/main.F90 ../implementation/tool.c
+PWD=$(shell pwd)
+PREFIX?=$(PWD)/../ps_build
+SRCS = $(PWD)/../examples/main.F90 $(PWD)/../implementation/tool.c
 OBJS = main.o tool.o
 
 PERF_PACK=$(PREFIX)/lib/libperfstubs.so
-LIBS = $(PERF_PACK) -lstdc++
+LIBS = -lstdc++ -ldl -lpthread $(PERF_PACK)
 
 UNAME=$(shell uname)
 ifeq ($(UNAME),Darwin)
@@ -16,14 +17,17 @@ PERF_OPT= -DPERFSTUBS_USE_TIMERS
 
 OPT=-I$(PREFIX)/include
 
-main: $(OBJS)
-	$(F90) -o main $(OPT) $(OBJS) $(LIBS) $(LDFLAGS)
+main: $(OBJS) libtool.so
+	$(F90) -o main $(OPT) main.o $(LIBS) $(LDFLAGS)
 
-main.o: ../examples/main.F90
-	$(F90) -o $@ -c $(OPT) $^
+main.o: $(PWD)/../examples/main.F90
+	$(F90) -o $@ -c $(OPT) $^ $(CFLAGS)
 
-tool.o: ../implementation/tool1_implementation.cpp
-	$(CXX) -o $@ -c $(OPT) $^
+tool.o: $(PWD)/../implementation/tool1_implementation.cpp
+	$(CXX) -o $@ -c $(OPT) $^ -std=c++11 $(CFLAGS) -fPIC
+
+libtool.so: tool.o
+	$(CXX) -o $(PWD)/libtool.so tool.o -shared
 
 clean:
-	rm -f $(OBJS) main
+	rm -f $(OBJS) main libtool.so
