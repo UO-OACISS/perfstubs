@@ -69,8 +69,11 @@ set (PerfStubs_VERSION_MINOR 1)
 set (PerfStubs_VERSION ${PerfStubs_VERSION_MAJOR}.${PerfStubs_VERSION_MINOR})
 
 set (CMAKE_CXX_STANDARD 11)
-set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Werror -pthread")
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -pthread")
+#set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Werror -pthread")
+#set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -pthread")
+set(CMAKE_THREAD_PREFER_PTHREAD ON)
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package (Threads REQUIRED)
 
 if (PS_HAVE_FORTRAN)
     set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -cpp")
@@ -85,7 +88,7 @@ endif()
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
     add_definitions(-DDEBUG)
 endif()
- 
+
 # configure a header file to pass some of the CMake settings
 # to the source code
 configure_file (
@@ -157,7 +160,7 @@ if (PERFSTUBS_USE_STATIC AND NOT APPLE)
     SET(CMAKE_EXE_LINKER_FLAGS "-static")
 endif (PERFSTUBS_USE_STATIC AND NOT APPLE)
 
-# Setup RPATH 
+# Setup RPATH
 if (NOT PERFSTUBS_USE_STATIC)
     # use, i.e. don't skip the full RPATH for the build tree
     SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
@@ -232,7 +235,7 @@ install (FILES ${CMAKE_BINARY_DIR}/perfstubs_n-config.cmake
     DESTINATION lib/cmake)
 
 # Install the export set for use with the install-tree
-install(EXPORT PerfStubsTargets 
+install(EXPORT PerfStubsTargets
   DESTINATION lib/cmake
   COMPONENT library)
 

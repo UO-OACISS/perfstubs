@@ -5,7 +5,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
-//#include <threads.h>
+#define _OPEN_THREADS
+#include "pthread.h"
 #define PERFSTUBS_USE_TIMERS
 #include "perfstubs_api/timer.h"
 
@@ -16,7 +17,15 @@
 int perfstubs_initialized = PERFSTUBS_UNKNOWN;
 int num_tools_registered = 0;
 /* Keep track of whether the thread has been registered */
-__thread int thread_seen = 0;
+/* __thread int thread_seen = 0; */
+/* Implemented with PGI-friendly implementation, they can't be bothered
+ * to implement the thread_local standard like every other compiler... */
+static pthread_key_t key;
+static pthread_once_t key_once = PTHREAD_ONCE_INIT;
+
+static void make_key(void) {
+    (void) pthread_key_create(&key, NULL);
+}
 
 /* Function pointers */
 
@@ -87,7 +96,7 @@ int ps_register_tool(ps_plugin_data_t * tool) {
 /* Long term - the tool should be removed from the array.  However,
  * the index of other tools (returned during registration) > tool_id
  * will then be off by 1.  The way to fix that is to provide some
- * mapping for things like deregistration and data requests.  But 
+ * mapping for things like deregistration and data requests.  But
  * let's not spend too much time on that now.  For now, just disable
  * those function pointers, until we know there's a requirement to
  * dynamically enable/disable tools during an execution. */
@@ -135,17 +144,27 @@ void ps_register_thread_internal(void) {
     for (i = 0 ; i < num_tools_registered ; i++) {
         register_thread_functions[i]();
     }
-    thread_seen = 1;
+    //thread_seen = 1;
+    pthread_setspecific(key, (void*)1UL);
 }
 
 /* Initialization */
 void ps_initialize_(void) {
     int i;
+    /* Only do this once */
+    if (perfstubs_initialized != PERFSTUBS_UNKNOWN) {
+        return;
+    }
     for (i = 0 ; i < num_tools_registered ; i++) {
         initialize_functions[i]();
     }
-    /* Register the main thread */
-    ps_register_thread_internal();
+    /* No need to register the main thread */
+    //thread_seen = 1;
+    (void) pthread_once(&key_once, make_key);
+    if (pthread_getspecific(key) == NULL) {
+        // set the key to 1, indicating we have seen this thread
+        pthread_setspecific(key, (void*)1UL);
+    }
 }
 
 void ps_finalize_(void) {
@@ -156,16 +175,17 @@ void ps_finalize_(void) {
 }
 
 void ps_register_thread_(void) {
-    if (thread_seen == 0) {
+    //if (thread_seen == 0) {
+    if (pthread_getspecific(key) == NULL) {
         ps_register_thread_internal();
     }
 }
 
 void* ps_timer_create_(const char *timer_name) {
-    void ** objects = (void**)calloc(num_tools_registered, sizeof(void*));
+    void ** objects = (void **)calloc(num_tools_registered, sizeof(void*));
     int i;
     for (i = 0 ; i < num_tools_registered ; i++) {
-        objects[i] = (void*)timer_create_functions[i](timer_name);
+        objects[i] = (void *)timer_create_functions[i](timer_name);
     }
     return (void*)(objects);
 }
@@ -241,7 +261,7 @@ void ps_dynamic_phase_stop_(const char *phase_prefix, int iteration_index) {
 }
 
 void* ps_create_counter_(const char *name) {
-    void ** objects = (void**)calloc(num_tools_registered, sizeof(void*));
+    void ** objects = (void **)calloc(num_tools_registered, sizeof(void*));
     int i;
     for (i = 0 ; i < num_tools_registered ; i++) {
         objects[i] = (void*)create_counter_functions[i](name);

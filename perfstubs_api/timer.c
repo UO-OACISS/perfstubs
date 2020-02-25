@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <dlfcn.h>
+#include "pthread.h"
 #define PERFSTUBS_USE_TIMERS
 #include "perfstubs_api/timer.h"
 
@@ -24,7 +25,15 @@
 int perfstubs_initialized = PERFSTUBS_UNKNOWN;
 int num_tools_registered = 0;
 /* Keep track of whether the thread has been registered */
-__thread int thread_seen = 0;
+/* __thread int thread_seen = 0; */
+/* Implemented with PGI-friendly implementation, they can't be bothered
+ * to implement the thread_local standard like every other compiler... */
+static pthread_key_t key;
+static pthread_once_t key_once = PTHREAD_ONCE_INIT;
+
+static void make_key(void) {
+    (void) pthread_key_create(&key, NULL);
+}
 
 /* Function pointers */
 
@@ -92,6 +101,7 @@ void initialize_library() {
     /* The initialization function is the only required one */
     initialize_functions[0] = &ps_tool_initialize;
     if (initialize_functions[0] == NULL) {
+        perfstubs_initialized = PERFSTUBS_FAILURE;
         return;
     }
     printf("Found ps_tool_initialize(), registering tool\n");
@@ -188,18 +198,28 @@ void ps_register_thread_internal(void) {
     for (i = 0 ; i < num_tools_registered ; i++) {
         register_thread_functions[i]();
     }
-    thread_seen = 1;
+    //thread_seen = 1;
+    pthread_setspecific(key, (void*)1UL);
 }
 
 /* Initialization */
 void ps_initialize_(void) {
     int i;
+    /* Only do this once */
+    if (perfstubs_initialized != PERFSTUBS_UNKNOWN) {
+        return;
+    }
     initialize_library();
     for (i = 0 ; i < num_tools_registered ; i++) {
         initialize_functions[i]();
     }
     /* No need to register the main thread */
-    thread_seen = 1;
+    //thread_seen = 1;
+    (void) pthread_once(&key_once, make_key);
+    if (pthread_getspecific(key) == NULL) {
+        // set the key to 1, indicating we have seen this thread
+        pthread_setspecific(key, (void*)1UL);
+    }
 }
 
 void ps_finalize_(void) {
@@ -210,7 +230,8 @@ void ps_finalize_(void) {
 }
 
 void ps_register_thread_(void) {
-    if (thread_seen == 0) {
+    //if (thread_seen == 0) {
+    if (pthread_getspecific(key) == NULL) {
         ps_register_thread_internal();
     }
 }
