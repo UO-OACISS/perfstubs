@@ -6,8 +6,8 @@ PREFIX?=$(PWD)/../ps_build
 SRCS = $(PWD)/../examples/main.F90 $(PWD)/../implementation/tool.c
 OBJS = main.o tool.o
 
-PERF_PACK=$(PREFIX)/lib/libperfstubs.so
-LIBS = -lstdc++ -ldl -lpthread $(PERF_PACK)
+PS_LIB=$(PREFIX)/lib/libperfstubs.so
+LIBS = $(PS_LIB) -ldl -lpthread
 
 UNAME=$(shell uname)
 ifeq ($(UNAME),Darwin)
