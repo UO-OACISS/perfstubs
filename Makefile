@@ -26,7 +26,7 @@ CONFIG   = $(PREFIX)/include/perfstubs_api/config.h
 
 default: all
 
-all: $(CONFIG) $(LIBSTATIC) $(LIBSHARED)
+all: $(CONFIG) $(LIBSTATIC) $(LIBSHARED) example
 
 $(PREFIX):
 	$(shell mkdir -p $(PREFIX))
@@ -51,7 +51,11 @@ $(LIBSTATIC): $(STATICOBJ)
 $(LIBSHARED): $(SHAREDOBJ)
 	$(CC) -o $(LIBSHARED) $(SHAREDOBJ) -shared $(LDFLAGS)
 
+example: $(LIBSHARED)
+	$(MAKE) -C makefile_fortran_example
+
 .PHONY: clean
 
 clean:
 	rm -rf $(PREFIX)
+	$(MAKE) -C makefile_fortran_example clean
