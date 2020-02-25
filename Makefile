@@ -4,7 +4,7 @@
 
 # To use:  run "make" or "make PREFIX=<installation_prefix>"
 # Optional: also set CC, CFLAGS, and/or LDFLAGS
-# The resulting libraries will have a link/run time dependency on 
+# The resulting libraries will have a link/run time dependency on
 # libm.a/.so (-lm) and the libperfstubs.so will have a link/run time
 # dependency on libdl.so (-ldl).
 
@@ -26,7 +26,7 @@ CONFIG   = $(PREFIX)/include/perfstubs_api/config.h
 
 default: all
 
-all: $(CONFIG) $(LIBSTATIC) $(LIBSHARED) example
+all: $(CONFIG) $(LIBSTATIC) $(LIBSHARED)
 
 $(PREFIX):
 	$(shell mkdir -p $(PREFIX))
@@ -53,6 +53,11 @@ $(LIBSHARED): $(SHAREDOBJ)
 
 example: $(LIBSHARED)
 	$(MAKE) -C makefile_fortran_example
+	# Run without the tool
+	./makefile_fortran_example/main
+	# Run with the tool
+	LD_PRELOAD=makefile_fortran_example/libtool.so ./makefile_fortran_example/main
+
 
 .PHONY: clean
 
