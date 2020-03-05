@@ -193,13 +193,16 @@ char * ps_make_timer_name_(const char * file,
 }
 
 // used internally to the class
-void ps_register_thread_internal(void) {
-    int i;
-    for (i = 0 ; i < num_tools_registered ; i++) {
-        register_thread_functions[i]();
+inline void ps_register_thread_internal(void) {
+    //if (thread_seen == 0) {
+    if (pthread_getspecific(key) == NULL) {
+    	int i;
+    	for (i = 0 ; i < num_tools_registered ; i++) {
+        	register_thread_functions[i]();
+    	}
+    	//thread_seen = 1;
+    	pthread_setspecific(key, (void*)1UL);
     }
-    //thread_seen = 1;
-    pthread_setspecific(key, (void*)1UL);
 }
 
 /* Initialization */
@@ -230,13 +233,11 @@ void ps_finalize_(void) {
 }
 
 void ps_register_thread_(void) {
-    //if (thread_seen == 0) {
-    if (pthread_getspecific(key) == NULL) {
-        ps_register_thread_internal();
-    }
+    ps_register_thread_internal();
 }
 
 void* ps_timer_create_(const char *timer_name) {
+	ps_register_thread_internal();
     void ** objects = (void **)calloc(num_tools_registered, sizeof(void*));
     int i;
     for (i = 0 ; i < num_tools_registered ; i++) {
@@ -250,6 +251,7 @@ void ps_timer_create_fortran_(void ** object, const char *timer_name) {
 }
 
 void ps_timer_start_(void *timer) {
+	ps_register_thread_internal();
     void ** objects = (void **)timer;
     int i;
     for (i = 0; i < num_tools_registered ; i++) {
@@ -274,6 +276,7 @@ void ps_timer_stop_fortran_(void **timer) {
 }
 
 void ps_start_string_(const char *timer_name) {
+	ps_register_thread_internal();
     int i;
     for (i = 0 ; i < num_tools_registered ; i++) {
         start_string_functions[i](timer_name);
@@ -316,6 +319,7 @@ void ps_dynamic_phase_stop_(const char *phase_prefix, int iteration_index) {
 }
 
 void* ps_create_counter_(const char *name) {
+	ps_register_thread_internal();
     void ** objects = (void **)calloc(num_tools_registered, sizeof(void*));
     int i;
     for (i = 0 ; i < num_tools_registered ; i++) {
@@ -341,6 +345,7 @@ void ps_sample_counter_fortran_(void **counter, const double value) {
 }
 
 void ps_set_metadata_(const char *name, const char *value) {
+	ps_register_thread_internal();
     int i;
     for (i = 0; i < num_tools_registered ; i++) {
         set_metadata_functions[i](name, value);
