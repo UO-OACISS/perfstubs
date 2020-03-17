@@ -225,13 +225,13 @@ install (TARGETS perfstubs perfstubs_n
 install (FILES perfstubs_api/timer.h DESTINATION include/perfstubs_api)
 install (FILES perfstubs_api/timer_f.h DESTINATION include/perfstubs_api)
 install (FILES perfstubs_api/tool.h DESTINATION include/perfstubs_api)
-install (FILES ${CMAKE_BINARY_DIR}/perfstubs_api/config.h DESTINATION include/perfstubs_api)
-install (FILES ${CMAKE_BINARY_DIR}/perfstubs.pc DESTINATION lib/pkgconfig)
-install (FILES ${CMAKE_BINARY_DIR}/perfstubs-config.cmake
+install (FILES ${PROJECT_BINARY_DIR}/perfstubs_api/config.h DESTINATION include/perfstubs_api)
+install (FILES ${PROJECT_BINARY_DIR}/perfstubs.pc DESTINATION lib/pkgconfig)
+install (FILES ${PROJECT_BINARY_DIR}/perfstubs-config.cmake
     DESTINATION lib/cmake)
 
-install (FILES ${CMAKE_BINARY_DIR}/perfstubs_n.pc DESTINATION lib/pkgconfig)
-install (FILES ${CMAKE_BINARY_DIR}/perfstubs_n-config.cmake
+install (FILES ${PROJECT_BINARY_DIR}/perfstubs_n.pc DESTINATION lib/pkgconfig)
+install (FILES ${PROJECT_BINARY_DIR}/perfstubs_n-config.cmake
     DESTINATION lib/cmake)
 
 # Install the export set for use with the install-tree
