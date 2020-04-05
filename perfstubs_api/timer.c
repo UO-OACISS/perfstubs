@@ -193,7 +193,7 @@ char * ps_make_timer_name_(const char * file,
 }
 
 // used internally to the class
-inline void ps_register_thread_internal(void) {
+static inline void ps_register_thread_internal(void) {
     //if (thread_seen == 0) {
     if (pthread_getspecific(key) == NULL) {
     	int i;

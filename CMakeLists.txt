@@ -24,11 +24,11 @@ set (CMAKE_CXX_STANDARD 11)
 
 project (perfstubs)
 
-# should we use our own math functions?
+# should we use our own implementation of timers (for examples)?
 option (PERFSTUBS_USE_TIMERS
     "Use provided perfstubs implementation" ON)
 
-# should we use our own math functions?
+# should we use our own implementation of timers (for examples)?
 option (PERFSTUBS_USE_DEFAULT_IMPLEMENTATION
     "Use provided perfstubs implementation" ON)
 
@@ -39,6 +39,15 @@ option (PERFSTUBS_USE_STATIC
 # should we build just the library?
 option (PERFSTUBS_BUILD_EXAMPLES
     "Build libperfstsubs examples" OFF)
+
+# should we build just the library?
+option (PERFSTUBS_BUILD_MULTI_TOOL
+    "Build libperfstsubs_n" OFF)
+
+# this just makes things easier later
+if(PERFSTUBS_BUILD_EXAMPLES)
+    set(PERFSTUBS_BUILD_MULTI_TOOL ON)
+endif(PERFSTUBS_BUILD_EXAMPLES)
 
 # SET SANITIZE OPTIONS, IF DESIRED
 
@@ -126,8 +135,10 @@ else (PERFSTUBS_USE_STATIC AND NOT APPLE)
 endif (PERFSTUBS_USE_STATIC AND NOT APPLE)
 
 add_library(perfstubs perfstubs_api/timer.c)
-add_library(perfstubs_n perfstubs_api_n/timer.c)
-target_link_libraries(perfstubs_n INTERFACE m)
+if(PERFSTUBS_BUILD_MULTI_TOOL)
+    add_library(perfstubs_n perfstubs_api_n/timer.c)
+    target_link_libraries(perfstubs_n INTERFACE m)
+endif(PERFSTUBS_BUILD_MULTI_TOOL)
 
 if (BUILD_SHARED_LIBS)
     target_link_libraries(perfstubs INTERFACE dl m)
@@ -135,14 +146,10 @@ else()
     target_link_libraries(perfstubs INTERFACE m)
 endif()
 
-    target_include_directories(perfstubs PRIVATE
-        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
-        $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>
-    )
-    target_include_directories(perfstubs_n PRIVATE
-        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
-        $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>
-    )
+target_include_directories(perfstubs PRIVATE
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
+    $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>
+)
 
 target_include_directories(perfstubs INTERFACE
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
@@ -150,11 +157,18 @@ target_include_directories(perfstubs INTERFACE
   $<INSTALL_INTERFACE:include>
 )
 
-target_include_directories(perfstubs_n INTERFACE
-  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
-  $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>
-  $<INSTALL_INTERFACE:include>
-)
+if(PERFSTUBS_BUILD_MULTI_TOOL)
+    target_include_directories(perfstubs_n PRIVATE
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>
+    )
+
+    target_include_directories(perfstubs_n INTERFACE
+      $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>
+      $<INSTALL_INTERFACE:include>
+    )
+endif(PERFSTUBS_BUILD_MULTI_TOOL)
 
 if (PERFSTUBS_USE_STATIC AND NOT APPLE)
     SET(CMAKE_EXE_LINKER_FLAGS "-static")
@@ -192,10 +206,12 @@ foreach(LIB perfstubs dl m)
     set(PRIVATE_LIBS "${PRIVATE_LIBS} -l${LIB}")
 endforeach()
 CONFIGURE_FILE("etc/perfstubs.pc.in" "${PROJECT_BINARY_DIR}/perfstubs.pc" @ONLY)
-foreach(LIB perfstubs_n m)
-    set(PRIVATE_LIBS "${PRIVATE_LIBS} -l${LIB}")
-endforeach()
-CONFIGURE_FILE("etc/perfstubs_n.pc.in" "${PROJECT_BINARY_DIR}/perfstubs_n.pc" @ONLY)
+if(PERFSTUBS_BUILD_MULTI_TOOL)
+    foreach(LIB perfstubs_n dl m)
+        set(PRIVATE_LIBS "${PRIVATE_LIBS} -l${LIB}")
+    endforeach()
+    CONFIGURE_FILE("etc/perfstubs_n.pc.in" "${PROJECT_BINARY_DIR}/perfstubs_n.pc" @ONLY)
+endif(PERFSTUBS_BUILD_MULTI_TOOL)
 
 # Add all targets to the build-tree export set
 export(TARGETS perfstubs
@@ -210,18 +226,31 @@ foreach(LIB perfstubs dl m)
 endforeach()
 CONFIGURE_FILE("etc/perfstubs-config.cmake.in"
     "${PROJECT_BINARY_DIR}/perfstubs-config.cmake" @ONLY)
-foreach(LIB perfstubs_n m)
-    set(PRIVATE_CMAKE_LIBS "${PRIVATE_CMAKE_LIBS} ${LIB}")
-endforeach()
-CONFIGURE_FILE("etc/perfstubs_n-config.cmake.in"
-    "${PROJECT_BINARY_DIR}/perfstubs_n-config.cmake" @ONLY)
 
-install (TARGETS perfstubs perfstubs_n
-    EXPORT PerfStubsTargets
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
-    COMPONENT library
-)
+if(PERFSTUBS_BUILD_MULTI_TOOL)
+    foreach(LIB perfstubs_n m)
+        set(PRIVATE_CMAKE_LIBS "${PRIVATE_CMAKE_LIBS} ${LIB}")
+    endforeach()
+    CONFIGURE_FILE("etc/perfstubs_n-config.cmake.in"
+        "${PROJECT_BINARY_DIR}/perfstubs_n-config.cmake" @ONLY)
+endif(PERFSTUBS_BUILD_MULTI_TOOL)
+
+if(PERFSTUBS_BUILD_MULTI_TOOL)
+    install (TARGETS perfstubs perfstubs_n
+        EXPORT PerfStubsTargets
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib
+        COMPONENT library
+    )
+else(PERFSTUBS_BUILD_MULTI_TOOL)
+    install (TARGETS perfstubs
+        EXPORT PerfStubsTargets
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib
+        COMPONENT library
+    )
+endif(PERFSTUBS_BUILD_MULTI_TOOL)
+
 install (FILES perfstubs_api/timer.h DESTINATION include/perfstubs_api)
 install (FILES perfstubs_api/timer_f.h DESTINATION include/perfstubs_api)
 install (FILES perfstubs_api/tool.h DESTINATION include/perfstubs_api)
@@ -230,9 +259,11 @@ install (FILES ${PROJECT_BINARY_DIR}/perfstubs.pc DESTINATION lib/pkgconfig)
 install (FILES ${PROJECT_BINARY_DIR}/perfstubs-config.cmake
     DESTINATION lib/cmake)
 
-install (FILES ${PROJECT_BINARY_DIR}/perfstubs_n.pc DESTINATION lib/pkgconfig)
-install (FILES ${PROJECT_BINARY_DIR}/perfstubs_n-config.cmake
-    DESTINATION lib/cmake)
+if(PERFSTUBS_BUILD_MULTI_TOOL)
+    install (FILES ${PROJECT_BINARY_DIR}/perfstubs_n.pc DESTINATION lib/pkgconfig)
+    install (FILES ${PROJECT_BINARY_DIR}/perfstubs_n-config.cmake
+        DESTINATION lib/cmake)
+endif(PERFSTUBS_BUILD_MULTI_TOOL)
 
 # Install the export set for use with the install-tree
 install(EXPORT PerfStubsTargets
