@@ -10,7 +10,9 @@
 #include <math.h>
 #include <dlfcn.h>
 #include "pthread.h"
+#ifndef PERFSTUBS_USE_TIMERS
 #define PERFSTUBS_USE_TIMERS
+#endif
 #include "perfstubs_api/timer.h"
 
 #define MAX_TOOLS 1
