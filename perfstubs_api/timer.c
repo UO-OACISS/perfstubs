@@ -40,8 +40,10 @@ static void make_key(void) {
 /* Function pointers */
 
 ps_initialize_t initialize_functions[MAX_TOOLS];
-ps_register_thread_t register_thread_functions[MAX_TOOLS];
 ps_finalize_t finalize_functions[MAX_TOOLS];
+ps_pause_measurement_t pause_measurement_functions[MAX_TOOLS];
+ps_resume_measurement_t resume_measurement_functions[MAX_TOOLS];
+ps_register_thread_t register_thread_functions[MAX_TOOLS];
 ps_dump_data_t dump_data_functions[MAX_TOOLS];
 ps_timer_create_t timer_create_functions[MAX_TOOLS];
 ps_timer_start_t timer_start_functions[MAX_TOOLS];
@@ -75,8 +77,10 @@ ps_free_metadata_t free_metadata_functions[MAX_TOOLS];
 #endif
 
 PS_WEAK_PRE void ps_tool_initialize(void) PS_WEAK_POST;
-PS_WEAK_PRE void ps_tool_register_thread(void) PS_WEAK_POST;
 PS_WEAK_PRE void ps_tool_finalize(void) PS_WEAK_POST;
+PS_WEAK_PRE void ps_tool_pause_measurement(void) PS_WEAK_POST;
+PS_WEAK_PRE void ps_tool_resume_measurement(void) PS_WEAK_POST;
+PS_WEAK_PRE void ps_tool_register_thread(void) PS_WEAK_POST;
 PS_WEAK_PRE void ps_tool_dump_data(void) PS_WEAK_POST;
 PS_WEAK_PRE void* ps_tool_timer_create(const char *) PS_WEAK_POST;
 PS_WEAK_PRE void ps_tool_timer_start(void *) PS_WEAK_POST;
@@ -107,8 +111,10 @@ void initialize_library() {
         return;
     }
     printf("Found ps_tool_initialize(), registering tool\n");
-    register_thread_functions[0] = &ps_tool_register_thread;
     finalize_functions[0] = &ps_tool_finalize;
+    pause_measurement_functions[0] = &ps_tool_pause_measurement;
+    resume_measurement_functions[0] = &ps_tool_resume_measurement;
+    register_thread_functions[0] = &ps_tool_register_thread;
     dump_data_functions[0] = &ps_tool_dump_data;
     timer_create_functions[0] = &ps_tool_timer_create;
     timer_start_functions[0] = &ps_tool_timer_start;
@@ -138,6 +144,10 @@ void initialize_library() {
     printf("Found ps_tool_initialize(), registering tool\n");
     finalize_functions[0] =
         (ps_finalize_t)dlsym(RTLD_DEFAULT, "ps_tool_finalize");
+    pause_measurement_functions[0] =
+        (ps_pause_measurement_t)dlsym(RTLD_DEFAULT, "ps_tool_pause_measurement");
+    resume_measurement_functions[0] =
+        (ps_resume_measurement_t)dlsym(RTLD_DEFAULT, "ps_tool_resume_measurement");
     register_thread_functions[0] =
         (ps_register_thread_t)dlsym(RTLD_DEFAULT, "ps_tool_register_thread");
     dump_data_functions[0] =
@@ -231,6 +241,20 @@ void ps_finalize_(void) {
     int i;
     for (i = 0 ; i < num_tools_registered ; i++) {
         finalize_functions[i]();
+    }
+}
+
+void ps_pause_measurement_(void) {
+    int i;
+    for (i = 0 ; i < num_tools_registered ; i++) {
+        pause_measurement_functions[i]();
+    }
+}
+
+void ps_resume_measurement_(void) {
+    int i;
+    for (i = 0 ; i < num_tools_registered ; i++) {
+        resume_measurement_functions[i]();
     }
 }
 

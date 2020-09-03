@@ -51,6 +51,8 @@ extern "C" {
 
 void  ps_initialize_(void);
 void  ps_finalize_(void);
+void  ps_pause_measurement_(void);
+void  ps_resume_measurement_(void);
 void  ps_register_thread_(void);
 void  ps_dump_data_(void);
 void* ps_timer_create_(const char *timer_name);
@@ -94,6 +96,10 @@ char* ps_make_timer_name_(const char * file, const char * func, int line);
 #define PERFSTUBS_INITIALIZE() ps_initialize_();
 
 #define PERFSTUBS_FINALIZE() ps_finalize_();
+
+#define PERFSTUBS_PAUSE_MEASUREMENT() ps_pause_measurement_();
+
+#define PERFSTUBS_RESUME_MEASUREMENT() ps_resume_measurement_();
 
 #define PERFSTUBS_REGISTER_THREAD() ps_register_thread_();
 
@@ -166,6 +172,8 @@ char* ps_make_timer_name_(const char * file, const char * func, int line);
 
 #define PERFSTUBS_INITIALIZE()
 #define PERFSTUBS_FINALIZE()
+#define PERFSTUBS_PAUSE_MEASUREMENT()
+#define PERFSTUBS_RESUME_MEASUREMENT()
 #define PERFSTUBS_REGISTER_THREAD()
 #define PERFSTUBS_DUMP_DATA()
 #define PERFSTUBS_TIMER_START(_timer, _timer_name)
@@ -190,7 +198,7 @@ char* ps_make_timer_name_(const char * file, const char * func, int line);
 /*
  * We allow the namespace to be changed, so that different libraries
  * can include their own implementation and not have a namespace collision.
- * For example, library A and executable B could both include the 
+ * For example, library A and executable B could both include the
  * perfstubs_api code in their source tree, and change the namespace
  * respectively, instead of linking in the perfstubs library.
  */
@@ -237,8 +245,8 @@ namespace PSNS = external::PERFSTUBS_INTERNAL_NAMESPACE;
     static void * CONCAT(__var,__LINE__) = ps_timer_create_(__name); \
     PSNS::ScopedTimer CONCAT(__var2,__LINE__)(CONCAT(__var,__LINE__));
 
-/* The string created by ps_make_timer_name is a memory leak, but 
- * it is only created once per function, since it is called when the 
+/* The string created by ps_make_timer_name is a memory leak, but
+ * it is only created once per function, since it is called when the
  * static variable is first initialized. */
 #define PERFSTUBS_SCOPED_TIMER_FUNC() \
     static void * CONCAT(__var,__LINE__) = \

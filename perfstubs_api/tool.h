@@ -45,6 +45,8 @@ typedef struct ps_tool_metadata
 /* Logistical functions */
 typedef void  (*ps_initialize_t)(void);
 typedef void  (*ps_finalize_t)(void);
+typedef void  (*ps_pause_measurement_t)(void);
+typedef void  (*ps_resume_measurement_t)(void);
 typedef void  (*ps_register_thread_t)(void);
 typedef void  (*ps_dump_data_t)(void);
 /* Simple functions */
@@ -78,6 +80,8 @@ typedef struct ps_plugin_data {
     /* Logistical functions */
     ps_initialize_t initialize;
     ps_finalize_t finalize;
+    ps_pause_measurement_t pause_measurement;
+    ps_resume_measurement_t resume_measurement;
     ps_register_thread_t register_thread;
     ps_dump_data_t dump_data;
     /* Simple API */

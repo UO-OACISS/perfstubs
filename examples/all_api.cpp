@@ -32,6 +32,12 @@ int main(int argc, char *argv[])
     // stops
     PERFSTUBS_TIMER_STOP(timer2)
 
+    // pause
+    PERFSTUBS_PAUSE_MEASUREMENT()
+    PERFSTUBS_TIMER_START(timer3, "timer should be ignored")
+    PERFSTUBS_TIMER_STOP(timer3)
+    PERFSTUBS_RESUME_MEASUREMENT()
+
     PERFSTUBS_SAMPLE_COUNTER("counter", 15.0)
     PERFSTUBS_DUMP_DATA();
     PERFSTUBS_FINALIZE();

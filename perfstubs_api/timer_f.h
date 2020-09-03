@@ -12,6 +12,8 @@
 
 #define PERFSTUBS_INITIALIZE() call ps_initialize()
 #define PERFSTUBS_FINALIZE() call ps_finalize()
+#define PERFSTUBS_PAUSE_MEASUREMENT() call ps_pause_measurement()
+#define PERFSTUBS_RESUME_MEASUREMENT() call ps_resume_measurement()
 #define PERFSTUBS_DUMP_DATA() call ps_dump_data()
 #define PERFSTUBS_REGISTER_THREAD() call ps_register_thread()
 #define PERFSTUBS_TIMER_CREATE(_timer_object, _timer_name) \
@@ -44,6 +46,8 @@
 
 #define PERFSTUBS_INITIALIZE()
 #define PERFSTUBS_FINALIZE()
+#define PERFSTUBS_PAUSE_MEASUREMENT()
+#define PERFSTUBS_RESUME_MEASUREMENT()
 #define PERFSTUBS_DUMP_DATA()
 #define PERFSTUBS_REGISTER_THREAD()
 #define PERFSTUBS_TIMER_CREATE(_timer_object, _timer_name)

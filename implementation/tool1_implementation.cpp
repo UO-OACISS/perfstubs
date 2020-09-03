@@ -15,6 +15,7 @@ using namespace std;
 namespace external {
     namespace ps_implementation {
         std::mutex my_mutex;
+        bool enabled{true};
 
         class profiler {
             public:
@@ -78,6 +79,10 @@ extern "C"
     }
 
     void ps_tool_finalize(void) { cout << "Tool: " << __func__ << endl; }
+
+    void ps_tool_pause_measurement(void) { cout << "Tool: " << __func__ << endl; MINE::enabled = false; }
+
+    void ps_tool_resume_measurement(void) { cout << "Tool: " << __func__ << endl; MINE::enabled = true; }
 
     void ps_tool_dump_data(void) { cout << "Tool: " << __func__ << endl; }
 
@@ -306,6 +311,8 @@ static void initme(void) {
         /* Logistical functions */
         data.initialize = &ps_tool_initialize;
         data.finalize = &ps_tool_finalize;
+        data.pause_measurement = &ps_tool_pause_measurement;
+        data.resume_measurement = &ps_tool_resume_measurement;
         data.register_thread = &ps_tool_register_thread;
         data.dump_data = &ps_tool_dump_data;
         data.start_string = &ps_tool_start_string;
