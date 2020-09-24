@@ -240,21 +240,24 @@ void ps_initialize_(void) {
 void ps_finalize_(void) {
     int i;
     for (i = 0 ; i < num_tools_registered ; i++) {
-        finalize_functions[i]();
+        if (finalize_functions[i] != NULL)
+            finalize_functions[i]();
     }
 }
 
 void ps_pause_measurement_(void) {
     int i;
     for (i = 0 ; i < num_tools_registered ; i++) {
-        pause_measurement_functions[i]();
+        if (pause_measurement_functions[i] != NULL)
+            pause_measurement_functions[i]();
     }
 }
 
 void ps_resume_measurement_(void) {
     int i;
     for (i = 0 ; i < num_tools_registered ; i++) {
-        resume_measurement_functions[i]();
+        if (resume_measurement_functions[i] != NULL)
+            resume_measurement_functions[i]();
     }
 }
 
@@ -267,7 +270,8 @@ void* ps_timer_create_(const char *timer_name) {
     void ** objects = (void **)calloc(num_tools_registered, sizeof(void*));
     int i;
     for (i = 0 ; i < num_tools_registered ; i++) {
-        objects[i] = (void *)timer_create_functions[i](timer_name);
+        if (timer_create_functions[i] != NULL)
+            objects[i] = (void *)timer_create_functions[i](timer_name);
     }
     return (void*)(objects);
 }
@@ -281,7 +285,9 @@ void ps_timer_start_(void *timer) {
     void ** objects = (void **)timer;
     int i;
     for (i = 0; i < num_tools_registered ; i++) {
-        timer_start_functions[i](objects[i]);
+        if (timer_start_functions[i] != NULL &&
+            objects[i] != NULL)
+            timer_start_functions[i](objects[i]);
     }
 }
 
@@ -293,7 +299,9 @@ void ps_timer_stop_(void *timer) {
     void ** objects = (void **)timer;
     int i;
     for (i = 0; i < num_tools_registered ; i++) {
-        timer_stop_functions[i](objects[i]);
+        if (timer_stop_functions[i] != NULL &&
+            objects[i] != NULL)
+            timer_stop_functions[i](objects[i]);
     }
 }
 
@@ -305,42 +313,48 @@ void ps_start_string_(const char *timer_name) {
 	ps_register_thread_internal();
     int i;
     for (i = 0 ; i < num_tools_registered ; i++) {
-        start_string_functions[i](timer_name);
+        if (start_string_functions[i] != NULL)
+            start_string_functions[i](timer_name);
     }
 }
 
 void ps_stop_string_(const char *timer_name) {
     int i;
     for (i = 0 ; i < num_tools_registered ; i++) {
-        stop_string_functions[i](timer_name);
+        if (stop_string_functions[i] != NULL)
+            stop_string_functions[i](timer_name);
     }
 }
 
 void ps_stop_current_(void) {
     int i;
     for (i = 0 ; i < num_tools_registered ; i++) {
-        stop_current_functions[i]();
+        if (stop_current_functions[i] != NULL)
+            stop_current_functions[i]();
     }
 }
 
 void ps_set_parameter_(const char * parameter_name, int64_t parameter_value) {
     int i;
     for (i = 0; i < num_tools_registered ; i++) {
-        set_parameter_functions[i](parameter_name, parameter_value);
+        if (set_parameter_functions[i] != NULL)
+            set_parameter_functions[i](parameter_name, parameter_value);
     }
 }
 
 void ps_dynamic_phase_start_(const char *phase_prefix, int iteration_index) {
     int i;
     for (i = 0; i < num_tools_registered ; i++) {
-        dynamic_phase_start_functions[i](phase_prefix, iteration_index);
+        if (dynamic_phase_start_functions[i] != NULL)
+            dynamic_phase_start_functions[i](phase_prefix, iteration_index);
     }
 }
 
 void ps_dynamic_phase_stop_(const char *phase_prefix, int iteration_index) {
     int i;
     for (i = 0; i < num_tools_registered ; i++) {
-        dynamic_phase_stop_functions[i](phase_prefix, iteration_index);
+        if (dynamic_phase_stop_functions[i] != NULL)
+            dynamic_phase_stop_functions[i](phase_prefix, iteration_index);
     }
 }
 
@@ -349,7 +363,8 @@ void* ps_create_counter_(const char *name) {
     void ** objects = (void **)calloc(num_tools_registered, sizeof(void*));
     int i;
     for (i = 0 ; i < num_tools_registered ; i++) {
-        objects[i] = (void*)create_counter_functions[i](name);
+        if (create_counter_functions[i] != NULL)
+            objects[i] = (void*)create_counter_functions[i](name);
     }
     return (void*)(objects);
 }
@@ -362,7 +377,9 @@ void ps_sample_counter_(void *counter, const double value) {
     void ** objects = (void **)counter;
     int i;
     for (i = 0; i < num_tools_registered ; i++) {
-        sample_counter_functions[i](objects[i], value);
+        if (sample_counter_functions[i] != NULL &&
+            objects[i] != NULL)
+            sample_counter_functions[i](objects[i], value);
     }
 }
 
@@ -374,50 +391,58 @@ void ps_set_metadata_(const char *name, const char *value) {
 	ps_register_thread_internal();
     int i;
     for (i = 0; i < num_tools_registered ; i++) {
-        set_metadata_functions[i](name, value);
+        if (set_metadata_functions[i] != NULL)
+            set_metadata_functions[i](name, value);
     }
 }
 
 void ps_dump_data_(void) {
     int i;
     for (i = 0; i < num_tools_registered ; i++) {
-        dump_data_functions[i]();
+        if (dump_data_functions[i] != NULL)
+            dump_data_functions[i]();
     }
 }
 
 void ps_get_timer_data_(ps_tool_timer_data_t *timer_data, int tool_id) {
     if (tool_id < num_tools_registered) {
-        get_timer_data_functions[tool_id](timer_data);
+        if (get_timer_data_functions[tool_id] != NULL)
+            get_timer_data_functions[tool_id](timer_data);
     }
 }
 
 void ps_get_counter_data_(ps_tool_counter_data_t *counter_data, int tool_id) {
     if (tool_id < num_tools_registered) {
-        get_counter_data_functions[tool_id](counter_data);
+        if (get_counter_data_functions[tool_id] != NULL)
+            get_counter_data_functions[tool_id](counter_data);
     }
 }
 
 void ps_get_metadata_(ps_tool_metadata_t *metadata, int tool_id) {
     if (tool_id < num_tools_registered) {
-        get_metadata_functions[tool_id](metadata);
+        if (get_metadata_functions[tool_id] != NULL)
+            get_metadata_functions[tool_id](metadata);
     }
 }
 
 void ps_free_timer_data_(ps_tool_timer_data_t *timer_data, int tool_id) {
     if (tool_id < num_tools_registered) {
-        free_timer_data_functions[tool_id](timer_data);
+        if (free_timer_data_functions[tool_id] != NULL)
+            free_timer_data_functions[tool_id](timer_data);
     }
 }
 
 void ps_free_counter_data_(ps_tool_counter_data_t *counter_data, int tool_id) {
     if (tool_id < num_tools_registered) {
-        free_counter_data_functions[tool_id](counter_data);
+        if (free_counter_data_functions[tool_id] != NULL)
+            free_counter_data_functions[tool_id](counter_data);
     }
 }
 
 void ps_free_metadata_(ps_tool_metadata_t *metadata, int tool_id) {
     if (tool_id < num_tools_registered) {
-        free_metadata_functions[tool_id](metadata);
+        if (free_metadata_functions[tool_id] != NULL)
+            free_metadata_functions[tool_id](metadata);
     }
 }
 
