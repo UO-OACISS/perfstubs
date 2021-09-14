@@ -24,13 +24,13 @@ set (CMAKE_CXX_STANDARD 11)
 
 project (perfstubs)
 
-# should we use our own implementation of timers (for examples)?
+# should we use our own tool_example of timers (for examples)?
 option (PERFSTUBS_USE_TIMERS
-    "Use provided perfstubs implementation" ON)
+    "Use provided perfstubs tool_example" ON)
 
-# should we use our own implementation of timers (for examples)?
+# should we use our own tool_example of timers (for examples)?
 option (PERFSTUBS_USE_DEFAULT_IMPLEMENTATION
-    "Use provided perfstubs implementation" ON)
+    "Use provided perfstubs tool_example" ON)
 
 # should we use static or dynamic linking?
 option (PERFSTUBS_USE_STATIC
@@ -43,11 +43,6 @@ option (PERFSTUBS_BUILD_EXAMPLES
 # should we build just the library?
 option (PERFSTUBS_BUILD_MULTI_TOOL
     "Build libperfstsubs_n" OFF)
-
-# this just makes things easier later
-if(PERFSTUBS_BUILD_EXAMPLES)
-    set(PERFSTUBS_BUILD_MULTI_TOOL ON)
-endif(PERFSTUBS_BUILD_EXAMPLES)
 
 # SET SANITIZE OPTIONS, IF DESIRED
 
@@ -194,9 +189,8 @@ endif (NOT PERFSTUBS_USE_STATIC)
 
 if(PERFSTUBS_BUILD_EXAMPLES)
     include(CTest)
-    add_subdirectory(implementation)
-    set (IMPL_LIB ${PS_STATIC_WHOLE_PREFIX} implementation ${PS_STATIC_WHOLE_POSTFIX})
-    set (IMPL2_LIB ${PS_STATIC_WHOLE_PREFIX} implementation2 ${PS_STATIC_WHOLE_POSTFIX})
+    add_subdirectory(tool_example)
+    set (IMPL_LIB ${PS_STATIC_WHOLE_PREFIX} tool_example ${PS_STATIC_WHOLE_POSTFIX})
     add_subdirectory(examples)
 endif(PERFSTUBS_BUILD_EXAMPLES)
 
