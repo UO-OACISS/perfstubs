@@ -75,12 +75,12 @@ void  ps_set_metadata_(const char *name, const char *value);
 
 /* data query API */
 
-void  ps_get_timer_data_(ps_tool_timer_data_t *timer_data, int tool_id);
-void  ps_get_counter_data_(ps_tool_counter_data_t *counter_data, int tool_id);
-void  ps_get_metadata_(ps_tool_metadata_t *metadata, int tool_id);
-void  ps_free_timer_data_(ps_tool_timer_data_t *timer_data, int tool_id);
-void  ps_free_counter_data_(ps_tool_counter_data_t *counter_data, int tool_id);
-void  ps_free_metadata_(ps_tool_metadata_t *metadata, int tool_id);
+void  ps_get_timer_data_(ps_tool_timer_data_t *timer_data);
+void  ps_get_counter_data_(ps_tool_counter_data_t *counter_data);
+void  ps_get_metadata_(ps_tool_metadata_t *metadata);
+void  ps_free_timer_data_(ps_tool_timer_data_t *timer_data);
+void  ps_free_counter_data_(ps_tool_counter_data_t *counter_data);
+void  ps_free_metadata_(ps_tool_metadata_t *metadata);
 
 char* ps_make_timer_name_(const char * file, const char * func, int line);
 
