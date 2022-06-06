@@ -1,11 +1,6 @@
-/****************************************************************************
-**			TAU Portable Profiling Package			   **
-**			http://www.cs.uoregon.edu/research/tau	           **
-*****************************************************************************
-**    Copyright 2020  						   	   **
-**    Department of Computer and Information Science, University of Oregon **
-**    Advanced Computing Laboratory, Los Alamos National Laboratory        **
-****************************************************************************/
+/* Copyright (c) 2019-2022 University of Oregon
+ * Distributed under the BSD Software License
+ * (See accompanying file LICENSE.txt) */
 
 #include <iostream>
 #include <thread>
@@ -14,8 +9,8 @@
 #include <unistd.h>
 #define PERFSTUBS_USE_TIMERS
 #include "perfstubs_api/timer.h"
- 
-void foo() 
+
+void foo()
 {
     PERFSTUBS_REGISTER_THREAD();
     PERFSTUBS_SCOPED_TIMER_FUNC();

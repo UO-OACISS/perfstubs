@@ -1,8 +1,8 @@
-// Copyright (c) 2019-2020 University of Oregon
-// Distributed under the BSD Software License
-// (See accompanying file LICENSE.txt)
+/* Copyright (c) 2019-2022 University of Oregon
+ * Distributed under the BSD Software License
+ * (See accompanying file LICENSE.txt) */
 
-// A simple program that computes the square root of a number
+/* A simple program that computes the square root of a number */
 #define PERFSTUBS_USE_TIMERS
 #include "perfstubs_api/timer.h"
 

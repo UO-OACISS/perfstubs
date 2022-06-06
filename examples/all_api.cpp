@@ -1,6 +1,6 @@
-// Copyright (c) 2019-2020 University of Oregon
-// Distributed under the BSD Software License
-// (See accompanying file LICENSE.txt)
+/* Copyright (c) 2019-2022 University of Oregon
+ * Distributed under the BSD Software License
+ * (See accompanying file LICENSE.txt) */
 
 // A simple program that computes the square root of a number
 #include <iostream>
