@@ -169,6 +169,8 @@ if (PERFSTUBS_USE_STATIC AND NOT APPLE)
     SET(CMAKE_EXE_LINKER_FLAGS "-static")
 endif (PERFSTUBS_USE_STATIC AND NOT APPLE)
 
+include(GNUInstallDirs)
+
 # Setup RPATH
 if (NOT PERFSTUBS_USE_STATIC)
     # use, i.e. don't skip the full RPATH for the build tree
@@ -176,14 +178,14 @@ if (NOT PERFSTUBS_USE_STATIC)
     # when building, don't use the install RPATH already
     # (but later on when installing)
     SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
-    SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+    SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
     # add the automatically determined parts of the RPATH
     # which point to directories outside the build tree to the install RPATH
     SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
     # the RPATH to be used when installing, but only if it's not a system directory
-    LIST(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_PREFIX}/lib" isSystemDir)
+    LIST(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}" isSystemDir)
     IF("${isSystemDir}" STREQUAL "-1")
-        SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+        SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
     ENDIF("${isSystemDir}" STREQUAL "-1")
 endif (NOT PERFSTUBS_USE_STATIC)
 
@@ -232,15 +234,15 @@ endif(PERFSTUBS_BUILD_MULTI_TOOL)
 if(PERFSTUBS_BUILD_MULTI_TOOL)
     install (TARGETS perfstubs perfstubs_n
         EXPORT PerfStubsTargets
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
         COMPONENT library
     )
 else(PERFSTUBS_BUILD_MULTI_TOOL)
     install (TARGETS perfstubs
         EXPORT PerfStubsTargets
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
         COMPONENT library
     )
 endif(PERFSTUBS_BUILD_MULTI_TOOL)
@@ -249,18 +251,18 @@ install (FILES perfstubs_api/timer.h DESTINATION include/perfstubs_api)
 install (FILES perfstubs_api/timer_f.h DESTINATION include/perfstubs_api)
 install (FILES perfstubs_api/tool.h DESTINATION include/perfstubs_api)
 install (FILES ${PROJECT_BINARY_DIR}/perfstubs_api/config.h DESTINATION include/perfstubs_api)
-install (FILES ${PROJECT_BINARY_DIR}/perfstubs.pc DESTINATION lib/pkgconfig)
+install (FILES ${PROJECT_BINARY_DIR}/perfstubs.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
 install (FILES ${PROJECT_BINARY_DIR}/perfstubs-config.cmake
-    DESTINATION lib/cmake)
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake)
 
 if(PERFSTUBS_BUILD_MULTI_TOOL)
-    install (FILES ${PROJECT_BINARY_DIR}/perfstubs_n.pc DESTINATION lib/pkgconfig)
+    install (FILES ${PROJECT_BINARY_DIR}/perfstubs_n.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
     install (FILES ${PROJECT_BINARY_DIR}/perfstubs_n-config.cmake
-        DESTINATION lib/cmake)
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake)
 endif(PERFSTUBS_BUILD_MULTI_TOOL)
 
 # Install the export set for use with the install-tree
 install(EXPORT PerfStubsTargets
-  DESTINATION lib/cmake
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake
   COMPONENT library)
 
