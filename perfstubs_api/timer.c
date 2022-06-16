@@ -222,7 +222,7 @@ void ps_initialize_(void) {
     if (initialize_function != NULL) {
         initialize_function();
         (void) pthread_once(&key_once, make_key);
-        ps_register_thread_internal();
+        pthread_setspecific(key, (void*)1UL);
     }
 }
 
