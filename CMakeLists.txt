@@ -24,6 +24,14 @@ set (CMAKE_CXX_STANDARD 11)
 
 project (perfstubs)
 
+#Set if using perfstubs build system.
+add_definitions(-DPERFSTUBS_STANDALONE)
+include(CheckIncludeFile)
+CHECK_INCLUDE_FILE("dlfcn.h" HAVE_DLFCN)
+IF(HAVE_DLFCN)
+	add_definitions(-DPERFSTUBS_HAVE_DLFCN_H)
+ENDIF()
+
 # should we use our own tool_example of timers (for examples)?
 option (PERFSTUBS_USE_TIMERS
     "Use provided perfstubs tool_example" ON)
