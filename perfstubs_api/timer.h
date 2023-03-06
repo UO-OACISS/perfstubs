@@ -24,7 +24,8 @@
  * not just the function name.  If the compiler doesn't support it,
  * just use the function name. */
 
-#if defined(__GNUC__)
+/* ISO C doesn't allow __PRETTY_FUNCTION__, so only do it with C++ */
+#if defined(__GNUC__) && defined(__cplusplus)
 #define __PERFSTUBS_FUNCTION__ __PRETTY_FUNCTION__
 #else
 #define __PERFSTUBS_FUNCTION__ __func__
