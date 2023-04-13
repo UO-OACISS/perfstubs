@@ -1,8 +1,9 @@
-// Copyright (c) 2019-2022 University of Oregon
+// Copyright (c) 2019 University of Oregon
 // Distributed under the BSD Software License
 // (See accompanying file LICENSE.txt)
 
 #pragma once
+#define PERFSTUBS_USE_TIMERS
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -52,36 +53,31 @@ extern "C" {
 
 void  ps_initialize_(void);
 void  ps_finalize_(void);
-void  ps_pause_measurement_(void);
-void  ps_resume_measurement_(void);
 void  ps_register_thread_(void);
 void  ps_dump_data_(void);
 void* ps_timer_create_(const char *timer_name);
 void  ps_timer_create_fortran_(void ** object, const char *timer_name);
-void  ps_timer_start_(void *timer);
-void  ps_timer_start_fortran_(void **timer);
-void  ps_timer_stop_(void *timer);
-void  ps_timer_stop_fortran_(void **timer);
-void  ps_start_string_(const char *timer_name);
-void  ps_stop_string_(const char *timer_name);
-void  ps_stop_current_(void);
+void  ps_timer_start_(const void *timer);
+void  ps_timer_start_fortran_(const void **timer);
+void  ps_timer_stop_(const void *timer);
+void  ps_timer_stop_fortran_(const void **timer);
 void  ps_set_parameter_(const char *parameter_name, int64_t parameter_value);
 void  ps_dynamic_phase_start_(const char *phasePrefix, int iterationIndex);
 void  ps_dynamic_phase_stop_(const char *phasePrefix, int iterationIndex);
 void* ps_create_counter_(const char *name);
 void  ps_create_counter_fortran_(void ** object, const char *name);
-void  ps_sample_counter_(void *counter, const double value);
-void  ps_sample_counter_fortran_(void **counter, const double value);
+void  ps_sample_counter_(const void *counter, const double value);
+void  ps_sample_counter_fortran_(const void **counter, const double value);
 void  ps_set_metadata_(const char *name, const char *value);
 
 /* data query API */
 
-void  ps_get_timer_data_(ps_tool_timer_data_t *timer_data);
-void  ps_get_counter_data_(ps_tool_counter_data_t *counter_data);
-void  ps_get_metadata_(ps_tool_metadata_t *metadata);
-void  ps_free_timer_data_(ps_tool_timer_data_t *timer_data);
-void  ps_free_counter_data_(ps_tool_counter_data_t *counter_data);
-void  ps_free_metadata_(ps_tool_metadata_t *metadata);
+void  ps_get_timer_data_(ps_tool_timer_data_t *timer_data, int tool_id);
+void  ps_get_counter_data_(ps_tool_counter_data_t *counter_data, int tool_id);
+void  ps_get_metadata_(ps_tool_metadata_t *metadata, int tool_id);
+void  ps_free_timer_data_(ps_tool_timer_data_t *timer_data, int tool_id);
+void  ps_free_counter_data_(ps_tool_counter_data_t *counter_data, int tool_id);
+void  ps_free_metadata_(ps_tool_metadata_t *metadata, int tool_id);
 
 char* ps_make_timer_name_(const char * file, const char * func, int line);
 
@@ -98,10 +94,6 @@ char* ps_make_timer_name_(const char * file, const char * func, int line);
 
 #define PERFSTUBS_FINALIZE() ps_finalize_();
 
-#define PERFSTUBS_PAUSE_MEASUREMENT() ps_pause_measurement_();
-
-#define PERFSTUBS_RESUME_MEASUREMENT() ps_resume_measurement_();
-
 #define PERFSTUBS_REGISTER_THREAD() ps_register_thread_();
 
 #define PERFSTUBS_DUMP_DATA() ps_dump_data_();
@@ -117,19 +109,6 @@ char* ps_make_timer_name_(const char * file, const char * func, int line);
 
 #define PERFSTUBS_TIMER_STOP(_timer) \
     if (perfstubs_initialized == PERFSTUBS_SUCCESS) ps_timer_stop_(_timer); \
-
-#define PERFSTUBS_START_STRING(_timer_name) \
-    if (perfstubs_initialized == PERFSTUBS_SUCCESS) { \
-        ps_start_string_(_timer_name); \
-    };
-
-#define PERFSTUBS_STOP_STRING(_timer_name) \
-    if (perfstubs_initialized == PERFSTUBS_SUCCESS) { \
-        ps_stop_string_(_timer_name); \
-    };
-
-#define PERFSTUBS_STOP_CURRENT() \
-    if (perfstubs_initialized == PERFSTUBS_SUCCESS) ps_stop_current_(); \
 
 #define PERFSTUBS_SET_PARAMETER(_parameter, _value) \
     if (perfstubs_initialized == PERFSTUBS_SUCCESS) ps_set_parameter_(_parameter, _value);
@@ -173,15 +152,10 @@ char* ps_make_timer_name_(const char * file, const char * func, int line);
 
 #define PERFSTUBS_INITIALIZE()
 #define PERFSTUBS_FINALIZE()
-#define PERFSTUBS_PAUSE_MEASUREMENT()
-#define PERFSTUBS_RESUME_MEASUREMENT()
 #define PERFSTUBS_REGISTER_THREAD()
 #define PERFSTUBS_DUMP_DATA()
 #define PERFSTUBS_TIMER_START(_timer, _timer_name)
 #define PERFSTUBS_TIMER_STOP(_timer_name)
-#define PERFSTUBS_START_STRING(_timer_name)
-#define PERFSTUBS_STOP_STRING(_timer_name)
-#define PERFSTUBS_STOP_CURRENT()
 #define PERFSTUBS_SET_PARAMETER(_parameter, _value)
 #define PERFSTUBS_DYNAMIC_PHASE_START(_phase_prefix, _iteration_index)
 #define PERFSTUBS_DYNAMIC_PHASE_STOP(_phase_prefix, _iteration_index)
@@ -199,7 +173,7 @@ char* ps_make_timer_name_(const char * file, const char * func, int line);
 /*
  * We allow the namespace to be changed, so that different libraries
  * can include their own implementation and not have a namespace collision.
- * For example, library A and executable B could both include the
+ * For example, library A and executable B could both include the 
  * perfstubs_api code in their source tree, and change the namespace
  * respectively, instead of linking in the perfstubs library.
  */
@@ -223,10 +197,10 @@ namespace PERFSTUBS_INTERNAL_NAMESPACE
 class ScopedTimer
 {
 private:
-    void * m_timer;
+    const void * m_timer;
 
 public:
-    ScopedTimer(void * timer) : m_timer(timer)
+    ScopedTimer(const void * timer) : m_timer(timer)
     {
         if (perfstubs_initialized == PERFSTUBS_SUCCESS) ps_timer_start_(m_timer);
     }
@@ -246,8 +220,8 @@ namespace PSNS = external::PERFSTUBS_INTERNAL_NAMESPACE;
     static void * CONCAT(__var,__LINE__) = ps_timer_create_(__name); \
     PSNS::ScopedTimer CONCAT(__var2,__LINE__)(CONCAT(__var,__LINE__));
 
-/* The string created by ps_make_timer_name is a memory leak, but
- * it is only created once per function, since it is called when the
+/* The string created by ps_make_timer_name is a memory leak, but 
+ * it is only created once per function, since it is called when the 
  * static variable is first initialized. */
 #define PERFSTUBS_SCOPED_TIMER_FUNC() \
     static void * CONCAT(__var,__LINE__) = \
