@@ -5,10 +5,10 @@
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE // needed to define RTLD_DEFAULT
 #endif
+#include <dlfcn.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
-#include <dlfcn.h>
 #include "pthread.h"
 #ifndef PERFSTUBS_USE_TIMERS
 #define PERFSTUBS_USE_TIMERS
