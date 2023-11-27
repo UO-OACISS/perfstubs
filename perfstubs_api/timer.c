@@ -108,7 +108,8 @@ void initialize_library(void) {
         perfstubs_initialized = PERFSTUBS_FAILURE;
         return;
     }
-    printf("Found ps_tool_initialize(), registering tool\n");
+    // removing printf statement for now, it's too noisy.
+    //printf("Found ps_tool_initialize(), registering tool\n");
     finalize_function = &ps_tool_finalize;
     pause_measurement_function = &ps_tool_pause_measurement;
     resume_measurement_function = &ps_tool_resume_measurement;
