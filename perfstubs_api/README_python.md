@@ -1,7 +1,8 @@
 Python support is now included.
 
 Building the perfstubs library will now also build `perfstubs.so`, which
-is a Python C extension. There is a python module, `pstubs.py` in the
+is a Python C extension that uses the new low-overhead profiling support
+in Python 3.12+. There is a python module, `pstubs.py` in the
 perfstubs `<install-prefix>/lib` directory.
 
 To test the Python support, do the following:
