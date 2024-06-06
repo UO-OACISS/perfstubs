@@ -74,8 +74,11 @@ set (CMAKE_CXX_STANDARD 11)
 set(CMAKE_THREAD_PREFER_PTHREAD ON)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package (Threads REQUIRED)
-find_package (Python3 COMPONENTS Interpreter Development REQUIRED)
-set(PYTHON3_LIB python${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR})
+find_package (Python3 3.12 COMPONENTS Interpreter Development)
+if(Python3_FOUND)
+    set(PYTHON3_LIB python${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR})
+endif(Python3_FOUND)
+
 
 if (PS_HAVE_FORTRAN)
     set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -cpp")
@@ -127,18 +130,26 @@ else (PERFSTUBS_USE_STATIC AND NOT APPLE)
     set (PTHREAD_LIB pthread)
 endif (PERFSTUBS_USE_STATIC AND NOT APPLE)
 
-add_library(perfstubs perfstubs_api/timer.c perfstubs_api/python.cpp)
+add_library(perfstubs perfstubs_api/timer.c)
+if(Python3_FOUND)
+    add_library(perfstubs_python perfstubs_api/timer.c perfstubs_api/python.cpp)
+endif(Python3_FOUND)
 
 if (BUILD_SHARED_LIBS)
-    target_link_libraries(perfstubs INTERFACE dl m PUBLIC ${PYTHON3_LIB})
+    target_link_libraries(perfstubs INTERFACE dl m)
+    if(Python3_FOUND)
+        target_link_libraries(perfstubs_python INTERFACE dl m PUBLIC ${PYTHON3_LIB})
+    endif(Python3_FOUND)
 else()
-    target_link_libraries(perfstubs INTERFACE m PUBLIC ${PYTHON3_LIB})
+    target_link_libraries(perfstubs INTERFACE m)
+    if(Python3_FOUND)
+        target_link_libraries(perfstubs_python INTERFACE dl m PUBLIC ${PYTHON3_LIB})
+    endif(Python3_FOUND)
 endif()
 
 target_include_directories(perfstubs PRIVATE
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
     $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>
-    ${Python3_INCLUDE_DIRS}
 )
 
 target_include_directories(perfstubs INTERFACE
@@ -147,9 +158,21 @@ target_include_directories(perfstubs INTERFACE
   $<INSTALL_INTERFACE:include>
 )
 
-target_link_directories(perfstubs PRIVATE
-    ${Python3_LIBRARY_DIRS}
-)
+if(Python3_FOUND)
+    target_include_directories(perfstubs_python PRIVATE
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>
+        ${Python3_INCLUDE_DIRS}
+    )
+    target_link_directories(perfstubs_python PRIVATE ${Python3_LIBRARY_DIRS})
+    set_target_properties(perfstubs_python PROPERTIES PREFIX "")
+    set_target_properties(perfstubs_python PROPERTIES OUTPUT_NAME "perfstubs")
+    if (WIN32)
+    set_target_properties (perfstubs_python PROPERTIES SUFFIX ".pyd")
+    else()
+    set_target_properties (perfstubs_python PROPERTIES SUFFIX ".so")
+    endif()
+endif(Python3_FOUND)
 
 if (PERFSTUBS_USE_STATIC AND NOT APPLE)
     SET(CMAKE_EXE_LINKER_FLAGS "-static")
@@ -203,12 +226,21 @@ endforeach()
 CONFIGURE_FILE("etc/perfstubs-config.cmake.in"
     "${PROJECT_BINARY_DIR}/perfstubs-config.cmake" @ONLY)
 
+if(Python3_FOUND)
+    install (TARGETS perfstubs perfstubs_python
+        EXPORT PerfStubsTargets
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        COMPONENT library
+    )
+else(Python3_FOUND)
     install (TARGETS perfstubs
         EXPORT PerfStubsTargets
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
         COMPONENT library
     )
+endif(Python3_FOUND)
 
 install (FILES perfstubs_api/timer.h DESTINATION include/perfstubs_api)
 install (FILES perfstubs_api/timer_f.h DESTINATION include/perfstubs_api)
@@ -217,6 +249,7 @@ install (FILES ${PROJECT_BINARY_DIR}/perfstubs_api/config.h DESTINATION include/
 install (FILES ${PROJECT_BINARY_DIR}/perfstubs.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
 install (FILES ${PROJECT_BINARY_DIR}/perfstubs-config.cmake
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake)
+install (FILES perfstubs_api/pstubs.py DESTINATION lib)
 
 # Install the export set for use with the install-tree
 install(EXPORT PerfStubsTargets
