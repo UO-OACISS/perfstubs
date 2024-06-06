@@ -15,3 +15,5 @@ generic version, which was extracted as a separate repository for testing and
 demonstration purposes.
 
 For a more extensive readme, see [perfstubs_api/README.md](perfstubs_api/README.md).
+
+For python 3.12+ info, see [perfstubs_api/README_python.md](perfstubs_api/README_python.md).
