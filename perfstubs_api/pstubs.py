@@ -76,7 +76,6 @@ def run(statement):
     """
 
     try:
-        print("executing: ", statement)
         exec(statement)
         print("Success!")
     except SystemExit:
@@ -103,6 +102,7 @@ if __name__ == '__main__':
         sys.path.insert(0, os.path.dirname(sys.argv[0]))
         init_tracing()
         #run('execfile(%r)' % (sys.argv[0],))
+        print("profiling: ", sys.argv[0])
         run('exec(open(%r).read())' % (sys.argv[0],))
         fini_tracing()
     else:

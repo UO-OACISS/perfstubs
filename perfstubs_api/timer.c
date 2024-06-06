@@ -140,7 +140,7 @@ void initialize_library(void) {
         perfstubs_initialized = PERFSTUBS_FAILURE;
         return;
     }
-    printf("Found ps_tool_initialize(), registering tool\n");
+    //printf("Found ps_tool_initialize(), registering tool\n");
     finalize_function =
         (ps_finalize_t)dlsym(RTLD_DEFAULT, "ps_tool_finalize");
     pause_measurement_function =
