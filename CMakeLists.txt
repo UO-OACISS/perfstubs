@@ -74,6 +74,8 @@ set (CMAKE_CXX_STANDARD 11)
 set(CMAKE_THREAD_PREFER_PTHREAD ON)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package (Threads REQUIRED)
+find_package (Python3 COMPONENTS Interpreter Development REQUIRED)
+set(PYTHON3_LIB python${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR})
 
 if (PS_HAVE_FORTRAN)
     set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -cpp")
@@ -125,23 +127,28 @@ else (PERFSTUBS_USE_STATIC AND NOT APPLE)
     set (PTHREAD_LIB pthread)
 endif (PERFSTUBS_USE_STATIC AND NOT APPLE)
 
-add_library(perfstubs perfstubs_api/timer.c)
+add_library(perfstubs perfstubs_api/timer.c perfstubs_api/python.cpp)
 
 if (BUILD_SHARED_LIBS)
-    target_link_libraries(perfstubs INTERFACE dl m)
+    target_link_libraries(perfstubs INTERFACE dl m PUBLIC ${PYTHON3_LIB})
 else()
-    target_link_libraries(perfstubs INTERFACE m)
+    target_link_libraries(perfstubs INTERFACE m PUBLIC ${PYTHON3_LIB})
 endif()
 
 target_include_directories(perfstubs PRIVATE
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
     $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>
+    ${Python3_INCLUDE_DIRS}
 )
 
 target_include_directories(perfstubs INTERFACE
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
   $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>
   $<INSTALL_INTERFACE:include>
+)
+
+target_link_directories(perfstubs PRIVATE
+    ${Python3_LIBRARY_DIRS}
 )
 
 if (PERFSTUBS_USE_STATIC AND NOT APPLE)
