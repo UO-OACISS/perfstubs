@@ -197,9 +197,11 @@ void initialize_library(void) {
 char * ps_make_timer_name_(const char * file,
         const char * func, int line) {
     /* The length of the line number as a string is floor(log10(abs(num))) */
-    int string_length = (strlen(file) + strlen(func) + floor(log10(abs(line))) + 12);
+    /* The max length of a line number is 4294967295, so just add 10 to the
+       12 other characters we need, and avoid an expensive log() call. */
+    int string_length = (strlen(file) + strlen(func) + 22);
     char * name = calloc(string_length, sizeof(char));
-    sprintf(name, "%s [{%s} {%d,0}]", func, file, line);
+    sprintf(name, "%s [{%s} {%d}]", func, file, line);
     return (name);
 }
 

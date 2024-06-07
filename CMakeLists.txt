@@ -74,7 +74,8 @@ set (CMAKE_CXX_STANDARD 11)
 set(CMAKE_THREAD_PREFER_PTHREAD ON)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package (Threads REQUIRED)
-find_package (Python3 3.12 COMPONENTS Interpreter Development)
+#find_package (Python3 3.12 COMPONENTS Interpreter Development)
+find_package (Python3 COMPONENTS Interpreter Development)
 if(Python3_FOUND)
     set(PYTHON3_LIB python${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR})
 endif(Python3_FOUND)
@@ -249,10 +250,56 @@ install (FILES ${PROJECT_BINARY_DIR}/perfstubs_api/config.h DESTINATION include/
 install (FILES ${PROJECT_BINARY_DIR}/perfstubs.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
 install (FILES ${PROJECT_BINARY_DIR}/perfstubs-config.cmake
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake)
-install (FILES perfstubs_api/pstubs.py DESTINATION lib)
+CONFIGURE_FILE(${PROJECT_SOURCE_DIR}/perfstubs_api/pstubs_common.py
+    ${PROJECT_BINARY_DIR}/perfstubs_api/pstubs_common.py @ONLY)
+install (FILES
+    perfstubs_api/pstubs.py
+    perfstubs_api/pstubs_sys_monitoring.py
+    perfstubs_api/pstubs_sys_settrace.py
+    ${PROJECT_BINARY_DIR}/perfstubs_api/pstubs_common.py
+    DESTINATION lib)
 
 # Install the export set for use with the install-tree
 install(EXPORT PerfStubsTargets
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake
   COMPONENT library)
 
+function(dump_cmake_variables)
+    get_cmake_property(_variableNames VARIABLES)
+    list (SORT _variableNames)
+    foreach (_variableName ${_variableNames})
+        if (ARGV0)
+            unset(MATCHED)
+            string(REGEX MATCH ${ARGV0} MATCHED ${_variableName})
+            if (NOT MATCHED)
+                continue()
+            endif()
+        endif()
+        message(STATUS "${_variableName} = ${${_variableName}}")
+    endforeach()
+endfunction()
+
+function(dump_defines)
+    get_directory_property( DirDefs DIRECTORY ${CMAKE_SOURCE_DIR} COMPILE_DEFINITIONS )
+    foreach( d ${DirDefs} )
+        message( STATUS "Found Define: " ${d} )
+    endforeach()
+endfunction()
+
+message(STATUS "----------------------------------------------------------------------")
+message(STATUS "PerfStubs Variable Report:")
+message(STATUS "----------------------------------------------------------------------")
+dump_cmake_variables("^PerfStubs")
+message(STATUS "----------------------------------------------------------------------")
+message(STATUS "PerfStubs Dependency Report:")
+message(STATUS "----------------------------------------------------------------------")
+dump_cmake_variables("^Python")
+dump_defines()
+MESSAGE(STATUS "Build type: " ${CMAKE_BUILD_TYPE})
+MESSAGE(STATUS "Libraries: " ${LIBS})
+MESSAGE(STATUS "Compiler cxx debug flags:" ${CMAKE_CXX_FLAGS_DEBUG})
+MESSAGE(STATUS "Compiler cxx release flags:" ${CMAKE_CXX_FLAGS_RELEASE})
+MESSAGE(STATUS "Compiler cxx min size flags:" ${CMAKE_CXX_FLAGS_MINSIZEREL})
+MESSAGE(STATUS "Compiler cxx flags:" ${CMAKE_CXX_FLAGS})
+MESSAGE(STATUS "Install Prefix:" ${CMAKE_INSTALL_PREFIX})
+message(STATUS "----------------------------------------------------------------------")

@@ -29,6 +29,14 @@ static PyObject* perfstubs_finalize(PyObject *self, PyObject *args) {
     return Py_None;
 }
 
+static PyObject* perfstubs_get_python_version(PyObject *self, PyObject* noarg) {
+  int major = PY_MAJOR_VERSION;
+  int minor = PY_MINOR_VERSION;
+  int micro = PY_MICRO_VERSION;
+  PyObject * result = Py_BuildValue("iii", major, minor, micro);
+  return result;
+}
+
 static PyObject* perfstubs_start(PyObject *self, PyObject *args) {
     const char *timer_name;
     const char *file_name;
@@ -70,6 +78,8 @@ static PyObject* perfstubs_stop(PyObject *self, PyObject *args) {
 }
 
 static PyMethodDef PerfStubsMethods[] = {
+    {"get_python_version", perfstubs_get_python_version, METH_VARARGS,
+     "Get compiled Python version for libperfstubs.so."},
     {"initialize", perfstubs_initialize, METH_VARARGS,
      "Initialize PerfStubs."},
     {"finalize", perfstubs_finalize, METH_VARARGS,
