@@ -6,6 +6,7 @@ python_system_path = "@Python3_LIBRARY_DIRS@"
 python_frozen_path = "<frozen "
 exclude_timers = ["fini_tracing","init_tracing","<module>"]
 internal_timers = False
+bootstrap_timers = ["_run_module_code"]
 
 if sys.version_info[1] >= 12:
     import pstubs_sys_monitoring as pstubs_impl
