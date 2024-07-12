@@ -12,9 +12,10 @@ To test the Python support, do the following:
 ```bash
 git clone --branch python-3.12 https://github.com/UO-OACISS/perfstubs.git
 cd perfstubs
-cmake -B build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=`pwd`/install
+cmake -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX=`pwd`/install
 cmake --build build --parallel --target install
 export PYTHONPATH=`pwd`/install/lib:$PYTHONPATH
+export PYTHONPATH=`pwd`/install/lib64:$PYTHONPATH  # might be necessary, too
 ```
 
 To try it with a working TAU installation:
