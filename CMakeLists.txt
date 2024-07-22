@@ -4,6 +4,8 @@
 
 cmake_minimum_required (VERSION 3.8)
 
+project (perfstubs)
+
 # Doesn't compile on Windows.
 if (WIN32)
     message(FATAL_ERROR "\nPerfStubs won't compile on Windows. Exiting.")
@@ -21,8 +23,6 @@ endif ()
 
 # for the examples only
 set (CMAKE_CXX_STANDARD 11)
-
-project (perfstubs)
 
 # should we use our own tool_example of timers (for examples)?
 option (PERFSTUBS_USE_TIMERS
@@ -75,11 +75,16 @@ set(CMAKE_THREAD_PREFER_PTHREAD ON)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package (Threads REQUIRED)
 #find_package (Python3 3.12 COMPONENTS Interpreter Development)
-find_package (Python3 COMPONENTS Interpreter Development)
-if(Python3_FOUND)
-    set(PYTHON3_LIB python${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR})
-endif(Python3_FOUND)
-
+    if(DEFINED Python3_ROOT_DIR)
+        set(PYTHON3_LIB ${Python3_ROOT_DIR}/lib/libpython${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}.so)
+        set(Python3_INCLUDE_DIRS ${Python3_ROOT_DIR}/include/python${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR})
+        set(Python3_FOUND TRUE CACHE BOOL "")
+    else(DEFINED ${Python3_ROOT_DIR})
+        find_package (Python3 COMPONENTS Interpreter Development)
+        if(Python3_FOUND)
+            set(PYTHON3_LIB python${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR})
+        endif(Python3_FOUND)
+    endif(DEFINED ${Python3_ROOT_DIR})
 
 if (PS_HAVE_FORTRAN)
     set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -cpp")
