@@ -82,14 +82,14 @@ def init_tracing():
     #    pep_669_py_stop_trace_bootstrap)
 
     # Not sure about these two events yet...
-    #sys.monitoring.register_callback(
-    #    DEBUGGER_ID,
-    #    sys.monitoring.events.CALL,
-    #    pep_669_call_trace)
-    #sys.monitoring.register_callback(
-    #    DEBUGGER_ID,
-    #    sys.monitoring.events.C_RETURN,
-    #    pep_669_c_return_trace)
+    # sys.monitoring.register_callback(
+    #     DEBUGGER_ID,
+    #     sys.monitoring.events.CALL,
+    #     pep_669_call_trace)
+    # sys.monitoring.register_callback(
+    #     DEBUGGER_ID,
+    #     sys.monitoring.events.C_RETURN,
+    #     pep_669_c_return_trace)
 
 def fini_tracing():
     DEBUGGER_ID = sys.monitoring.DEBUGGER_ID
