@@ -17,7 +17,7 @@ def init_tracing():
 
     # This is the actual PY_START event handler
 
-    def pep_669_py_start_trace(code, instruction_offset):
+    def pstubs_py_start_trace(code, instruction_offset):
         # If we should filter this event, do it
         if code.co_name in ps.exclude_timers:
             return sys.monitoring.DISABLE
@@ -28,7 +28,7 @@ def init_tracing():
 
     # This is the actual PY_STOP event handler
 
-    def pep_669_py_stop_trace(code, instruction_offset, retval):
+    def pstubs_py_stop_trace(code, instruction_offset, retval):
         # If we should filter this event, do it
         if code.co_name in ps.exclude_timers:
             return sys.monitoring.DISABLE
@@ -39,7 +39,7 @@ def init_tracing():
 
     # This is the bootstrap PY_START event handler
 
-    def pep_669_py_start_trace_bootstrap(code, instruction_offset):
+    def pstubs_py_start_trace_bootstrap(code, instruction_offset):
         # Do nothing...until we get an event we should be tracing
         if code.co_name in ps.bootstrap_timers:
             if ps.internal_timers:
@@ -50,20 +50,20 @@ def init_tracing():
             sys.monitoring.register_callback(
                 DEBUGGER_ID,
                 sys.monitoring.events.PY_START,
-                pep_669_py_start_trace)
+                pstubs_py_start_trace)
             sys.monitoring.register_callback(
                 DEBUGGER_ID,
                 sys.monitoring.events.PY_RETURN,
-                pep_669_py_stop_trace)
+                pstubs_py_stop_trace)
 
-    def pep_669_py_stop_trace_bootstrap(code, instruction_offset, retval):
+    def pstubs_py_stop_trace_bootstrap(code, instruction_offset, retval):
         # do nothing...yet
         return
 
-    def pep_669_call_trace(code, instruction_offset, callable, arg0):
+    def pstubs_call_trace(code, instruction_offset, callable, arg0):
         frame = sys._getframe(1)
         perfstubs.start(code.co_name, os.path.basename(code.co_filename), frame.f_lineno)
-    def pep_669_c_return_trace(code, instruction_offset, callable, arg0):
+    def pstubs_c_return_trace(code, instruction_offset, callable, arg0):
         frame = sys._getframe(1)
         perfstubs.start(code.co_name, os.path.basename(code.co_filename), frame.f_lineno)
 
@@ -73,23 +73,23 @@ def init_tracing():
     sys.monitoring.register_callback(
         DEBUGGER_ID,
         sys.monitoring.events.PY_START,
-        pep_669_py_start_trace_bootstrap)
+        pstubs_py_start_trace_bootstrap)
 
     # Is this even necessary if we don't trace until after bootstrap?
     #sys.monitoring.register_callback(
     #    DEBUGGER_ID,
     #    sys.monitoring.events.PY_RETURN,
-    #    pep_669_py_stop_trace_bootstrap)
+    #    pstubs_py_stop_trace_bootstrap)
 
     # Not sure about these two events yet...
     # sys.monitoring.register_callback(
     #     DEBUGGER_ID,
     #     sys.monitoring.events.CALL,
-    #     pep_669_call_trace)
+    #     pstubs_call_trace)
     # sys.monitoring.register_callback(
     #     DEBUGGER_ID,
     #     sys.monitoring.events.C_RETURN,
-    #     pep_669_c_return_trace)
+    #     pstubs_c_return_trace)
 
 def fini_tracing():
     DEBUGGER_ID = sys.monitoring.DEBUGGER_ID
