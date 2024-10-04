@@ -2,7 +2,7 @@ import perfstubs
 import sys
 
 # example filters
-python_system_path = "@Python3_LIBRARY_DIRS@"
+python_system_path = "@Python3_STDLIB@"
 python_frozen_path = "<frozen "
 exclude_timers = ["fini_tracing","init_tracing","<module>"]
 internal_timers = False
