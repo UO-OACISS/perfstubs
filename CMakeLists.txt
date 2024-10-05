@@ -264,7 +264,7 @@ CONFIGURE_FILE(${PROJECT_SOURCE_DIR}/perfstubs_api/pstubs_common.py
 install (FILES
     perfstubs_api/pstubs.py
     perfstubs_api/pstubs_sys_monitoring.py
-    perfstubs_api/pstubs_sys_settrace.py
+    perfstubs_api/pstubs_sys_setprofile.py
     ${PROJECT_BINARY_DIR}/perfstubs_api/pstubs_common.py
     DESTINATION lib)
 

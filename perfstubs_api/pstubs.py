@@ -69,9 +69,9 @@ try:
         if sys.version_info[1] >= 12:
             import pstubs_sys_monitoring as pstubs_impl
         else:
-            import pstubs_sys_settrace as pstubs_impl
+            import pstubs_sys_setprofile as pstubs_impl
 except ImportError:
-    dieInFlames("modules 'pstubs_common', 'pstubs_sys_monitoring' or 'pstubs_sys_settrace' not found in PYTHONPATH")
+    dieInFlames("modules 'pstubs_common', 'pstubs_sys_monitoring' or 'pstubs_sys_setprofile' not found in PYTHONPATH")
 except:
     dieInFlames("Unknown exception while importing pstubs: %s" % sys.exc_info()[0])
 
