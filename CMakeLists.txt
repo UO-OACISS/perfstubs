@@ -22,7 +22,7 @@ else ()
 endif ()
 
 # for the examples only
-set (CMAKE_CXX_STANDARD 17)
+set (CMAKE_CXX_STANDARD 11)
 
 # should we use our own tool_example of timers (for examples)?
 option (PERFSTUBS_USE_TIMERS
@@ -93,6 +93,26 @@ if(PERFSTUBS_WITH_PYTHON)
             set(PYTHON3_LIB python${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR})
         endif(Python3_FOUND)
     endif(DEFINED Python3_ROOT_DIR)
+    if(NOT DEFINED RAPIDJSON_INCLUDE_DIR)
+        ### Set up rapidjson stuff - before perfstubs, it is a dependency there, too
+        git_external(rapidjson
+            https://github.com/miloyip/rapidjson.git
+            master
+            VERBOSE)
+
+        find_path(
+            RAPIDJSON_INCLUDE_DIR
+            NAMES rapidjson
+            PATHS ${PROJECT_SOURCE_DIR}/rapidjson/include)
+
+        if(RAPIDJSON_INCLUDE_DIR)
+            message(INFO " Found rapidjson at ${RAPIDJSON_INCLUDE_DIR}")
+            include_directories(${RAPIDJSON_INCLUDE_DIR})
+        else()
+            message(FATAL_ERROR " rapidjson not found. This should have been checked out automatically. "
+                "Try manually check out https://github.com/miloyip/rapidjson.git to ${PROJECT_SOURCE_DIR}")
+        endif()
+    endif(NOT DEFINED RAPIDJSON_INCLUDE_DIR)
 endif(PERFSTUBS_WITH_PYTHON)
 
 if (PS_HAVE_FORTRAN)
@@ -147,7 +167,7 @@ endif (PERFSTUBS_USE_STATIC AND NOT APPLE)
 
 add_library(perfstubs perfstubs_api/timer.c)
 if(Python3_FOUND)
-    add_library(perfstubs_python perfstubs_api/timer.c perfstubs_api/python.cpp)
+    add_library(perfstubs_python perfstubs_api/timer.c perfstubs_api/python.cpp perfstubs_api/event_filter.cpp)
 endif(Python3_FOUND)
 
 if (BUILD_SHARED_LIBS)
