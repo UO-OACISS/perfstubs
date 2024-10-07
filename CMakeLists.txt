@@ -22,7 +22,7 @@ else ()
 endif ()
 
 # for the examples only
-set (CMAKE_CXX_STANDARD 11)
+set (CMAKE_CXX_STANDARD 17)
 
 # should we use our own tool_example of timers (for examples)?
 option (PERFSTUBS_USE_TIMERS
