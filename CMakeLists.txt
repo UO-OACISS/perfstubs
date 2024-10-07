@@ -36,6 +36,10 @@ option (PERFSTUBS_USE_DEFAULT_IMPLEMENTATION
 option (PERFSTUBS_USE_STATIC
     "Use static linking" OFF)
 
+# should we enable Python profiling support?
+option (PERFSTUBS_WITH_PYTHON
+    "Enable Python support" OFF)
+
 # should we build just the library?
 option (PERFSTUBS_BUILD_EXAMPLES
     "Build libperfstsubs examples" OFF)
@@ -74,6 +78,7 @@ set (CMAKE_CXX_STANDARD 11)
 set(CMAKE_THREAD_PREFER_PTHREAD ON)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package (Threads REQUIRED)
+if(PERFSTUBS_WITH_PYTHON)
 #find_package (Python3 3.12 COMPONENTS Interpreter Development)
     if(DEFINED Python3_ROOT_DIR)
         set(Python3_VERSION_MAJOR 3)
@@ -88,6 +93,7 @@ find_package (Threads REQUIRED)
             set(PYTHON3_LIB python${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR})
         endif(Python3_FOUND)
     endif(DEFINED Python3_ROOT_DIR)
+endif(PERFSTUBS_WITH_PYTHON)
 
 if (PS_HAVE_FORTRAN)
     set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -cpp")
