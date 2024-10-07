@@ -15,17 +15,10 @@ def get_python_version():
 
 def my_tracer(frame, event, arg = None):
     code = frame.f_code
-    if code.co_name in ps.exclude_timers:
-        return my_tracer
-    if not ps.internal_timers and (ps.python_system_path in code.co_filename or ps.python_frozen_path in code.co_filename):
-        return my_tracer
-
+    frame = sys._getframe(1)
     if event == 'call':
-        frame = sys._getframe(1)
         perfstubs.start(code.co_name, code.co_filename, frame.f_lineno)
-        #return my_tracer
     elif event == 'return':
-        frame = sys._getframe(1)
         perfstubs.stop(code.co_name, code.co_filename, frame.f_lineno)
     return my_tracer
 

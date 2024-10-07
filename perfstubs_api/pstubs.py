@@ -28,12 +28,11 @@
 #
 usage = """PerfStubs python instrumentation wrapper.
 
-usage: python3 -m pstubs [-p] SCRIPT
-                            | -c PYTHON_STATEMENT
-                            | -m MODULE
+usage: python3 -m pstubs SCRIPT
+                         | -c PYTHON_STATEMENT
+                         | -m MODULE
 
 Runs SCRIPT, PYTHON_STATEMENT or MODULE with automatic Python instrumentation.
--p will enable all internal Python events (can be noisy)
 
 Examples:
     python3 -m pstubs myscript.py
@@ -52,10 +51,6 @@ def dieInFlames(msg):
 if len(sys.argv) == 1:
     dieInFlames(usage)
     sys.exit(-1)
-
-if sys.argv[1] == '-p':
-    pstubs_common.internal_timers = True
-    del sys.argv[1]
 
 try:
     modname = sys.argv[1]

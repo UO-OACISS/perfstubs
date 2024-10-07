@@ -6,7 +6,9 @@
 #include <Python.h>
 #define PERFSTUBS_USE_TIMERS
 #include "timer.h"
+#include "event_filter.hpp"
 #include <stack>
+#include <iostream>
 
 std::stack<std::string>& timerStack(void) {
     static thread_local std::stack<std::string> theStack;
@@ -41,10 +43,21 @@ static PyObject* perfstubs_start([[maybe_unused]] PyObject *self, PyObject *args
     const char *timer_name;
     const char *file_name;
     uint64_t line_number;
+    /* Parse the python arguments */
     if (PyArg_ParseTuple(args, "ssl", &timer_name, &file_name, &line_number)) {
+        /* Check to see whether we are excluding this timer. */
+        if (perfstubs::python::event_filter::instance().have_filter &&
+            perfstubs::python::event_filter::exclude(timer_name, file_name)) {
+            /* return false, telling our python code to disable this timer */
+            Py_INCREF(Py_False);
+            return Py_False;
+        }
+        /* construct a timer name, then start the timer */
         char * tmpstr = ps_make_timer_name_(file_name, timer_name, line_number);
         ps_start_string_(tmpstr);
+        /* save the timer name on the timer stack */
         timerStack().push(std::string(tmpstr));
+        /* clean up memory */
         free(tmpstr);
     }
     // we return no useful argument, so return the Python None object.
@@ -56,22 +69,46 @@ static PyObject* perfstubs_stop([[maybe_unused]] PyObject *self, [[maybe_unused]
 /* Ideally, we could construct the name, but the line nunber we get is the return
    statement, not the start of the function. So we maintain a thread_local stack
    and just pop-and-stop the current timer on this thread. */
-#if 0
     const char *timer_name;
     const char *file_name;
     uint64_t line_number;
+    char * tmpstr = nullptr;
+    /* Parse the python arguments */
     if (PyArg_ParseTuple(args, "ssl", &timer_name, &file_name, &line_number)) {
-        char * tmpstr = ps_make_timer_name_(file_name, timer_name, 1L);
-        ps_stop_string_(tmpstr);
+        /* Check to see whether we are excluding this timer. If we excluded it at start,
+         * we shouldn't get the stop...but you never know. */
+#if 0
+        if (perfstubs::python::event_filter::instance().have_filter &&
+            perfstubs::python::event_filter::exclude(timer_name, file_name)) {
+            /* return false, telling our python code to disable this timer */
+            Py_INCREF(Py_False);
+            return Py_False;
+        }
+#endif
+        /* construct a timer name */
+        tmpstr = ps_make_timer_name_(file_name, timer_name, 1L);
+        // should we handle this error?
+        if (timerStack().size() > 0) {
+            // get the top level timer
+            auto timer = timerStack().top();
+            timerStack().pop();
+            /* timer should be "timer [{filename} {lineno}]"
+             * so find this ----------------------^ bracket */
+            size_t last_bracket = timer.find_last_of('{');
+            /* We only want to compare the timer name file name, not line number */
+            if (timer.compare(0,last_bracket,tmpstr,last_bracket) != 0) {
+                /* return false, telling our python code to disable this timer */
+                std::cerr << "Error! Mismatched timer names from sys.monitoring / sys.profile!\n"
+                          << timer << " doesn't match with " << tmpstr << std::endl;
+                //Py_INCREF(Py_False);
+                //return Py_False;
+            }
+            /* stop the timer */
+            ps_stop_string_(timer.c_str());
+        }
+        /* Clean up memory */
         free(tmpstr);
     }
-#else
-    if (timerStack().size() > 0) {
-        auto timer = timerStack().top();
-        ps_stop_string_(timer.c_str());
-        timerStack().pop();
-    }
-#endif
     // we return no useful argument, so return the Python None object.
     Py_INCREF(Py_None);
     return Py_None;
