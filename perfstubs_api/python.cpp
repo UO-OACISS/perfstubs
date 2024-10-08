@@ -77,7 +77,9 @@ static PyObject* perfstubs_stop([[maybe_unused]] PyObject *self, [[maybe_unused]
     if (PyArg_ParseTuple(args, "ssl", &timer_name, &file_name, &line_number)) {
         /* Check to see whether we are excluding this timer. If we excluded it at start,
          * we shouldn't get the stop...but you never know. */
-#if 0
+        /* It turns out that we can't tell Python < 3.12 to stop sending events
+         * from events we filter, so we have to check at the stop, too. */
+#if PY_MINOR_VERSION < 12
         if (perfstubs::python::event_filter::instance().have_filter &&
             perfstubs::python::event_filter::exclude(timer_name, file_name)) {
             /* return false, telling our python code to disable this timer */
