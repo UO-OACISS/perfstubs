@@ -22,7 +22,9 @@ else ()
 endif ()
 
 # for the examples only
-set (CMAKE_CXX_STANDARD 11)
+if(NOT DEFINED CMAKE_CXX_STANDARD)
+    set (CMAKE_CXX_STANDARD 11)
+endif(NOT DEFINED CMAKE_CXX_STANDARD)
 
 # should we use our own tool_example of timers (for examples)?
 option (PERFSTUBS_USE_TIMERS
@@ -72,7 +74,6 @@ set (PerfStubs_VERSION_MAJOR 0)
 set (PerfStubs_VERSION_MINOR 1)
 set (PerfStubs_VERSION ${PerfStubs_VERSION_MAJOR}.${PerfStubs_VERSION_MINOR})
 
-set (CMAKE_CXX_STANDARD 11)
 #set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Werror -pthread")
 #set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -pthread")
 set(CMAKE_THREAD_PREFER_PTHREAD ON)
@@ -289,6 +290,7 @@ CONFIGURE_FILE(${PROJECT_SOURCE_DIR}/perfstubs_api/pstubs_common.py
     ${PROJECT_BINARY_DIR}/perfstubs_api/pstubs_common.py @ONLY)
 install (FILES
     perfstubs_api/pstubs.py
+    perfstubs_api/pstubs_tensorflow.py
     perfstubs_api/pstubs_sys_monitoring.py
     perfstubs_api/pstubs_sys_setprofile.py
     ${PROJECT_BINARY_DIR}/perfstubs_api/pstubs_common.py

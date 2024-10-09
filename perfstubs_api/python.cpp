@@ -39,21 +39,35 @@ static PyObject* perfstubs_get_python_version([[maybe_unused]] PyObject *self, [
   return result;
 }
 
+static inline bool exclude_it(const char * name, const char * file) {
+    if (strstr(file, "pstubs_") != NULL ) {
+        return true;
+    }
+    if (strstr(file, "keras/callbacks.py") != NULL ) {
+        return true;
+    }
+    /* Check to see whether we are excluding this timer. */
+    if (perfstubs::python::event_filter::instance().have_filter &&
+        perfstubs::python::event_filter::exclude(name, file)) {
+        return true;
+    }
+    return false;
+}
+
 static PyObject* perfstubs_start([[maybe_unused]] PyObject *self, PyObject *args) {
     const char *timer_name;
     const char *file_name;
     uint64_t line_number;
     /* Parse the python arguments */
     if (PyArg_ParseTuple(args, "ssl", &timer_name, &file_name, &line_number)) {
-        /* Check to see whether we are excluding this timer. */
-        if (perfstubs::python::event_filter::instance().have_filter &&
-            perfstubs::python::event_filter::exclude(timer_name, file_name)) {
-            /* return false, telling our python code to disable this timer */
+        if (exclude_it(timer_name, file_name)) {
+            /* return false, telling our python code to disable this timer, if possible */
             Py_INCREF(Py_False);
             return Py_False;
         }
         /* construct a timer name, then start the timer */
-        char * tmpstr = ps_make_timer_name_(file_name, timer_name, line_number);
+        char * tmpstr = nullptr;
+            tmpstr = ps_make_timer_name_(file_name, timer_name, line_number);
         ps_start_string_(tmpstr);
         /* save the timer name on the timer stack */
         timerStack().push(std::string(tmpstr));
@@ -72,21 +86,18 @@ static PyObject* perfstubs_stop([[maybe_unused]] PyObject *self, [[maybe_unused]
     const char *timer_name;
     const char *file_name;
     uint64_t line_number;
-    char * tmpstr = nullptr;
     /* Parse the python arguments */
     if (PyArg_ParseTuple(args, "ssl", &timer_name, &file_name, &line_number)) {
         /* Check to see whether we are excluding this timer. If we excluded it at start,
          * we shouldn't get the stop...but you never know. */
-        /* It turns out that we can't tell Python < 3.12 to stop sending events
-         * from events we filter, so we have to check at the stop, too. */
-        if (perfstubs::python::event_filter::instance().have_filter &&
-            perfstubs::python::event_filter::exclude(timer_name, file_name)) {
-            /* return false, telling our python code to disable this timer */
+        if (exclude_it(timer_name, file_name)) {
+            /* return false, telling our python code to disable this timer, if possible */
             Py_INCREF(Py_False);
             return Py_False;
         }
         /* construct a timer name */
-        tmpstr = ps_make_timer_name_(file_name, timer_name, 1L);
+        char * tmpstr = nullptr;
+            tmpstr = ps_make_timer_name_(file_name, timer_name, line_number);
         // should we handle this error?
         if (timerStack().size() > 0) {
             // get the top level timer
@@ -98,7 +109,7 @@ static PyObject* perfstubs_stop([[maybe_unused]] PyObject *self, [[maybe_unused]
             if (timer.compare(0,last_bracket,tmpstr,last_bracket) != 0) {
                 /* return false, telling our python code to disable this timer */
                 std::cerr << "Error! Mismatched timer names from sys.monitoring / sys.profile!\n"
-                          << timer << " doesn't match with " << tmpstr << std::endl;
+                          << timer << "\non stack doesn't match with requeste timer:\n" << tmpstr << std::endl;
                 Py_INCREF(Py_None);
                 return Py_None;
             }

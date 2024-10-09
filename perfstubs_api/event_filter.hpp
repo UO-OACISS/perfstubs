@@ -27,7 +27,8 @@ private:
     /* Disable the copy and assign methods. */
     event_filter(event_filter const&)    = delete;
     void operator=(event_filter const&)  = delete;
-    bool _exclude(const std::string &name, const std::string &filename);
+    bool _exclude_name(const std::string &name);
+    bool _exclude_file(const std::string &filename);
     static event_filter * _instance;
     rapidjson::Document configuration;
 };

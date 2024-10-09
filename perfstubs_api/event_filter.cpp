@@ -85,7 +85,7 @@ void handle_error(std::regex_error& e) {
     }
 }
 
-bool event_filter::_exclude(const std::string &name, const std::string &filename) {
+bool event_filter::_exclude_name(const std::string &name) {
     // check if this timer should be explicitly ignored
     if (configuration.HasMember("exclude_timers")) {
         auto & exclude_filter = configuration["exclude_timers"];
@@ -107,6 +107,31 @@ bool event_filter::_exclude(const std::string &name, const std::string &filename
         // not found in the exclude filters
         // ...but don't assume anything yet - check for include list
     }
+    // check if this timer should be implicitly ignored
+    if (configuration.HasMember("include_timers")) {
+        auto & include_filter = configuration["include_timers"];
+        for(auto itr = include_filter.Begin(); itr != include_filter.End(); ++itr) {
+            std::string needle(itr->GetString());
+            needle.erase(std::remove(needle.begin(),needle.end(),'\"'),needle.end());
+            try {
+                std::regex re(needle);
+                std::string haystack(name);
+                if (std::regex_search(haystack, re)) {
+                    return false;
+                }
+            } catch (std::regex_error& e) {
+                std::cerr << "Error: '" << e.what() << "' in regular expression: "
+                          << needle << std::endl;
+                handle_error(e);
+            }
+        }
+        // not found in the whitelist
+        return true;
+    }
+    return false;
+}
+
+bool event_filter::_exclude_file(const std::string &filename) {
     // check if this timer should be explicitly ignored based on filename
     if (configuration.HasMember("exclude_files")) {
         auto & exclude_filter = configuration["exclude_files"];
@@ -128,28 +153,6 @@ bool event_filter::_exclude(const std::string &name, const std::string &filename
         // not found in the exclude filters
         // ...but don't assume anything yet - check for include list
     }
-    bool ignored = false;
-    // check if this timer should be implicitly ignored
-    if (configuration.HasMember("include_timers")) {
-        auto & include_filter = configuration["include_timers"];
-        for(auto itr = include_filter.Begin(); itr != include_filter.End(); ++itr) {
-            std::string needle(itr->GetString());
-            needle.erase(std::remove(needle.begin(),needle.end(),'\"'),needle.end());
-            try {
-                std::regex re(needle);
-                std::string haystack(name);
-                if (std::regex_search(haystack, re)) {
-                    return false;
-                }
-            } catch (std::regex_error& e) {
-                std::cerr << "Error: '" << e.what() << "' in regular expression: "
-                          << needle << std::endl;
-                handle_error(e);
-            }
-        }
-        // not found in the whitelist
-        ignored = true;
-    }
     // check if this timer should be implicitly ignored
     if (configuration.HasMember("include_files")) {
         auto & include_filter = configuration["include_files"];
@@ -160,7 +163,7 @@ bool event_filter::_exclude(const std::string &name, const std::string &filename
                 std::regex re(needle);
                 std::string haystack(filename);
                 if (std::regex_search(haystack, re)) {
-                    return ignored;
+                    return false;
                 }
             } catch (std::regex_error& e) {
                 std::cerr << "Error: '" << e.what() << "' in regular expression: "
@@ -169,13 +172,14 @@ bool event_filter::_exclude(const std::string &name, const std::string &filename
             }
         }
         // not found in the whitelist
-        ignored = true;
+        return true;
     }
-    return ignored; // no filters
+    return false; // no filters
 }
 
 bool event_filter::exclude(const std::string &name, const std::string &filename) {
-    return instance()._exclude(name, filename);
+    return (instance()._exclude_name(name) ||
+            instance()._exclude_file(filename));
 }
 
 event_filter& event_filter::instance(void) {
