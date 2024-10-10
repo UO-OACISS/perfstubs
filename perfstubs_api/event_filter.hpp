@@ -10,6 +10,8 @@
 
 #include <rapidjson/document.h>
 #include <rapidjson/istreamwrapper.h>
+#include <regex>
+#include <vector>
 
 namespace perfstubs {
 namespace python {
@@ -19,6 +21,12 @@ public:
     static bool exclude(const std::string &name, const std::string &filename);
     static event_filter& instance(void);
     bool have_filter;
+    std::vector<std::regex> exclude_names;
+    std::vector<std::regex> exclude_files;
+    std::vector<std::regex> include_names;
+    bool have_include_names;
+    std::vector<std::regex> include_files;
+    bool have_include_files;
 private:
     /* Declare the constructor, only used by the "instance" method.
      * it is defined in the cpp file. */

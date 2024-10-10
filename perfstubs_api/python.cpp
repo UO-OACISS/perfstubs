@@ -7,11 +7,11 @@
 #define PERFSTUBS_USE_TIMERS
 #include "timer.h"
 #include "event_filter.hpp"
-#include <stack>
+#include <queue>
 #include <iostream>
 
-std::stack<std::string>& timerStack(void) {
-    static thread_local std::stack<std::string> theStack;
+std::deque<std::string>& timerStack(void) {
+    static thread_local std::deque<std::string> theStack;
     return theStack;
 }
 
@@ -40,12 +40,10 @@ static PyObject* perfstubs_get_python_version([[maybe_unused]] PyObject *self, [
 }
 
 static inline bool exclude_it(const char * name, const char * file) {
-    if (strstr(file, "pstubs_") != NULL ) {
-        return true;
-    }
-    if (strstr(file, "keras/callbacks.py") != NULL ) {
-        return true;
-    }
+    // disable perfstubs methods, no need to time them
+    if (strstr(file, "pstubs_") != NULL ) { return true; }
+    // disable keras/tensorflow callbacks
+    if (strstr(file, "keras/callbacks.py") != NULL ) { return true; }
     /* Check to see whether we are excluding this timer. */
     if (perfstubs::python::event_filter::instance().have_filter &&
         perfstubs::python::event_filter::exclude(name, file)) {
@@ -68,9 +66,10 @@ static PyObject* perfstubs_start([[maybe_unused]] PyObject *self, PyObject *args
         /* construct a timer name, then start the timer */
         char * tmpstr = nullptr;
             tmpstr = ps_make_timer_name_(file_name, timer_name, line_number);
+        //std::cout << "START: " << std::string(timerStack().size(), ' ') << tmpstr << " {" << std::endl;
         ps_start_string_(tmpstr);
         /* save the timer name on the timer stack */
-        timerStack().push(std::string(tmpstr));
+        timerStack().push_back(std::string(tmpstr));
         /* clean up memory */
         free(tmpstr);
     }
@@ -98,24 +97,53 @@ static PyObject* perfstubs_stop([[maybe_unused]] PyObject *self, [[maybe_unused]
         /* construct a timer name */
         char * tmpstr = nullptr;
             tmpstr = ps_make_timer_name_(file_name, timer_name, line_number);
+        //std::cout << "STOP:  " << std::string(timerStack().size()-1, ' ') << tmpstr << " }" << std::endl;
         // should we handle this error?
         if (timerStack().size() > 0) {
             // get the top level timer
-            auto timer = timerStack().top();
+            auto timer = timerStack().back();
             /* timer should be "timer [{filename} {lineno}]"
              * so find this ----------------------^ bracket */
             size_t last_bracket = timer.find_last_of('{');
             /* We only want to compare the timer name file name, not line number */
+            #if 1
+            bool exists = false;
             if (timer.compare(0,last_bracket,tmpstr,last_bracket) != 0) {
-                /* return false, telling our python code to disable this timer */
-                std::cerr << "Error! Mismatched timer names from sys.monitoring / sys.profile!\n"
-                          << timer << "\non stack doesn't match with requeste timer:\n" << tmpstr << std::endl;
-                Py_INCREF(Py_None);
-                return Py_None;
+                for ( auto t : timerStack()) {
+                    if (t.compare(0,last_bracket,tmpstr,last_bracket) == 0) {
+                        exists = true;
+                    }
+                }
+                if (!exists) {
+                    //std::cerr << "\tError! no fix for timer " << tmpstr << std::endl;
+                    // we return no useful argument, so return the Python None object.
+                    Py_INCREF(Py_None);
+                    return Py_None;
+                }
             }
+            bool print = true;
+            while (timer.compare(0,last_bracket,tmpstr,last_bracket) != 0) {
+                /* return false, telling our python code to disable this timer */
+                if (!print) {
+                std::cerr << "\tError! bracket = " << last_bracket << " Mismatched timer names from sys.monitoring / sys.profile!\n\t"
+                          << timer << "\n\t\ton stack doesn't match with requested timer:\n\t\t\t" << tmpstr << std::endl;
+                          print = true;
+                }
+                std::cout << "FIX:   " << std::string(timerStack().size()-1, ' ') << timer << " }" << std::endl;
+                ps_stop_string_(timer.c_str());
+                timerStack().pop_back();
+                timer = timerStack().back();
+                last_bracket = timer.find_last_of('{');
+            }
+            #else
+            if (timer.compare(0,last_bracket,tmpstr,last_bracket) != 0) {
+                std::cerr << "\tError! bracket = " << last_bracket << " Mismatched timer names from sys.monitoring / sys.profile!\n\t"
+                          << timer << "\n\t\ton stack doesn't match with requested timer:\n\t\t\t" << tmpstr << std::endl;
+            }
+            #endif
             /* stop the timer */
             ps_stop_string_(timer.c_str());
-            timerStack().pop();
+            timerStack().pop_back();
         }
         /* Clean up memory */
         free(tmpstr);
