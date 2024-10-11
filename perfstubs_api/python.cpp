@@ -115,13 +115,13 @@ static PyObject* perfstubs_stop([[maybe_unused]] PyObject *self, [[maybe_unused]
                     }
                 }
                 if (!exists) {
-                    //std::cerr << "\tError! no fix for timer " << tmpstr << std::endl;
+                    std::cerr << "\tError! no fix for timer " << tmpstr << std::endl;
                     // we return no useful argument, so return the Python None object.
                     Py_INCREF(Py_None);
                     return Py_None;
                 }
             }
-            bool print = true;
+            bool print = false;
             while (timer.compare(0,last_bracket,tmpstr,last_bracket) != 0) {
                 /* return false, telling our python code to disable this timer */
                 if (!print) {

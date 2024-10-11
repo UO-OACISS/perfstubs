@@ -12,13 +12,14 @@ import pstubs_common as ps
 def init_tracing():
     PROFILER_ID = sys.monitoring.PROFILER_ID
     sys.monitoring.use_tool_id(PROFILER_ID, "perfstubs")
-    sys.monitoring.set_events(PROFILER_ID, sys.monitoring.events.PY_START | sys.monitoring.events.PY_RESUME | sys.monitoring.events.PY_RETURN | sys.monitoring.events.PY_YIELD | sys.monitoring.events.PY_UNWIND ) #| sys.monitoring.events.PY_THROW | sys.monitoring.events.RAISE | sys.monitoring.events.STOP_ITERATION | sys.monitoring.events.EXCEPTION_HANDLED )
+    sys.monitoring.set_events(PROFILER_ID, sys.monitoring.events.PY_START | sys.monitoring.events.PY_RESUME | sys.monitoring.events.PY_RETURN | sys.monitoring.events.PY_YIELD | sys.monitoring.events.PY_UNWIND | sys.monitoring.events.PY_THROW )#| sys.monitoring.events.RAISE | sys.monitoring.events.STOP_ITERATION | sys.monitoring.events.EXCEPTION_HANDLED )
     perfstubs.initialize()
 
     # This is the actual PY_START event handler
 
     def pstubs_py_start(code, instruction_offset):
         frame = sys._getframe(1)
+        #print("PY_START",code.co_name,code.co_filename, frame.f_lineno)
         rc = perfstubs.start(code.co_name, code.co_filename, frame.f_lineno)
         # If we should filter this event, do it
         if (rc == False):
@@ -26,7 +27,7 @@ def init_tracing():
 
     def pstubs_py_resume(code, instruction_offset):
         frame = sys._getframe(1)
-        #print("PY_RESUME!",code.co_name,code.co_filename, frame.f_lineno)
+        #print("PY_RESUME",code.co_name,code.co_filename, frame.f_lineno)
         rc = perfstubs.start(code.co_name, code.co_filename, frame.f_lineno)
         # If we should filter this event, do it
         if (rc == False):
@@ -36,6 +37,7 @@ def init_tracing():
 
     def pstubs_py_return(code, instruction_offset, retval):
         frame = sys._getframe(1)
+        #print("PY_STOP",code.co_name,code.co_filename, frame.f_lineno)
         rc = perfstubs.stop(code.co_name, code.co_filename, frame.f_lineno)
         # If we should filter this event, do it
         if (rc == False):
@@ -43,7 +45,7 @@ def init_tracing():
 
     def pstubs_py_yield(code, instruction_offset, retval):
         frame = sys._getframe(1)
-        #print("PY_YIELD!",code.co_name,code.co_filename, frame.f_lineno)
+        #print("PY_YIELD",code.co_name,code.co_filename, frame.f_lineno)
         rc = perfstubs.stop(code.co_name, code.co_filename, frame.f_lineno)
         # If we should filter this event, do it
         if (rc == False):
@@ -53,35 +55,33 @@ def init_tracing():
 
     def pstubs_py_unwind(code, instruction_offset, exception):
         frame = sys._getframe(1)
-        #print("PY_UNWIND!",code.co_name,code.co_filename, frame.f_lineno)
-        rc = perfstubs.stop(code.co_name, code.co_filename, frame.f_lineno)
-        # If we should filter this event, do it
-        if (rc == False):
-            return sys.monitoring.DISABLE
+        #print("PY_UNWIND",code.co_name,code.co_filename, frame.f_lineno)
+        perfstubs.stop(code.co_name, code.co_filename, frame.f_lineno)
+        # Cannot local filter functions from this event, so just return.
 
     def pstubs_py_throw(code, instruction_offset, exception):
         frame = sys._getframe(1)
         #print("PY_THROW!",code.co_name,code.co_filename, frame.f_lineno)
-        #rc = perfstubs.stop(code.co_name, code.co_filename, frame.f_lineno)
+        # Yes! Unintuitively, we want to START a timer on a throw. We are "returning" to the caller
+        rc = perfstubs.start(code.co_name, code.co_filename, frame.f_lineno)
         # If we should filter this event, do it
-        #if (rc == False):
-        #    return sys.monitoring.DISABLE
+        if (rc == False):
+            return sys.monitoring.DISABLE
 
     def pstubs_raise(code, instruction_offset, exception):
-        frame = sys._getframe(1)
+        #frame = sys._getframe(1)
         #print("RAISE!",code.co_name,code.co_filename, frame.f_lineno)
+        pass
 
     def pstubs_py_stop_iteration(code, instruction_offset, exception):
-        frame = sys._getframe(1)
+        #frame = sys._getframe(1)
         #print("STOP_ITERATION!",code.co_name,code.co_filename, frame.f_lineno)
+        pass
 
     def pstubs_py_exception_handled(code, instruction_offset, exception):
-        frame = sys._getframe(1)
+        #frame = sys._getframe(1)
         #print("EXCEPTION_HANDLED!",code.co_name,code.co_filename, frame.f_lineno)
-        #rc = perfstubs.stop(code.co_name, code.co_filename, frame.f_lineno)
-        ## If we should filter this event, do it
-        #if (rc == False):
-        #    return sys.monitoring.DISABLE
+        pass
 
     # This is the bootstrap PY_START event handler
 
@@ -166,13 +166,43 @@ def init_tracing():
 
 def fini_tracing():
     PROFILER_ID = sys.monitoring.PROFILER_ID
+    sys.monitoring.set_events(PROFILER_ID, 0)
     sys.monitoring.register_callback(
         PROFILER_ID,
         sys.monitoring.events.PY_START,
         None)
     sys.monitoring.register_callback(
         PROFILER_ID,
+        sys.monitoring.events.PY_RESUME,
+        None)
+    sys.monitoring.register_callback(
+        PROFILER_ID,
         sys.monitoring.events.PY_RETURN,
         None)
+    sys.monitoring.register_callback(
+        PROFILER_ID,
+        sys.monitoring.events.PY_YIELD,
+        None)
+    sys.monitoring.register_callback(
+        PROFILER_ID,
+        sys.monitoring.events.PY_UNWIND,
+        None)
+    sys.monitoring.register_callback(
+        PROFILER_ID,
+        sys.monitoring.events.PY_THROW,
+        None)
+    sys.monitoring.register_callback(
+        PROFILER_ID,
+        sys.monitoring.events.RAISE,
+        None)
+    sys.monitoring.register_callback(
+        PROFILER_ID,
+        sys.monitoring.events.STOP_ITERATION,
+        None)
+    sys.monitoring.register_callback(
+        PROFILER_ID,
+        sys.monitoring.events.EXCEPTION_HANDLED,
+        None)
+    sys.monitoring.free_tool_id(PROFILER_ID)
     perfstubs.finalize()
 
