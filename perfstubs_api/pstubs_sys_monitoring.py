@@ -63,10 +63,8 @@ def init_tracing():
         frame = sys._getframe(1)
         #print("PY_THROW!",code.co_name,code.co_filename, frame.f_lineno)
         # Yes! Unintuitively, we want to START a timer on a throw. We are "returning" to the caller
-        rc = perfstubs.start(code.co_name, code.co_filename, frame.f_lineno)
-        # If we should filter this event, do it
-        if (rc == False):
-            return sys.monitoring.DISABLE
+        perfstubs.start(code.co_name, code.co_filename, frame.f_lineno)
+        # Cannot local filter functions from this event, so just return.
 
     def pstubs_raise(code, instruction_offset, exception):
         #frame = sys._getframe(1)
