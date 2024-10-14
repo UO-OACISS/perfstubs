@@ -10,7 +10,6 @@ import perfstubs
 import pstubs_common as ps
 
 def get_python_version():
-    #print("pstubs_sys_setprofile get_python_version")
     return perfstubs.get_python_version()
 
 def my_tracer(frame, event, arg = None):
@@ -23,11 +22,9 @@ def my_tracer(frame, event, arg = None):
     return my_tracer
 
 def init_tracing():
-    #print("pstubs_sys_setprofile init_tracing")
     perfstubs.initialize()
     sys.setprofile(my_tracer)
 
 def fini_tracing():
-    #print("pstubs_sys_setprofile fini_tracing")
     perfstubs.finalize()
 

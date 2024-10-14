@@ -95,12 +95,8 @@ if(PERFSTUBS_WITH_PYTHON)
         endif(Python3_FOUND)
     endif(DEFINED Python3_ROOT_DIR)
     if(NOT DEFINED RAPIDJSON_INCLUDE_DIR)
-        ### Set up rapidjson stuff - before perfstubs, it is a dependency there, too
-        git_external(rapidjson
-            https://github.com/miloyip/rapidjson.git
-            master
-            VERBOSE)
-
+        include(cmake/AddGitSubmodule.cmake)
+        add_git_submodule(rapidjson FALSE)
         find_path(
             RAPIDJSON_INCLUDE_DIR
             NAMES rapidjson
