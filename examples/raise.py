@@ -7,7 +7,7 @@ def bar():
     try:
         baz()
     except Exception as e:
-        print("Caught exception")
+        print("Caught exception from baz()")
 
 def foo():
     print("foo")
@@ -40,6 +40,9 @@ def outer():
     inner()
 
 if __name__ == '__main__':
-   foo()
-   foo2()
-   outer()
+    foo()
+    foo2()
+    try:
+        outer()
+    except Exception as e:
+        print("Caught exception from outer()")
