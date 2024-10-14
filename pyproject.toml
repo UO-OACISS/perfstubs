@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name="perfstubs"
+version="0.1.0"
+authors= [
+    {name="Kevin Huck", email="khuck@cs.uoregon.edu"},
+]
+description="Profiling API for adding external tool instrumentation support to any Python project."
+readme="README.md"
+requires-python = ">=3.8"
+classifiers=[
+    "Development Status :: 1 - Planning",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+]
+
+[project.urls]
+Homepage = "https://github.com/UO-OACISS/perfstubs"
+Issues = "https://github.com/UO-OACISS/perfstubs/issues"
+
+[tool.setuptools.packages.find]
+where = ["perfstubs_api"]
+
+[tool.setuptools]
+ext-modules = [
+    {name = "perfstubs", sources = ["perfstubs_api/timer.c"], include-dirs = [".", "perfstubs_api"], extra-compile-args=["-DPYTHON_PYPROJECT"]},
+    {name = "pstubs", sources = ["perfstubs_api/python.cpp", "perfstubs_api/event_filter.cpp"], include-dirs = [".", "perfstubs_api", "rapidjson/include"], extra-compile-args=["-std=c++17","-DPYTHON_PYPROJECT"]}
+]
