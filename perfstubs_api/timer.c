@@ -200,8 +200,8 @@ char * ps_make_timer_name_(const char * file,
     /* The max length of a line number is 4294967295, so just add 10 to the
        12 other characters we need, and avoid an expensive log() call. */
     int string_length = (strlen(file) + strlen(func) + 22);
-    char * name = calloc(string_length, sizeof(char));
-    sprintf(name, "%s [{%s} {%d}]", func, file, line);
+    char * name = (char*)calloc(string_length, sizeof(char));
+    snprintf(name, string_length, "%s [{%s} {%d}]", func, file, line);
     return (name);
 }
 
@@ -252,7 +252,7 @@ void* ps_timer_create_(const char *timer_name) {
     ps_register_thread_internal();
     void ** objects = (void **)calloc(num_tools_registered, sizeof(void*));
     if (timer_create_function != NULL)
-        objects = (void *)timer_create_function(timer_name);
+        objects = (void **)timer_create_function(timer_name);
     return (void*)(objects);
 }
 
@@ -317,7 +317,7 @@ void* ps_create_counter_(const char *name) {
     ps_register_thread_internal();
     void ** objects = (void **)calloc(num_tools_registered, sizeof(void*));
     if (create_counter_function != NULL)
-        objects = (void*)create_counter_function(name);
+        objects = (void**)create_counter_function(name);
     return (void*)(objects);
 }
 
