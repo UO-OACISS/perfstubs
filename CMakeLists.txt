@@ -282,15 +282,17 @@ install (FILES ${PROJECT_BINARY_DIR}/perfstubs_api/config.h DESTINATION include/
 install (FILES ${PROJECT_BINARY_DIR}/perfstubs.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
 install (FILES ${PROJECT_BINARY_DIR}/perfstubs-config.cmake
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake)
-CONFIGURE_FILE(${PROJECT_SOURCE_DIR}/perfstubs_api/pstubs_common.py
-    ${PROJECT_BINARY_DIR}/perfstubs_api/pstubs_common.py @ONLY)
+CONFIGURE_FILE(${PROJECT_SOURCE_DIR}/pstubs/pstubs_common.py
+    ${PROJECT_BINARY_DIR}/pstubs/pstubs_common.py @ONLY)
 install (FILES
-    perfstubs_api/pstubs.py
-    perfstubs_api/pstubs_tensorflow.py
-    perfstubs_api/pstubs_sys_monitoring.py
-    perfstubs_api/pstubs_sys_setprofile.py
-    ${PROJECT_BINARY_DIR}/perfstubs_api/pstubs_common.py
-    DESTINATION lib)
+    pstubs/__init__.py
+    pstubs/__main__.py
+    pstubs/pstubs.py
+    pstubs/pstubs_tensorflow.py
+    pstubs/pstubs_sys_monitoring.py
+    pstubs/pstubs_sys_setprofile.py
+    ${PROJECT_BINARY_DIR}/pstubs/pstubs_common.py
+    DESTINATION lib/pstubs)
 
 # Install the export set for use with the install-tree
 install(EXPORT PerfStubsTargets
