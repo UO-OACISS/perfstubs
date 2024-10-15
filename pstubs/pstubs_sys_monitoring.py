@@ -7,7 +7,7 @@
 import os.path
 import sys
 import perfstubs
-import pstubs_common as ps
+from pstubs import pstubs_common as ps
 
 def init_tracing():
     PROFILER_ID = sys.monitoring.PROFILER_ID

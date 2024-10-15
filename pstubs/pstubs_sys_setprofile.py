@@ -7,7 +7,7 @@ __all__ = ["run", "runctx", "exitAllThreads", "help", "Profile"]
 import os
 import sys
 import perfstubs
-import pstubs_common as ps
+from pstubs import pstubs_common as ps
 
 def get_python_version():
     return perfstubs.get_python_version()

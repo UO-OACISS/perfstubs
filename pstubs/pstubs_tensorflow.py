@@ -3,7 +3,7 @@
 """Python interface for PerfStubs profiling of TensorFlow."""
 
 import perfstubs
-import pstubs_common as ps
+from pstubs import pstubs_common as ps
 
 try:
     import tensorflow.keras as keras

@@ -42,7 +42,7 @@ Examples:
 
 import os
 import sys
-import pstubs_common as pstubs_common
+from pstubs import pstubs_common as pstubs_common
 
 def dieInFlames(msg):
     print(msg, file=sys.stderr)
@@ -62,9 +62,9 @@ try:
         raise Exception("Must be using Python 3")
     else:
         if sys.version_info[1] >= 12:
-            import pstubs_sys_monitoring as pstubs_impl
+            from pstubs import pstubs_sys_monitoring as pstubs_impl
         else:
-            import pstubs_sys_setprofile as pstubs_impl
+            from pstubs import pstubs_sys_setprofile as pstubs_impl
 except ImportError:
     dieInFlames("modules 'pstubs_common', 'pstubs_sys_monitoring' or 'pstubs_sys_setprofile' not found in PYTHONPATH")
 except:
@@ -132,5 +132,4 @@ else:
         sys.argv = sys.argv[1:]
     pstubs_common.runmodule(modname)
     """
-
 

@@ -5,9 +5,9 @@ import sys
 bootstrap_timers = ["_run_module_code"]
 
 if sys.version_info[1] >= 12:
-    import pstubs_sys_monitoring as pstubs_impl
+    from pstubs import pstubs_sys_monitoring as pstubs_impl
 else:
-    import pstubs_sys_setprofile as pstubs_impl
+    from pstubs import pstubs_sys_setprofile as pstubs_impl
 
 def get_python_version():
     return perfstubs.get_python_version()

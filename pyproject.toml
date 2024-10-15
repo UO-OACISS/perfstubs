@@ -35,7 +35,7 @@ Homepage = "https://github.com/UO-OACISS/perfstubs"
 Issues = "https://github.com/UO-OACISS/perfstubs/issues"
 
 [tool.setuptools]
-packages=["perfstubs"]
+packages=["pstubs"]
 ext-modules = [
     {name = "perfstubs", sources = ["perfstubs_api/timer.cpp", "perfstubs_api/python.cpp", "perfstubs_api/event_filter.cpp"], include-dirs = [".", "perfstubs_api", "rapidjson/include"], extra-compile-args=["-std=c++17","-DPYTHON_PYPROJECT"]}
 ]
