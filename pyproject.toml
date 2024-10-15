@@ -34,11 +34,8 @@ classifiers=[
 Homepage = "https://github.com/UO-OACISS/perfstubs"
 Issues = "https://github.com/UO-OACISS/perfstubs/issues"
 
-[tool.setuptools.packages.find]
-where = ["perfstubs_api"]
-
 [tool.setuptools]
-py-modules=["pstubs", "pstubs_common", "pstubs_sys_setprofile", "pstubs_sys_monitoring"]
+packages=["perfstubs"]
 ext-modules = [
     {name = "perfstubs", sources = ["perfstubs_api/timer.cpp", "perfstubs_api/python.cpp", "perfstubs_api/event_filter.cpp"], include-dirs = [".", "perfstubs_api", "rapidjson/include"], extra-compile-args=["-std=c++17","-DPYTHON_PYPROJECT"]}
 ]
