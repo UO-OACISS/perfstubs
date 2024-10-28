@@ -8,7 +8,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#ifdef PYTHON_PYPROJECT
+#include "perfstubs_api/config.h.default"
+#else
 #include "perfstubs_api/config.h"
+#endif
 #include "perfstubs_api/tool.h"
 
 /* These macros help generate unique variable names within a function

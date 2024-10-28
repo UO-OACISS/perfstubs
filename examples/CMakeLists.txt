@@ -73,7 +73,7 @@ set_tests_properties (c_test PROPERTIES PASS_REGULAR_EXPRESSION
 
 add_test (test_threads_cpp perfstubs_test_threads_cpp)
 set_tests_properties (test_threads_cpp PROPERTIES PASS_REGULAR_EXPRESSION
-    "Found ps_tool_initialize")
+    "Tool: ps_tool_timer_start int main")
 add_test (test_threads_cpp_no_tool perfstubs_test_threads_cpp_no_tool)
 add_test (test_api_cpp_no_tool perfstubs_test_api_cpp_no_tool)
 add_test (test_api_c_no_tool perfstubs_test_api_c_no_tool)

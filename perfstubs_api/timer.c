@@ -109,7 +109,7 @@ void initialize_library(void) {
         return;
     }
     // removing printf statement for now, it's too noisy.
-    //printf("Found ps_tool_initialize(), registering tool\n");
+    printf("Found ps_tool_initialize(), registering tool\n");
     finalize_function = &ps_tool_finalize;
     pause_measurement_function = &ps_tool_pause_measurement;
     resume_measurement_function = &ps_tool_resume_measurement;
@@ -197,9 +197,11 @@ void initialize_library(void) {
 char * ps_make_timer_name_(const char * file,
         const char * func, int line) {
     /* The length of the line number as a string is floor(log10(abs(num))) */
-    int string_length = (strlen(file) + strlen(func) + floor(log10(abs(line))) + 12);
-    char * name = calloc(string_length, sizeof(char));
-    sprintf(name, "%s [{%s} {%d,0}]", func, file, line);
+    /* The max length of a line number is 4294967295, so just add 10 to the
+       12 other characters we need, and avoid an expensive log() call. */
+    int string_length = (strlen(file) + strlen(func) + 22);
+    char * name = (char*)calloc(string_length, sizeof(char));
+    snprintf(name, string_length, "%s [{%s} {%d}]", func, file, line);
     return (name);
 }
 
@@ -250,7 +252,7 @@ void* ps_timer_create_(const char *timer_name) {
     ps_register_thread_internal();
     void ** objects = (void **)calloc(num_tools_registered, sizeof(void*));
     if (timer_create_function != NULL)
-        objects = (void *)timer_create_function(timer_name);
+        objects = (void **)timer_create_function(timer_name);
     return (void*)(objects);
 }
 
@@ -315,7 +317,7 @@ void* ps_create_counter_(const char *name) {
     ps_register_thread_internal();
     void ** objects = (void **)calloc(num_tools_registered, sizeof(void*));
     if (create_counter_function != NULL)
-        objects = (void*)create_counter_function(name);
+        objects = (void**)create_counter_function(name);
     return (void*)(objects);
 }
 

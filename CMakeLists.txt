@@ -4,6 +4,8 @@
 
 cmake_minimum_required (VERSION 3.8)
 
+project (perfstubs)
+
 # Doesn't compile on Windows.
 if (WIN32)
     message(FATAL_ERROR "\nPerfStubs won't compile on Windows. Exiting.")
@@ -20,9 +22,9 @@ else ()
 endif ()
 
 # for the examples only
-set (CMAKE_CXX_STANDARD 11)
-
-project (perfstubs)
+if(NOT DEFINED CMAKE_CXX_STANDARD)
+    set (CMAKE_CXX_STANDARD 11)
+endif(NOT DEFINED CMAKE_CXX_STANDARD)
 
 # should we use our own tool_example of timers (for examples)?
 option (PERFSTUBS_USE_TIMERS
@@ -35,6 +37,10 @@ option (PERFSTUBS_USE_DEFAULT_IMPLEMENTATION
 # should we use static or dynamic linking?
 option (PERFSTUBS_USE_STATIC
     "Use static linking" OFF)
+
+# should we enable Python profiling support?
+option (PERFSTUBS_WITH_PYTHON
+    "Enable Python support" OFF)
 
 # should we build just the library?
 option (PERFSTUBS_BUILD_EXAMPLES
@@ -68,12 +74,43 @@ set (PerfStubs_VERSION_MAJOR 0)
 set (PerfStubs_VERSION_MINOR 1)
 set (PerfStubs_VERSION ${PerfStubs_VERSION_MAJOR}.${PerfStubs_VERSION_MINOR})
 
-set (CMAKE_CXX_STANDARD 11)
 #set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Werror -pthread")
 #set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -pthread")
 set(CMAKE_THREAD_PREFER_PTHREAD ON)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package (Threads REQUIRED)
+if(PERFSTUBS_WITH_PYTHON)
+#find_package (Python3 3.12 COMPONENTS Interpreter Development)
+    if(DEFINED Python3_ROOT_DIR)
+        set(Python3_VERSION_MAJOR 3)
+        set(Python3_LIBRARY_DIRS ${Python3_ROOT_DIR}/lib)
+        set(Python3_STDLIB ${Python3_ROOT_DIR}/lib)
+        set(Python3_INCLUDE_DIRS ${Python3_ROOT_DIR}/include/python${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR})
+        set(PYTHON3_LIB ${Python3_ROOT_DIR}/lib/libpython${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}${CMAKE_SHARED_LIBRARY_SUFFIX})
+        set(Python3_FOUND TRUE CACHE BOOL "")
+    else(DEFINED Python3_ROOT_DIR)
+        find_package (Python3 COMPONENTS Interpreter Development)
+        if(Python3_FOUND)
+            set(PYTHON3_LIB python${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR})
+        endif(Python3_FOUND)
+    endif(DEFINED Python3_ROOT_DIR)
+    if(NOT DEFINED RAPIDJSON_INCLUDE_DIR)
+        include(cmake/AddGitSubmodule.cmake)
+        add_git_submodule(rapidjson FALSE)
+        find_path(
+            RAPIDJSON_INCLUDE_DIR
+            NAMES rapidjson
+            PATHS ${PROJECT_SOURCE_DIR}/rapidjson/include)
+
+        if(RAPIDJSON_INCLUDE_DIR)
+            message(INFO " Found rapidjson at ${RAPIDJSON_INCLUDE_DIR}")
+            include_directories(${RAPIDJSON_INCLUDE_DIR})
+        else()
+            message(FATAL_ERROR " rapidjson not found. This should have been checked out automatically. "
+                "Try manually check out https://github.com/miloyip/rapidjson.git to ${PROJECT_SOURCE_DIR}")
+        endif()
+    endif(NOT DEFINED RAPIDJSON_INCLUDE_DIR)
+endif(PERFSTUBS_WITH_PYTHON)
 
 if (PS_HAVE_FORTRAN)
     set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -cpp")
@@ -126,11 +163,20 @@ else (PERFSTUBS_USE_STATIC AND NOT APPLE)
 endif (PERFSTUBS_USE_STATIC AND NOT APPLE)
 
 add_library(perfstubs perfstubs_api/timer.c)
+if(Python3_FOUND)
+    add_library(perfstubs_python perfstubs_api/timer.c perfstubs_api/python.cpp perfstubs_api/event_filter.cpp)
+endif(Python3_FOUND)
 
 if (BUILD_SHARED_LIBS)
     target_link_libraries(perfstubs INTERFACE dl m)
+    if(Python3_FOUND)
+        target_link_libraries(perfstubs_python INTERFACE dl m PUBLIC ${PYTHON3_LIB})
+    endif(Python3_FOUND)
 else()
     target_link_libraries(perfstubs INTERFACE m)
+    if(Python3_FOUND)
+        target_link_libraries(perfstubs_python INTERFACE dl m PUBLIC ${PYTHON3_LIB})
+    endif(Python3_FOUND)
 endif()
 
 target_include_directories(perfstubs PRIVATE
@@ -143,6 +189,23 @@ target_include_directories(perfstubs INTERFACE
   $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>
   $<INSTALL_INTERFACE:include>
 )
+
+if(Python3_FOUND)
+    target_include_directories(perfstubs_python PRIVATE
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>
+        ${Python3_INCLUDE_DIRS}
+    )
+    target_link_directories(perfstubs_python PRIVATE ${Python3_LIBRARY_DIRS})
+    set_target_properties(perfstubs_python PROPERTIES PREFIX "")
+    set_target_properties(perfstubs_python PROPERTIES OUTPUT_NAME "perfstubs")
+    if (WIN32)
+    set_target_properties (perfstubs_python PROPERTIES SUFFIX ".pyd")
+    else()
+    #set_target_properties (perfstubs_python PROPERTIES SUFFIX ".so")
+    set_target_properties (perfstubs_python PROPERTIES SUFFIX ${CMAKE_SHARED_MODULE_SUFFIX})
+    endif()
+endif(Python3_FOUND)
 
 if (PERFSTUBS_USE_STATIC AND NOT APPLE)
     SET(CMAKE_EXE_LINKER_FLAGS "-static")
@@ -196,12 +259,21 @@ endforeach()
 CONFIGURE_FILE("etc/perfstubs-config.cmake.in"
     "${PROJECT_BINARY_DIR}/perfstubs-config.cmake" @ONLY)
 
+if(Python3_FOUND)
+    install (TARGETS perfstubs perfstubs_python
+        EXPORT PerfStubsTargets
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        COMPONENT library
+    )
+else(Python3_FOUND)
     install (TARGETS perfstubs
         EXPORT PerfStubsTargets
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib
         COMPONENT library
     )
+endif(Python3_FOUND)
 
 install (FILES perfstubs_api/timer.h DESTINATION include/perfstubs_api)
 install (FILES perfstubs_api/timer_f.h DESTINATION include/perfstubs_api)
@@ -210,9 +282,61 @@ install (FILES ${PROJECT_BINARY_DIR}/perfstubs_api/config.h DESTINATION include/
 install (FILES ${PROJECT_BINARY_DIR}/perfstubs.pc DESTINATION lib/pkgconfig)
 install (FILES ${PROJECT_BINARY_DIR}/perfstubs-config.cmake
     DESTINATION lib/cmake)
+CONFIGURE_FILE(${PROJECT_SOURCE_DIR}/pstubs/pstubs_common.py
+    ${PROJECT_BINARY_DIR}/pstubs/pstubs_common.py @ONLY)
+install (FILES
+    pstubs/__init__.py
+    pstubs/__main__.py
+    pstubs/pstubs.py
+    pstubs/pstubs_tensorflow.py
+    pstubs/pstubs_sys_monitoring.py
+    pstubs/pstubs_sys_setprofile.py
+    ${PROJECT_BINARY_DIR}/pstubs/pstubs_common.py
+    DESTINATION lib/pstubs)
 
 # Install the export set for use with the install-tree
 install(EXPORT PerfStubsTargets
   DESTINATION lib/cmake
   COMPONENT library)
 
+function(dump_cmake_variables)
+    get_cmake_property(_variableNames VARIABLES)
+    list (SORT _variableNames)
+    foreach (_variableName ${_variableNames})
+        if (ARGV0)
+            unset(MATCHED)
+            string(REGEX MATCH ${ARGV0} MATCHED ${_variableName})
+            if (NOT MATCHED)
+                continue()
+            endif()
+        endif()
+        message(STATUS "${_variableName} = ${${_variableName}}")
+    endforeach()
+endfunction()
+
+function(dump_defines)
+    get_directory_property( DirDefs DIRECTORY ${CMAKE_SOURCE_DIR} COMPILE_DEFINITIONS )
+    foreach( d ${DirDefs} )
+        message( STATUS "Found Define: " ${d} )
+    endforeach()
+endfunction()
+
+message(STATUS "----------------------------------------------------------------------")
+message(STATUS "PerfStubs Variable Report:")
+message(STATUS "----------------------------------------------------------------------")
+dump_cmake_variables("^PerfStubs")
+message(STATUS "----------------------------------------------------------------------")
+message(STATUS "PerfStubs Dependency Report:")
+message(STATUS "----------------------------------------------------------------------")
+dump_cmake_variables("^Python")
+dump_cmake_variables("^PYTHON")
+dump_cmake_variables("^RAPIDJSON")
+dump_defines()
+MESSAGE(STATUS "Build type: " ${CMAKE_BUILD_TYPE})
+MESSAGE(STATUS "Libraries: " ${LIBS})
+MESSAGE(STATUS "Compiler cxx debug flags:" ${CMAKE_CXX_FLAGS_DEBUG})
+MESSAGE(STATUS "Compiler cxx release flags:" ${CMAKE_CXX_FLAGS_RELEASE})
+MESSAGE(STATUS "Compiler cxx min size flags:" ${CMAKE_CXX_FLAGS_MINSIZEREL})
+MESSAGE(STATUS "Compiler cxx flags:" ${CMAKE_CXX_FLAGS})
+MESSAGE(STATUS "Install Prefix:" ${CMAKE_INSTALL_PREFIX})
+message(STATUS "----------------------------------------------------------------------")
