@@ -97,10 +97,10 @@ if(PERFSTUBS_WITH_PYTHON)
     if(NOT DEFINED RAPIDJSON_INCLUDE_DIR)
         include(cmake/AddGitSubmodule.cmake)
         add_git_submodule(rapidjson FALSE)
-        find_path(
-            RAPIDJSON_INCLUDE_DIR
-            NAMES rapidjson
-            PATHS ${PROJECT_SOURCE_DIR}/rapidjson/include)
+        # No need to search, just set the path
+        #find_path(RAPIDJSON_INCLUDE_DIR NAMES rapidjson
+        #    PATHS ${PROJECT_SOURCE_DIR}/rapidjson/include)
+        set(RAPIDJSON_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/rapidjson/include)
 
         if(RAPIDJSON_INCLUDE_DIR)
             message(INFO " Found rapidjson at ${RAPIDJSON_INCLUDE_DIR}")
