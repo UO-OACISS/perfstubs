@@ -6,8 +6,37 @@ in Python 3.12+, see
 [https://docs.python.org/3/library/sys.monitoring.html](https://docs.python.org/3/library/sys.monitoring.html).
 There is a python module, `pstubs.py` in the
 perfstubs `<install-prefix>/lib` directory.
+Legacy support for Python versions 3.8-3.11 is also included, using the `sys.setprofile()` support.
 
-To test the Python support, do the following:
+You have the option of installing PerfStubs as a pip3 module, installing it standalone, or incorporating it into your regular build. Here are the instructions for each:
+
+## Pip3 module
+
+```bash
+git clone https://github.com/UO-OACISS/perfstubs.git
+cd perfstubs
+pip3 install .
+```
+Once PerfStubs is installed, you just use it as any other Python module:
+
+```bash
+python3 -m pstubs ./myprogram.py
+```
+To use it with a performance measurement tool, like [TAU](https://github.com/UO-OACISS/tau2) or [APEX](https://github.com/UO-OACISS/apex):
+```bash
+# Running with tau_exec
+tau_exec -T serial python3 -m pstubs ./myprogram.py
+# Running with tau_exec and mpirun/srun/mpiexec, etc.
+mpirun -n 1024 tau_exec -T mpi python3 -m pstubs ./myprogram.py
+# Running with apex_exec
+apex_exec python3 -m pstubs ./myprogram.py
+# Running with apex_exec using command line argument for Python
+apex_exec --apex:python ./myprogram.py
+# Running with apex_exec using command line argument for Python and mpirun
+mpirun -n 1024 apex_exec --apex:python ./myprogram.py
+```
+
+## Standalone build
 
 ```bash
 git clone --branch python-3.12 https://github.com/UO-OACISS/perfstubs.git
@@ -15,11 +44,10 @@ cd perfstubs
 cmake -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX=`pwd`/install
 cmake --build build --parallel --target install
 export PYTHONPATH=`pwd`/install/lib:$PYTHONPATH
-export PYTHONPATH=`pwd`/install/lib64:$PYTHONPATH  # might be necessary, too
+export PYTHONPATH=`pwd`/install/lib64:$PYTHONPATH  # might be necessary, too - depending on your platform
 ```
 
 To try it with a working TAU installation:
-
 ```
 tau_exec -T pthread,serial python3 -m pstubs ./examples/firstprime_3.12.py
 pprof -a
@@ -194,3 +222,7 @@ has_location [{<frozen importlib._bootstrap>} {653,… :      1     0.00     0.0
 --------------------------------------------------------------------------------
                                         Total timers : 149
 ```
+
+## Selective Measurement
+
+To include a selective measurement configuration file, set the `PERFSTUBS_PYTHON_FILTER_FILENAME` environment variable to a configuration file. An example JSON filter file is in `pstubs/python_event_filter.json`.
