@@ -262,8 +262,8 @@ CONFIGURE_FILE("etc/perfstubs-config.cmake.in"
 if(Python3_FOUND)
     install (TARGETS perfstubs perfstubs_python
         EXPORT PerfStubsTargets
-        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib
         COMPONENT library
     )
 else(Python3_FOUND)
