@@ -170,6 +170,15 @@ char* ps_make_timer_name_(const char * file, const char * func, int line);
         ps_sample_counter_(CONCAT(__var,__LINE__), _value); \
     };
 
+#define PERFSTUBS_SAMPLE_COUNTER_SIMPLE(_name, _value) \
+    if (perfstubs_initialized == PERFSTUBS_SUCCESS) { \
+        void * CONCAT(__var,__LINE__) =  NULL; \
+        if (CONCAT(__var,__LINE__) == NULL) { \
+            CONCAT(__var,__LINE__) = ps_create_counter_(_name); \
+        } \
+        ps_sample_counter_(CONCAT(__var,__LINE__), _value); \
+    };
+
 #define PERFSTUBS_METADATA(_name, _value) \
     if (perfstubs_initialized == PERFSTUBS_SUCCESS) ps_set_metadata_(_name, _value);
 
