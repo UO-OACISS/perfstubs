@@ -17,7 +17,7 @@ def pstubs_write_trace(in_trace):
     while in_trace:
         metadata_name = "PY-BACKTRACE( ) {0}".format(linenum)
         metadata_val = str(in_trace.pop())
-        pytau.metadata(metadata_name, metadata_val)
+        perfstubs.metadata(metadata_name, metadata_val)
         linenum = linenum + 1
 
 import signal, sys, traceback,os
@@ -34,9 +34,9 @@ def pstubs_signal_handler(signum, frame):
     if signum == signal.SIGILL:
         metadata_val = "Illegal Instruction"
     if signum == signal.SIGINT:
-        metadava_val = "Keyboard Interruption"
+        metadata_val = "Keyboard Interruption"
     if signum == signal.SIGQUIT:
-        metadava_val = "Quit signal"
+        metadata_val = "Quit signal"
     if signum == signal.SIGTERM:
         metadata_val = "Termination signal"
     if signum == signal.SIGPIPE:
@@ -51,7 +51,7 @@ def pstubs_signal_handler(signum, frame):
         metadata_val = "Segmentation Fault"
     else:
         metadata_val = "Unknown signal"
-    pytau.metadata(metadata_name, metadata_val)
+    perfstubs.metadata(metadata_name, metadata_val)
     pstubs_write_trace(ext_trace)
     sys.exit(1)
 
@@ -61,7 +61,7 @@ def pstubs_excepthook(type, value, tb):
         ext_trace.append("[{0}] [{1}:{2}]".format(funcname, filename, lineno))
     metadata_name = "PY-Exception"
     metadata_val = str(value)
-    pytau.metadata(metadata_name, metadata_val)
+    perfstubs.metadata(metadata_name, metadata_val)
     pstubs_write_trace(ext_trace)
 
 def pstubs_listen_signals():
