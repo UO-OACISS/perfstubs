@@ -8,6 +8,8 @@
 #include "timer.h"
 #include "event_filter.hpp"
 #include <queue>
+#include <unordered_map>
+#include <string>
 #include <iostream>
 
 std::deque<std::string>& timerStack(void) {
@@ -153,6 +155,65 @@ static PyObject* perfstubs_stop([[maybe_unused]] PyObject *self, [[maybe_unused]
     return Py_None;
 }
 
+static PyObject* perfstubs_metadata([[maybe_unused]] PyObject *self, PyObject *args) {
+    const char *name;
+    const char *value;
+    if (PyArg_ParseTuple(args, "ss", &name, &value)) {
+        ps_set_metadata_(name, value);
+    }
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject* perfstubs_dump([[maybe_unused]] PyObject *self, [[maybe_unused]] PyObject *args) {
+    ps_dump_data_();
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+/* String-keyed counter sampling: creates the counter handle on first use. */
+static PyObject* perfstubs_sample_counter([[maybe_unused]] PyObject *self, PyObject *args) {
+    const char *name;
+    double value;
+    if (PyArg_ParseTuple(args, "sd", &name, &value)) {
+        static std::unordered_map<std::string, void*> counterHandles;
+        auto it = counterHandles.find(name);
+        void *handle;
+        if (it == counterHandles.end()) {
+            handle = ps_create_counter_(name);
+            counterHandles[std::string(name)] = handle;
+        } else {
+            handle = it->second;
+        }
+        ps_sample_counter_(handle, value);
+    }
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+/* Generic parameter setter; use set_parameter("TAU_NODE", n) to set node. */
+static PyObject* perfstubs_set_parameter([[maybe_unused]] PyObject *self, PyObject *args) {
+    const char *name;
+    long long value;
+    if (PyArg_ParseTuple(args, "sL", &name, &value)) {
+        ps_set_parameter_(name, (int64_t)value);
+    }
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject* perfstubs_pause([[maybe_unused]] PyObject *self, [[maybe_unused]] PyObject *args) {
+    ps_pause_measurement_();
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject* perfstubs_resume([[maybe_unused]] PyObject *self, [[maybe_unused]] PyObject *args) {
+    ps_resume_measurement_();
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
 static PyMethodDef PerfStubsMethods[] = {
     {"get_python_version", perfstubs_get_python_version, METH_VARARGS,
      "Get compiled Python version for libperfstubs.so."},
@@ -164,6 +225,18 @@ static PyMethodDef PerfStubsMethods[] = {
      "Start a PerfStubs timer."},
     {"stop", perfstubs_stop, METH_VARARGS,
      "Stop a PerfStubs timer."},
+    {"metadata", perfstubs_metadata, METH_VARARGS,
+     "Set a metadata name/value pair."},
+    {"dump", perfstubs_dump, METH_VARARGS,
+     "Dump TAU profile data (equivalent to pytau.dbDump)."},
+    {"sample_counter", perfstubs_sample_counter, METH_VARARGS,
+     "Sample a named counter with a double value."},
+    {"set_parameter", perfstubs_set_parameter, METH_VARARGS,
+     "Set a named integer parameter (e.g. set_parameter('TAU_NODE', n))."},
+    {"pause", perfstubs_pause, METH_VARARGS,
+     "Pause TAU measurement."},
+    {"resume", perfstubs_resume, METH_VARARGS,
+     "Resume TAU measurement."},
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };
 

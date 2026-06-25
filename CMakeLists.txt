@@ -87,11 +87,25 @@ if(PERFSTUBS_WITH_PYTHON)
         set(Python3_STDLIB ${Python3_ROOT_DIR}/lib)
         set(Python3_INCLUDE_DIRS ${Python3_ROOT_DIR}/include/python${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR})
         set(PYTHON3_LIB ${Python3_ROOT_DIR}/lib/libpython${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}${CMAKE_SHARED_LIBRARY_SUFFIX})
+        # On Linux, Python extension modules don't require linking against
+        # libpython.so — the running interpreter provides those symbols at
+        # dlopen() time.  Only link explicitly if the shared library exists;
+        # this handles installs where only a static libpython.a is present.
+        if(NOT EXISTS "${PYTHON3_LIB}")
+            set(PYTHON3_LIB "")
+        endif()
         set(Python3_FOUND TRUE CACHE BOOL "")
     else(DEFINED Python3_ROOT_DIR)
         find_package (Python3 COMPONENTS Interpreter Development)
         if(Python3_FOUND)
             set(PYTHON3_LIB python${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR})
+            # Python extension modules resolve Py_* symbols from the running
+            # interpreter at dlopen() time; no need to link libpython explicitly.
+            # If CMake found only a static archive (.a), linking it into a shared
+            # object fails with -fPIC errors — clear the link flag in that case.
+            if(Python3_LIBRARIES MATCHES "\\.a$")
+                set(PYTHON3_LIB "")
+            endif()
         endif(Python3_FOUND)
     endif(DEFINED Python3_ROOT_DIR)
     if(NOT DEFINED RAPIDJSON_INCLUDE_DIR)
