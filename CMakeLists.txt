@@ -179,6 +179,13 @@ endif (PERFSTUBS_USE_STATIC AND NOT APPLE)
 add_library(perfstubs perfstubs_api/timer.c)
 if(Python3_FOUND)
     add_library(perfstubs_python perfstubs_api/timer.c perfstubs_api/python.cpp perfstubs_api/event_filter.cpp)
+    if(APPLE AND BUILD_SHARED_LIBS)
+        # On macOS, if we link against libpython, Python itself and perfstubs
+        # could end up loading separate copies of libpython. On macOS, don't
+        # link against libpython; instead, use Python's copy.
+        set(PYTHON3_LIB "")
+        set_target_properties(perfstubs_python PROPERTIES LINK_FLAGS "-undefined dynamic_lookup")
+    endif(APPLE AND BUILD_SHARED_LIBS)
 endif(Python3_FOUND)
 
 if (BUILD_SHARED_LIBS)
